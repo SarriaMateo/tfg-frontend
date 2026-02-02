@@ -1,6 +1,6 @@
 # TFG – Inventory Frontend
 
-BFrontend del Trabajo de Fin de Grado (TFG) para una aplicación web de **gestión de inventarios para pequeñas empresas**.
+Frontend del Trabajo de Fin de Grado (TFG) para una aplicación web de **gestión de inventarios para pequeñas empresas**.
 
 El proyecto está desarrollado en **React** y se comunica con un backend independiente mediante una **API REST** desarrollada con **FastAPI**.
 
