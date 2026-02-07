@@ -1,42 +1,182 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  min-height: 100vh;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Landing y Register Card Styles */
+.landing-card,
+.register-card {
+  border-radius: 1rem;
+  background: white;
+  transition: all 0.3s ease;
 }
 
-@keyframes logo-spin {
+.landing-card:hover,
+.register-card:hover {
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.12) !important;
+  transform: translateY(-2px);
+}
+
+.register-card {
+  border-top: 3px solid #0d6efd;
+}
+
+/* Form Control Styles */
+.form-control {
+  border-radius: 0.5rem;
+  border: 1px solid #e0e7ff;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+  color: #2c3e50;
+}
+
+.form-control::placeholder {
+  color: #a0aec0;
+}
+
+/* Button Styles */
+.btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #004999;
+  border-color: #004999;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-outline-primary {
+  color: #0d6efd;
+  border-color: #0d6efd;
+  border-width: 1.5px;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-link {
+  color: #0d6efd;
+  font-weight: 500;
+}
+
+.btn-link:hover {
+  color: #004999;
+  text-decoration: underline;
+}
+
+/* Card Styles */
+.card {
+  border: 1px solid #e0e7ff;
+  border-radius: 1rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(13, 110, 253, 0.08);
+}
+
+/* Alert Styles */
+.alert {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.alert-danger {
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+
+/* Badge Styles */
+.badge {
+  border-radius: 0.4rem;
+  font-weight: 500;
+  padding: 0.4rem 0.8rem;
+}
+
+.bg-primary {
+  background-color: #0d6efd !important;
+}
+
+/* Dashboard Info */
+.dashboard-info p {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f7ff;
+}
+
+.dashboard-info p:last-child {
+  border-bottom: none;
+}
+
+/* Light Background */
+.bg-light {
+  background-color: #f8fafc !important;
+}
+
+/* Typography */
+.display-4,
+.display-5 {
+  font-weight: 700;
+  color: #1a365d;
+}
+
+.fw-bold {
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .display-4,
+  .display-5 {
+    font-size: 2rem;
+  }
+
+  .landing-card,
+  .register-card {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
+.landing-card,
+.register-card,
 .card {
-  padding: 2em;
+  animation: slideIn 0.3s ease-out;
 }
 
-.read-the-docs {
-  color: #888;
-}
