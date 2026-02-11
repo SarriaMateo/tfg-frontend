@@ -19,6 +19,18 @@ export const ERROR_MESSAGES = {
     COMPANY_NIF_ALREADY_EXISTS: "El NIF ya está registrado",
     USERNAME_ALREADY_EXISTS: "El nombre de usuario ya está en uso",
   },
+  auth_errors: {
+    INVALID_CREDENTIALS: "Credenciales inválidas",
+  },
+  authorization_errors: {
+    INSUFFICIENT_ROLE: "Rol insuficiente",
+    BRANCH_ACCESS_DENIED: "Acceso a la sede denegado",
+    COMPANY_ACCESS_DENIED: "Acceso a la empresa denegado",
+  },
+  resource_not_found_errors: {
+    COMPANY_NOT_FOUND: "Empresa no encontrada",
+    BRANCH_NOT_FOUND: "Sede no encontrada",
+  },
 };
 
 export const DEFAULT_ERROR_MESSAGE = "Ha ocurrido un error inesperado. Por favor, intenta de nuevo.";

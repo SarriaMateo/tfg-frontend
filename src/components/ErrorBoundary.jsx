@@ -69,7 +69,7 @@ class ErrorBoundary extends Component {
                                             Reintentar
                                         </Button>
                                         <Button
-                                            onClick={() => window.location.href = "/"}
+                                            onClick={() => window.location.href = "/dashboard"}
                                             variant="outline-primary"
                                             className="flex-grow-1"
                                         >

@@ -1,8 +1,25 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
+import { useAuth } from "../hooks/useAuth";
 
 export default function LandingPage() {
     const navigate = useNavigate();
+    const { login, loading, error } = useAuth();
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [loginError, setLoginError] = useState(null);
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoginError(null);
+        try {
+            await login(username, password);
+            navigate("/dashboard");
+        } catch (err) {
+            setLoginError(err.message || "Error en el login");
+        }
+    };
 
     return (
         <Container className="d-flex align-items-center justify-content-center min-vh-100">
@@ -16,24 +33,40 @@ export default function LandingPage() {
                     <Card className="shadow-sm border-0 mb-3 landing-card">
                         <Card.Body className="p-4">
                             <h2 className="h4 mb-4 text-dark">Iniciar sesión</h2>
-                            <input 
-                                type="text" 
-                                placeholder="Username" 
-                                className="form-control mb-3"
-                                disabled 
-                            />
-                            <input 
-                                type="password" 
-                                placeholder="Password" 
-                                className="form-control mb-3"
-                                disabled 
-                            />
-                            <Button className="w-100 btn-primary" disabled>
-                                Login
-                            </Button>
-                            <p className="text-muted text-center mt-3 small">
-                                Disponible próximamente
-                            </p>
+                            
+                            {loginError && (
+                                <Alert variant="danger" dismissible onClose={() => setLoginError(null)}>
+                                    {loginError}
+                                </Alert>
+                            )}
+
+                            <form onSubmit={handleLogin}>
+                                <input 
+                                    type="text" 
+                                    placeholder="Username" 
+                                    className="form-control mb-3"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    disabled={loading}
+                                    required
+                                />
+                                <input 
+                                    type="password" 
+                                    placeholder="Password" 
+                                    className="form-control mb-3"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={loading}
+                                    required
+                                />
+                                <Button 
+                                    className="w-100 btn-primary"
+                                    type="submit"
+                                    disabled={loading || !username || !password}
+                                >
+                                    {loading ? "Cargando..." : "Login"}
+                                </Button>
+                            </form>
                         </Card.Body>
                     </Card>
 
