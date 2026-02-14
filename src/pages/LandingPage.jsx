@@ -1,14 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth";
 
 export default function LandingPage() {
     const navigate = useNavigate();
-    const { login, loading, error } = useAuth();
+    const { login, loading, error, isAuthenticated } = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState(null);
+
+    // Redirigir al dashboard si ya está autenticado
+    useEffect(() => {
+        if (isAuthenticated && !loading) {
+            navigate("/dashboard", { replace: true });
+        }
+    }, [isAuthenticated, loading, navigate]);
 
     const handleLogin = async (e) => {
         e.preventDefault();

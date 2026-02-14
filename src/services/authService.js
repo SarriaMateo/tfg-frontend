@@ -9,7 +9,7 @@ export const authService = {
       });
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error;
     }
   },
 
@@ -22,7 +22,7 @@ export const authService = {
       });
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error;
     }
   },
 

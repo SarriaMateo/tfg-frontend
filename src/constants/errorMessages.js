@@ -13,23 +13,35 @@ export const ERROR_MESSAGES = {
     PASSWORD_TOO_SHORT: "La contraseña debe tener al menos 8 caracteres",
     PASSWORD_TOO_LONG: "La contraseña no puede exceder 72 caracteres",
     INVALID_PASSWORD_FORMAT: "La contraseña debe tener entre 8 y 72 caracteres",
+    INVALID_ROLE: "Rol inválido",
+    INVALID_BRANCH_ID: "ID de sede inválido",
   },
   business_logic_errors: {
     COMPANY_EMAIL_ALREADY_EXISTS: "El email de la empresa ya está en uso",
     COMPANY_NIF_ALREADY_EXISTS: "El NIF ya está registrado",
     USERNAME_ALREADY_EXISTS: "El nombre de usuario ya está en uso",
+    CANNOT_CHANGE_ROLE_LAST_ADMIN: "No se puede cambiar el rol del último administrador de la empresa",
+    CANNOT_DELETE_LAST_ADMIN: "No se puede eliminar el último administrador de la empresa",
+    BRANCH_BELONGS_TO_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
+    ADMIN_CANNOT_HAVE_BRANCH: "Los usuarios con rol administrador no pueden tener una sede asociada",
   },
   auth_errors: {
     INVALID_CREDENTIALS: "Credenciales inválidas",
   },
   authorization_errors: {
-    INSUFFICIENT_ROLE: "Rol insuficiente",
+    INSUFFICIENT_ROLE: "El usuario no tiene permisos suficientes para esta acción",
     BRANCH_ACCESS_DENIED: "Acceso a la sede denegado",
-    COMPANY_ACCESS_DENIED: "Acceso a la empresa denegado",
+    COMPANY_ACCESS_DENIED: "Acceso denegado a esta empresa",
+    CANNOT_CREATE_USER_IN_DIFFERENT_COMPANY: "No se puede crear usuarios en una empresa diferente",
+    CANNOT_UPDATE_OTHER_USERS: "No se puede actualizar otros usuarios",
+    CANNOT_UPDATE_ROLE_OR_BRANCH: "No se puede actualizar el rol o sede",
+    CANNOT_VIEW_OTHER_USERS: "No se puede ver otros usuarios",
+    USER_FROM_DIFFERENT_COMPANY: "El usuario pertenece a una empresa diferente",
   },
   resource_not_found_errors: {
     COMPANY_NOT_FOUND: "Empresa no encontrada",
     BRANCH_NOT_FOUND: "Sede no encontrada",
+    USER_NOT_FOUND: "Usuario no encontrado",
   },
 };
 

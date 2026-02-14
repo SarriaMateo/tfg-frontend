@@ -40,6 +40,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
+      // Limpiar cualquier sesión anterior antes de hacer login
+      authService.logout();
+      setUser(null);
+      setToken(null);
+
       const { access_token, token_type } = await authService.login(
         username,
         password
@@ -74,6 +79,13 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   };
 
+  const updateUser = (updatedUserData) => {
+    // Normalizar y actualizar el usuario en el estado y localStorage
+    const normalizedUser = normalizeUserData({ ...user, ...updatedUserData });
+    setUser(normalizedUser);
+    authService.setUser(normalizedUser);
+  };
+
   const value = {
     user,
     token,
@@ -81,6 +93,7 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!token,
   };
 

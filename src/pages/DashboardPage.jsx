@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useAuthorization } from "../hooks/useAuthorization";
 import { companyService } from "../services/companyService";
+import { Navbar } from "../components/Navbar";
 
 export default function DashboardPage() {
     const navigate = useNavigate();
@@ -58,7 +59,9 @@ export default function DashboardPage() {
     }
 
     return (
-        <Container className="py-5">
+        <>
+            <Navbar />
+            <Container className="py-5">
             <div className="d-flex justify-content-between align-items-center mb-5">
                 <div>
                     <h1 className="display-5 fw-bold text-primary mb-2">Dashboard</h1>
@@ -71,13 +74,6 @@ export default function DashboardPage() {
                         className="align-self-start"
                     >
                         🧪 Test Dashboard
-                    </Button>
-                    <Button 
-                        variant="outline-danger"
-                        onClick={handleLogout}
-                        className="align-self-start"
-                    >
-                        Cerrar sesión
                     </Button>
                 </div>
             </div>
@@ -191,6 +187,7 @@ export default function DashboardPage() {
                     </Card>
                 </Col>
             </Row>
-        </Container>
+            </Container>
+        </>
     );
 }

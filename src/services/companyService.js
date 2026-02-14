@@ -6,7 +6,7 @@ export const companyService = {
       const response = await api.get(`/companies/${companyId}`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error;
     }
   },
 
@@ -15,7 +15,7 @@ export const companyService = {
       const response = await api.get(`/branches/${branchId}`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error;
     }
   },
 
@@ -24,7 +24,7 @@ export const companyService = {
       const response = await api.get(`/branches/company/${companyId}`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error;
     }
   },
 };

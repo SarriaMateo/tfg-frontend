@@ -8,6 +8,9 @@ import { PrivateRoute } from './components/PrivateRoute';
 import LandingPage from "./pages/LandingPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import InventoryPage from "./pages/InventoryPage";
+import OperationsPage from "./pages/OperationsPage";
+import SettingsPage from "./pages/SettingsPage";
 import TestDashboard from "./pages/test/TestDashboard";
 import AdminTestPage from "./pages/test/AdminTestPage";
 import ManagerTestPage from "./pages/test/ManagerTestPage";
@@ -30,6 +33,30 @@ function App() {
                 element={
                   <PrivateRoute>
                     <DashboardPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/inventory" 
+                element={
+                  <PrivateRoute>
+                    <InventoryPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/operations" 
+                element={
+                  <PrivateRoute>
+                    <OperationsPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <PrivateRoute>
+                    <SettingsPage />
                   </PrivateRoute>
                 } 
               />
