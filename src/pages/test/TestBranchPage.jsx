@@ -16,8 +16,8 @@ export default function TestBranchPage() {
         const fetchBranches = async () => {
             try {
                 setLoading(true);
-                if (user?.company_id) {
-                    const branchesData = await companyService.getCompanyBranches(user.company_id);
+                if (user) {
+                    const branchesData = await companyService.getCompanyBranches();
                     // Asegurar que branchesData es un array
                     if (Array.isArray(branchesData)) {
                         setBranches(branchesData);

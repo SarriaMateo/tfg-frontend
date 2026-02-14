@@ -105,7 +105,7 @@ export const UserManagement = () => {
           role: formData.role,
           branch_id: formData.branch_id ? parseInt(formData.branch_id) : null,
         };
-        await userService.createUser(user.company_id, createData);
+        await userService.createUser(createData);
       }
 
       setSuccess(true);
@@ -143,7 +143,6 @@ export const UserManagement = () => {
 
             <UserList 
               key={refreshKey}
-              companyId={user.company_id}
               currentUserId={user.id}
               onEditUser={handleEditUser}
               onDeleteUser={handleDeleteUser}
@@ -165,7 +164,6 @@ export const UserManagement = () => {
       >
         <UserForm
           user={selectedUser}
-          companyId={user.company_id}
           isAdmin={isAdmin}
           onSubmit={handleUserSubmit}
           onCancel={() => {

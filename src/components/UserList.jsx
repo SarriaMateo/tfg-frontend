@@ -4,7 +4,7 @@ import { userService } from '../services/userService';
 import { companyService } from '../services/companyService';
 import { translateError } from '../utils/errorTranslator';
 
-export const UserList = ({ companyId, currentUserId, onEditUser, onDeleteUser }) => {
+export const UserList = ({ currentUserId, onEditUser, onDeleteUser }) => {
   const [users, setUsers] = useState([]);
   const [branches, setBranches] = useState({});
   const [loading, setLoading] = useState(true);
@@ -12,17 +12,17 @@ export const UserList = ({ companyId, currentUserId, onEditUser, onDeleteUser })
 
   useEffect(() => {
     fetchData();
-  }, [companyId]);
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const usersData = await userService.getUsersByCompany(companyId);
+      const usersData = await userService.getUsersByCompany();
       setUsers(usersData);
 
       // Obtener información de todas las sedes
-      const branchesData = await companyService.getCompanyBranches(companyId);
+      const branchesData = await companyService.getCompanyBranches();
       const branchMap = {};
       branchesData.forEach(branch => {
         branchMap[branch.id] = branch.name;

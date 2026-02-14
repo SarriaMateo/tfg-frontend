@@ -6,7 +6,6 @@ import { translateError } from '../utils/errorTranslator';
 
 export const UserForm = ({ 
   user, 
-  companyId, 
   isAdmin, 
   onSubmit, 
   onCancel,
@@ -42,10 +41,10 @@ export const UserForm = ({
 
   useEffect(() => {
     const fetchBranches = async () => {
-      if (isAdmin && companyId) {
+      if (isAdmin) {
         setLoadingBranches(true);
         try {
-          const data = await companyService.getCompanyBranches(companyId);
+          const data = await companyService.getCompanyBranches();
           setBranches(data);
         } catch (err) {
           console.error('Error al cargar sedes:', err);
@@ -57,7 +56,7 @@ export const UserForm = ({
     };
 
     fetchBranches();
-  }, [isAdmin, companyId]);
+  }, [isAdmin]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

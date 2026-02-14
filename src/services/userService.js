@@ -12,9 +12,9 @@ export const userService = {
   },
 
   // Obtener todos los usuarios de una empresa
-  getUsersByCompany: async (companyId) => {
+  getUsersByCompany: async () => {
     try {
-      const response = await api.get(`/users/company/${companyId}/all`);
+      const response = await api.get(`/users`);
       return response.data;
     } catch (error) {
       throw error;
@@ -22,9 +22,9 @@ export const userService = {
   },
 
   // Crear nuevo usuario
-  createUser: async (companyId, userData) => {
+  createUser: async (userData) => {
     try {
-      const response = await api.post(`/users/company/${companyId}`, userData);
+      const response = await api.post(`/users`, userData);
       return response.data;
     } catch (error) {
       throw error;

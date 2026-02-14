@@ -19,9 +19,18 @@ export const companyService = {
     }
   },
 
-  getCompanyBranches: async (companyId) => {
+  getCompanyBranches: async () => {
     try {
-      const response = await api.get(`/branches/company/${companyId}`);
+      const response = await api.get(`/branches`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  createBranch: async (branchData) => {
+    try {
+      const response = await api.post(`/branches`, branchData);
       return response.data;
     } catch (error) {
       throw error;
