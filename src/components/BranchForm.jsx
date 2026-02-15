@@ -96,16 +96,12 @@ export const BranchForm = ({
           minLength={3}
           maxLength={100}
         />
-        <Form.Text className="text-muted">
-          Mínimo 3 caracteres, máximo 100
-        </Form.Text>
       </Form.Group>
 
       <Form.Group className="mb-3">
         <Form.Label>Dirección <span className="text-danger">*</span></Form.Label>
         <Form.Control
-          as="textarea"
-          rows={3}
+          type="text"
           name="address"
           value={formData.address}
           onChange={handleChange}
@@ -115,9 +111,6 @@ export const BranchForm = ({
           minLength={5}
           maxLength={250}
         />
-        <Form.Text className="text-muted">
-          Mínimo 5 caracteres, máximo 250
-        </Form.Text>
       </Form.Group>
 
       <div className="d-flex gap-2">
