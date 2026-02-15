@@ -33,7 +33,7 @@ export default function LandingPage() {
             <Row className="w-100">
                 <Col md={8} lg={6} className="mx-auto">
                     <div className="text-center mb-5">
-                        <h1 className="display-4 fw-bold text-primary mb-2">Inventory App</h1>
+                        <h1 className="display-4 fw-bold text-primary mb-2 app-brand" style={{ fontSize: '3.8rem' }}>Itematic</h1>
                         <p className="text-muted fs-5">Gestiona tu inventario de manera eficiente</p>
                     </div>
 

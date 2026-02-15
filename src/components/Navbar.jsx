@@ -23,9 +23,10 @@ export const Navbar = () => {
       <Container>
         <BSNavbar.Brand 
           onClick={() => navigateTo('/dashboard')}
-          style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '1.3rem' }}
+          style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '2.2rem' }}
+          className="app-brand"
         >
-          Platform
+          Itematic
         </BSNavbar.Brand>
         
         <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
@@ -33,25 +34,25 @@ export const Navbar = () => {
         <BSNavbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
             <Nav.Link 
-              className="me-2"
+              className="me-2 fw-600"
               onClick={() => navigateTo('/dashboard')}
             >
               Dashboard
             </Nav.Link>
             <Nav.Link 
-              className="me-2"
+              className="me-2 fw-600"
               onClick={() => navigateTo('/inventory')}
             >
               Inventario
             </Nav.Link>
             <Nav.Link 
-              className="me-2"
+              className="me-2 fw-600"
               onClick={() => navigateTo('/operations')}
             >
               Operaciones
             </Nav.Link>
             <Nav.Link 
-              className="me-3"
+              className="me-3 fw-600"
               onClick={() => navigateTo('/settings')}
             >
               Ajustes

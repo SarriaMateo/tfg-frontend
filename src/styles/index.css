@@ -18,6 +18,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -87,6 +89,16 @@ select:focus {
 h1, h2, h3, h4, h5, h6 {
   color: #1a365d;
   font-weight: 600;
+}
+
+.app-brand {
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.fw-600 {
+  font-weight: 600 !important;
 }
 
 .text-primary {
