@@ -15,6 +15,7 @@ export const ERROR_MESSAGES = {
     INVALID_PASSWORD_FORMAT: "La contraseña debe tener entre 8 y 72 caracteres",
     INVALID_ROLE: "Rol inválido",
     INVALID_BRANCH_ID: "ID de sede inválido",
+    BRANCH_HAS_USERS: "No se puede eliminar la sede porque tiene usuarios asociados",
   },
   business_logic_errors: {
     COMPANY_EMAIL_ALREADY_EXISTS: "El email de la empresa ya está en uso",
@@ -25,6 +26,9 @@ export const ERROR_MESSAGES = {
     BRANCH_BELONGS_TO_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
     ADMIN_CANNOT_HAVE_BRANCH: "Los usuarios con rol administrador no pueden tener una sede asociada",
   },
+  conflict_errors: {
+    BRANCH_NAME_ALREADY_EXISTS: "Ya existe una sede con ese nombre en esta empresa",
+  },
   auth_errors: {
     INVALID_CREDENTIALS: "Credenciales inválidas",
   },
@@ -32,6 +36,7 @@ export const ERROR_MESSAGES = {
     INSUFFICIENT_ROLE: "El usuario no tiene permisos suficientes para esta acción",
     BRANCH_ACCESS_DENIED: "Acceso a la sede denegado",
     COMPANY_ACCESS_DENIED: "Acceso denegado a esta empresa",
+    BRANCH_FROM_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
     CANNOT_CREATE_USER_IN_DIFFERENT_COMPANY: "No se puede crear usuarios en una empresa diferente",
     CANNOT_UPDATE_OTHER_USERS: "No se puede actualizar otros usuarios",
     CANNOT_UPDATE_ROLE_OR_BRANCH: "No se puede actualizar el rol o sede",
