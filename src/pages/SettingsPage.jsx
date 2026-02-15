@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Navbar } from '../components/Navbar';
 import { UserManagement } from '../components/UserManagement';
+import { BranchManagement } from '../components/BranchManagement';
 import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
 
 export const SettingsPage = () => {
@@ -77,17 +78,10 @@ export const SettingsPage = () => {
               <Card className="shadow-sm border-0">
                 <Card.Header className="bg-primary text-white">
                   <Card.Title className="mb-0">🏗️ Sedes</Card.Title>
-                  <small className="text-white-50">Información de las sedes de la empresa</small>
+                  <small className="text-white-50">Gestión de sedes de la empresa</small>
                 </Card.Header>
                 <Card.Body>
-                  <div className="p-4 bg-light rounded border border-dashed">
-                    <p className="text-muted mb-2">Esta sección será desarrollada próximamente.</p>
-                    {user?.role === 'ADMIN' ? (
-                      <p className="text-muted mb-0">Como administrador, podrás crear, editar y eliminar sedes.</p>
-                    ) : (
-                      <p className="text-muted mb-0">Aquí podrás ver la información de tu sede asignada.</p>
-                    )}
-                  </div>
+                  <BranchManagement />
                 </Card.Body>
               </Card>
             )}
