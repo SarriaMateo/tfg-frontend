@@ -1,9 +1,9 @@
 import api from '../api/api';
 
 export const companyService = {
-  getCompanyInfo: async (companyId) => {
+  getCompanyInfo: async () => {
     try {
-      const response = await api.get(`/companies/${companyId}`);
+      const response = await api.get('/company');
       return response.data;
     } catch (error) {
       throw error;

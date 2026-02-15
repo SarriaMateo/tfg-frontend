@@ -20,7 +20,7 @@ export default function TestDashboard() {
 
                 // Obtener información de la empresa
                 if (user?.company_id) {
-                    const company = await companyService.getCompanyInfo(user.company_id);
+                    const company = await companyService.getCompanyInfo();
                     setCompanyInfo(company);
                 }
 

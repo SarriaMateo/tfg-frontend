@@ -19,7 +19,7 @@ export const Navbar = () => {
       setLoadingInfo(true);
       try {
         if (user.company_id) {
-          const company = await companyService.getCompanyInfo(user.company_id);
+          const company = await companyService.getCompanyInfo();
           setCompanyName(company.name);
         }
         if (user.branch_id) {
