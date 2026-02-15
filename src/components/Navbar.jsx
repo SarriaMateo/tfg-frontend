@@ -1,12 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Navbar as BSNavbar, Container, Nav, Button, Dropdown } from 'react-bootstrap';
+import { companyService } from '../services/companyService';
+import { Navbar as BSNavbar, Container, Nav, Button, Dropdown, Spinner } from 'react-bootstrap';
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [expanded, setExpanded] = useState(false);
+  const [companyName, setCompanyName] = useState(null);
+  const [branchName, setBranchName] = useState(null);
+  const [loadingInfo, setLoadingInfo] = useState(false);
+
+  useEffect(() => {
+    const fetchInfo = async () => {
+      if (!user) return;
+      
+      setLoadingInfo(true);
+      try {
+        if (user.company_id) {
+          const company = await companyService.getCompanyInfo(user.company_id);
+          setCompanyName(company.name);
+        }
+        if (user.branch_id) {
+          const branch = await companyService.getBranchInfo(user.branch_id);
+          setBranchName(branch.name);
+        }
+      } catch (err) {
+        console.error('Error fetching company/branch info:', err);
+      } finally {
+        setLoadingInfo(false);
+      }
+    };
+
+    fetchInfo();
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -74,11 +102,29 @@ export const Navbar = () => {
               </Dropdown.Item>
               {user?.branch_id && (
                 <Dropdown.Item disabled>
-                  <small className="text-muted">Sede ID: {user?.branch_id}</small>
+                  <small className="text-muted">
+                    {loadingInfo ? (
+                      <>
+                        <Spinner size="sm" className="me-1" />
+                        Cargando...
+                      </>
+                    ) : (
+                      <>Sede: {branchName || `Sede #${user.branch_id}`}</>
+                    )}
+                  </small>
                 </Dropdown.Item>
               )}
               <Dropdown.Item disabled>
-                <small className="text-muted">Empresa: {user?.company_id}</small>
+                <small className="text-muted">
+                  {loadingInfo ? (
+                    <>
+                      <Spinner size="sm" className="me-1" />
+                      Cargando...
+                    </>
+                  ) : (
+                    <>Empresa: {companyName || `Empresa #${user.company_id}`}</>
+                  )}
+                </small>
               </Dropdown.Item>
               <Dropdown.Divider />
               <Dropdown.Item onClick={handleLogout}>
