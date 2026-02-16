@@ -35,7 +35,7 @@ export const ERROR_MESSAGES = {
   authorization_errors: {
     INSUFFICIENT_ROLE: "El usuario no tiene permisos suficientes para esta acción",
     BRANCH_ACCESS_DENIED: "Acceso a la sede denegado",
-    COMPANY_ACCESS_DENIED: "Acceso denegado a esta empresa",
+    COMPANY_ACCESS_DENIED: "Acceso denegado a la empresa solicitada",
     BRANCH_FROM_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
     CANNOT_CREATE_USER_IN_DIFFERENT_COMPANY: "No se puede crear usuarios en una empresa diferente",
     CANNOT_UPDATE_OTHER_USERS: "No se puede actualizar otros usuarios",
