@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Navbar } from '../components/Navbar';
 import { UserManagement } from '../components/UserManagement';
 import { BranchManagement } from '../components/BranchManagement';
+import { CompanyManagement } from '../components/CompanyManagement';
 import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
 
 export const SettingsPage = () => {
@@ -59,18 +60,7 @@ export const SettingsPage = () => {
           <Col lg={9}>
             {/* Empresa Section */}
             {activeSection === 'empresa' && (
-              <Card className="shadow-sm border-0">
-                <Card.Header className="bg-primary text-white">
-                  <Card.Title className="mb-0">🏢 Empresa</Card.Title>
-                  <small className="text-white-50">Información y configuración de la empresa</small>
-                </Card.Header>
-                <Card.Body>
-                  <div className="p-4 bg-light rounded border border-dashed">
-                    <p className="text-muted mb-2">Esta sección será desarrollada próximamente.</p>
-                    <p className="text-muted mb-0">Aquí podrás ver y editar la información de tu empresa.</p>
-                  </div>
-                </Card.Body>
-              </Card>
+              <CompanyManagement />
             )}
 
             {/* Sedes Section */}
