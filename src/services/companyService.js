@@ -10,6 +10,27 @@ export const companyService = {
     }
   },
 
+  updateCompanyInfo: async (companyData) => {
+    try {
+      const body = {
+        name: companyData.name,
+        email: companyData.email
+      };
+      
+      // NIF is only included if explicitly specified
+      // If sent as null, backend will change it to null
+      // If not sent, backend will not modify the NIF
+      if (companyData.hasOwnProperty('nif')) {
+        body.nif = companyData.nif;
+      }
+
+      const response = await api.put('/company', body);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   getBranchInfo: async (branchId) => {
     try {
       const response = await api.get(`/branches/${branchId}`);
