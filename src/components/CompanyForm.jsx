@@ -163,9 +163,6 @@ export const CompanyForm = ({
           minLength={9}
           maxLength={9}
         />
-        <Form.Text className="text-muted">
-          Campo opcional. Formato: 1 letra seguida de 8 dígitos. Si se deja vacío, se eliminará el NIF actual.
-        </Form.Text>
       </Form.Group>
 
       <div className="d-flex gap-2">
