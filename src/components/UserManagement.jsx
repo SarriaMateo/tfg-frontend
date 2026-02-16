@@ -64,20 +64,20 @@ export const UserManagement = () => {
         let updateData;
         if (isAdmin) {
           updateData = {};
-          
+
           // Solo incluir campos que realmente queremos actualizar
           if (formData.name) updateData.name = formData.name;
           if (formData.username) updateData.username = formData.username;
           if (formData.password) updateData.password = formData.password;
           if (formData.role) updateData.role = formData.role;
-          
+
           // branch_id: solo incluir si ha cambiado
           const newBranchId = formData.branch_id ? parseInt(formData.branch_id) : null;
           const originalBranchId = selectedUser.branch_id || null;
           if (newBranchId !== originalBranchId) {
             updateData.branch_id = newBranchId;
           }
-          
+
           console.log('Datos enviados al backend (admin update):', updateData);
           updatedUser = await userService.updateUserAdmin(selectedUser.id, updateData);
         } else {
@@ -91,7 +91,7 @@ export const UserManagement = () => {
           );
           updatedUser = await userService.updateUser(selectedUser.id, updateData);
         }
-        
+
         // Si el usuario editado es el usuario actual, actualizar el contexto
         if (selectedUser.id === user.id) {
           updateUser(updatedUser);
@@ -127,32 +127,34 @@ export const UserManagement = () => {
 
       {/* Gestión de Usuarios Section (only for ADMINs) */}
       {isAdmin && (
-        <Card className="shadow-sm border-0">
-          <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-            <Card.Title className="mb-0">Gestión de Usuarios</Card.Title>
-            <Button 
-              size="sm"
-              onClick={handleCreateUser}
-              style={{ height: '32px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
-            >
-              + Nuevo Usuario
-            </Button>
-          </Card.Header>
-          <Card.Body>
-            {success && <Alert variant="success" onClose={() => setSuccess(false)} dismissible>¡Operación completada correctamente!</Alert>}
+        <div className="mt-3">
+          <Card className="shadow-sm border-0">
+            <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+              <Card.Title className="mb-0">Gestión de Usuarios</Card.Title>
+              <Button
+                size="sm"
+                onClick={handleCreateUser}
+                style={{ height: '32px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
+              >
+                + Nuevo Usuario
+              </Button>
+            </Card.Header>
+            <Card.Body>
+              {success && <Alert variant="success" onClose={() => setSuccess(false)} dismissible>¡Operación completada correctamente!</Alert>}
 
-            <UserList 
-              key={refreshKey}
-              currentUserId={user.id}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-            />
-          </Card.Body>
-        </Card>
+              <UserList
+                key={refreshKey}
+                currentUserId={user.id}
+                onEditUser={handleEditUser}
+                onDeleteUser={handleDeleteUser}
+              />
+            </Card.Body>
+          </Card>
+        </div>
       )}
 
       {/* Modal for Creating/Editing Users */}
-      <Modal 
+      <Modal
         isOpen={showModal}
         title={selectedUser ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
         onClose={() => {
