@@ -49,7 +49,8 @@ export const CompanyManagement = () => {
   return (
     <Card className="shadow-sm border-0">
       <Card.Header className="bg-primary text-white">
-        <Card.Title className="mb-0">Gestión de Empresa</Card.Title>
+        <Card.Title className="mb-1">🏢 Empresa</Card.Title>
+        <small className="text-white-50">Información y configuración de la empresa</small>
       </Card.Header>
       <Card.Body>
         {success && <Alert variant="success" onClose={() => setSuccess(false)} dismissible>¡Información actualizada correctamente!</Alert>}

@@ -8,7 +8,7 @@ import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
 
 export const SettingsPage = () => {
   const { user } = useAuth();
-  const [activeSection, setActiveSection] = useState('usuarios');
+  const [activeSection, setActiveSection] = useState('empresa');
 
   const sections = [
     { id: 'empresa', label: 'Empresa', icon: '🏢' },
@@ -65,15 +65,7 @@ export const SettingsPage = () => {
 
             {/* Sedes Section */}
             {activeSection === 'sedes' && (
-              <Card className="shadow-sm border-0">
-                <Card.Header className="bg-primary text-white">
-                  <Card.Title className="mb-0">🏗️ Sedes</Card.Title>
-                  <small className="text-white-50">Gestión de sedes de la empresa</small>
-                </Card.Header>
-                <Card.Body>
-                  <BranchManagement />
-                </Card.Body>
-              </Card>
+              <BranchManagement />
             )}
 
             {/* Usuarios Section */}

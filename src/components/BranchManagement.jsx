@@ -87,23 +87,28 @@ export const BranchManagement = () => {
 
   return (
     <Card className="shadow-sm border-0">
-      <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-        <Card.Title className="mb-0">Gestión de Sedes</Card.Title>
-        {isAdmin && (
-          <Button 
-            size="sm"
-            onClick={handleCreateBranch}
-            style={{ height: '32px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
-          >
-            + Nueva Sede
-          </Button>
-        )}
+      <Card.Header className="bg-primary text-white">
+        <div className="d-flex justify-content-between align-items-center">
+          <div>
+            <Card.Title className="mb-1">🏗️ Sedes</Card.Title>
+            <small className="text-white-50">Gestión de sedes de la empresa</small>
+          </div>
+          {isAdmin && (
+            <Button
+              size="sm"
+              onClick={handleCreateBranch}
+              style={{ height: '38px', padding: '0.5rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
+            >
+              + Nueva Sede
+            </Button>
+          )}
+        </div>
       </Card.Header>
       <Card.Body>
         {success && <Alert variant="success" onClose={() => setSuccess(false)} dismissible>¡Operación completada correctamente!</Alert>}
         {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
 
-        <BranchList 
+        <BranchList
           key={refreshKey}
           onEditBranch={handleEditBranch}
           onDeleteBranch={handleDeleteBranch}
@@ -112,7 +117,7 @@ export const BranchManagement = () => {
       </Card.Body>
 
       {/* Modal for Creating/Editing Branches */}
-      <Modal 
+      <Modal
         isOpen={showModal}
         title={selectedBranch ? 'Editar Sede' : 'Crear Nueva Sede'}
         onClose={() => {
