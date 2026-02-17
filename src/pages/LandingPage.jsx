@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth";
+import { translateError } from "../utils/errorTranslator";
 
 export default function LandingPage() {
     const navigate = useNavigate();
@@ -24,7 +25,12 @@ export default function LandingPage() {
             await login(username, password);
             navigate("/dashboard");
         } catch (err) {
-            setLoginError(err.message || "Error en el login");
+            const status = err?.response?.status;
+            if (status === 400 || status === 401) {
+                setLoginError(translateError(err));
+            } else {
+                setLoginError(err.message || "Error en el login");
+            }
         }
     };
 
