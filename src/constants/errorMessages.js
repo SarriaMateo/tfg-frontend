@@ -17,6 +17,13 @@ export const ERROR_MESSAGES = {
     INVALID_BRANCH_ID: "ID de sede inválido",
     IMAGE_TOO_LARGE: "La imagen es demasiado grande",
     INVALID_IMAGE_FORMAT: "El formato de imagen no es válido",
+    ITEM_NAME_TOO_SHORT: "El nombre del artículo debe tener al menos 1 carácter",
+    ITEM_NAME_TOO_LONG: "El nombre del artículo no puede exceder 100 caracteres",
+    INVALID_SKU_FORMAT: "El SKU debe contener solo caracteres alfanuméricos y no exceder 12 caracteres",
+    INVALID_PRICE_FORMAT: "El precio debe ser un número válido mayor o igual a 0",
+    CATEGORY_NAME_TOO_SHORT: "El nombre de la categoría debe tener al menos 1 carácter",
+    CATEGORY_NAME_TOO_LONG: "El nombre de la categoría no puede exceder 50 caracteres",
+    INVALID_COLOR_FORMAT: "El color debe estar en formato hexadecimal válido (#RRGGBB)",
   },
   conflict_errors: {
     COMPANY_EMAIL_ALREADY_EXISTS: "El email de la empresa ya está en uso",
