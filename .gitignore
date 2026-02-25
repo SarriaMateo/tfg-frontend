@@ -23,7 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
-# Archivos de entorno
+# Environment variables
 .env
 .env.local
 .env.*.local
+
+# Misc
+C4_ARCHITECTURE_SIMPLE.md
+C4_COMPONENT_ARCHITECTURE.md

@@ -15,19 +15,22 @@ export const ERROR_MESSAGES = {
     INVALID_PASSWORD_FORMAT: "La contraseña debe tener entre 8 y 72 caracteres",
     INVALID_ROLE: "Rol inválido",
     INVALID_BRANCH_ID: "ID de sede inválido",
-    BRANCH_HAS_USERS: "No se puede eliminar la sede porque tiene usuarios asociados",
+    IMAGE_TOO_LARGE: "La imagen es demasiado grande",
+    INVALID_IMAGE_FORMAT: "El formato de imagen no es válido",
   },
-  business_logic_errors: {
+  conflict_errors: {
     COMPANY_EMAIL_ALREADY_EXISTS: "El email de la empresa ya está en uso",
     COMPANY_NIF_ALREADY_EXISTS: "El NIF ya está registrado",
     USERNAME_ALREADY_EXISTS: "El nombre de usuario ya está en uso",
+    SKU_ALREADY_EXISTS: "El SKU ya existe",
+    BRANCH_NAME_ALREADY_EXISTS: "Ya existe una sede con ese nombre en esta empresa",
+  },
+  business_logic_errors: {
     CANNOT_CHANGE_ROLE_LAST_ADMIN: "No se puede cambiar el rol del último administrador de la empresa",
     CANNOT_DELETE_LAST_ADMIN: "No se puede eliminar el último administrador de la empresa",
     BRANCH_BELONGS_TO_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
     ADMIN_CANNOT_HAVE_BRANCH: "Los usuarios con rol administrador no pueden tener una sede asociada",
-  },
-  conflict_errors: {
-    BRANCH_NAME_ALREADY_EXISTS: "Ya existe una sede con ese nombre en esta empresa",
+    BRANCH_HAS_USERS: "No se puede eliminar la sede porque tiene usuarios asociados",
   },
   auth_errors: {
     INVALID_CREDENTIALS: "Credenciales inválidas",
@@ -37,7 +40,6 @@ export const ERROR_MESSAGES = {
     BRANCH_ACCESS_DENIED: "Acceso a la sede denegado",
     COMPANY_ACCESS_DENIED: "Acceso denegado a la empresa solicitada",
     BRANCH_FROM_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
-    CANNOT_CREATE_USER_IN_DIFFERENT_COMPANY: "No se puede crear usuarios en una empresa diferente",
     CANNOT_UPDATE_OTHER_USERS: "No se puede actualizar otros usuarios",
     CANNOT_UPDATE_ROLE_OR_BRANCH: "No se puede actualizar el rol o sede",
     CANNOT_VIEW_OTHER_USERS: "No se puede ver otros usuarios",
@@ -47,6 +49,9 @@ export const ERROR_MESSAGES = {
     COMPANY_NOT_FOUND: "Empresa no encontrada",
     BRANCH_NOT_FOUND: "Sede no encontrada",
     USER_NOT_FOUND: "Usuario no encontrado",
+    ITEM_NOT_FOUND: "Artículo no encontrado",
+    CATEGORY_NOT_FOUND: "Categoría no encontrada",
+    IMAGE_NOT_FOUND: "Imagen no encontrada",
   },
 };
 
