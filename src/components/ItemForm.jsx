@@ -7,6 +7,24 @@ import { translateError } from '../utils/errorTranslator';
 
 const UNITS = ['ud', 'kg', 'g', 'l', 'ml', 'm', 'box', 'pack'];
 
+const getTextColor = (hexColor) => {
+  if (!hexColor || typeof hexColor !== 'string') {
+    return '#ffffff';
+  }
+
+  const normalized = hexColor.replace('#', '');
+  if (normalized.length !== 6) {
+    return '#ffffff';
+  }
+
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? '#1b1b1b' : '#ffffff';
+};
+
 export const ItemForm = ({ 
   item,
   initialCategoryIds = [],
@@ -358,62 +376,84 @@ export const ItemForm = ({
         ) : (
           <>
             {/* Selected Categories Display */}
-            {selectedCategoryObjects.length > 0 && (
-              <div className="mb-3 p-3" style={{ backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
-                {selectedCategoryObjects.map(cat => (
+            <div
+              className="mb-3 p-3"
+              style={{
+                backgroundColor: '#f8f9fa',
+                borderRadius: '4px',
+                minHeight: '72px',
+                display: 'flex',
+                alignItems: selectedCategoryObjects.length > 0 ? 'flex-start' : 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              {selectedCategoryObjects.length > 0 ? (
+                selectedCategoryObjects.map(cat => (
                   <CategoryBadge 
                     key={cat.id}
                     category={cat}
                     onRemove={handleCategoryToggle}
                     removable={true}
                   />
-                ))}
-              </div>
-            )}
+                ))
+              ) : (
+                <p className="text-muted mb-0">Sin categorías asignadas</p>
+              )}
+            </div>
 
-            {/* Category Checkboxes */}
-            {categories.length > 0 ? (
-              <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px', borderRadius: '4px' }}>
-                {categories.map(cat => (
-                  <Form.Check
-                    key={cat.id}
-                    type="checkbox"
-                    id={`category-${cat.id}`}
-                    label={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: cat.color,
-                            borderRadius: '3px',
-                            border: '1px solid #ddd',
-                          }}
-                        />
+            {/* Available Categories */}
+            <div className="d-flex gap-3 align-items-start">
+              <div
+                style={{
+                  flex: 1,
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  border: '1px solid #ddd',
+                  padding: '10px',
+                  borderRadius: '4px',
+                  backgroundColor: '#fff',
+                }}
+              >
+                {categories.filter(cat => !selectedCategories.includes(cat.id)).length > 0 ? (
+                  categories
+                    .filter(cat => !selectedCategories.includes(cat.id))
+                    .map(cat => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => handleCategoryToggle(cat.id)}
+                        disabled={loading}
+                        className="badge"
+                        style={{
+                          backgroundColor: cat.color,
+                          color: getTextColor(cat.color),
+                          border: 'none',
+                          cursor: 'pointer',
+                          marginRight: '8px',
+                          marginBottom: '8px',
+                          padding: '6px 12px',
+                        }}
+                      >
                         {cat.name}
-                      </div>
-                    }
-                    checked={selectedCategories.includes(cat.id)}
-                    onChange={() => handleCategoryToggle(cat.id)}
-                    disabled={loading}
-                    className="mb-2"
-                  />
-                ))}
+                      </button>
+                    ))
+                ) : (
+                  <p className="text-muted mb-0">No hay categorías disponibles</p>
+                )}
               </div>
-            ) : (
-              <p className="text-muted">No hay categorías disponibles</p>
-            )}
 
-            <Button
-              variant="outline-primary"
-              size="sm"
-              onClick={() => setShowCategoryModal(true)}
-              disabled={loading}
-              className="mt-2"
-            >
-              + Añadir nueva categoría
-            </Button>
+              <div>
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={() => setShowCategoryModal(true)}
+                  disabled={loading}
+                >
+                  + Nueva categoría
+                </Button>
+              </div>
+            </div>
           </>
         )}
       </Form.Group>
