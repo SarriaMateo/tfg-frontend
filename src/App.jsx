@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import InventoryPage from "./pages/InventoryPage";
+import ItemDetailPage from "./pages/ItemDetailPage";
 import OperationsPage from "./pages/OperationsPage";
 import SettingsPage from "./pages/SettingsPage";
 import TestDashboard from "./pages/test/TestDashboard";
@@ -41,6 +42,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <InventoryPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/inventory/items/:itemId" 
+                element={
+                  <PrivateRoute>
+                    <ItemDetailPage />
                   </PrivateRoute>
                 } 
               />
