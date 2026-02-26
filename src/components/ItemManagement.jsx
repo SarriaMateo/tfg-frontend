@@ -70,8 +70,8 @@ export const ItemManagement = () => {
         updatedItem = await itemService.createItem(formData);
       }
 
-      // Assign categories to the item
-      if (categoryIds && categoryIds.length > 0) {
+      // Assign categories to the item (including empty array to clear)
+      if (Array.isArray(categoryIds)) {
         await categoryService.assignCategoriesToItem(updatedItem.id, categoryIds);
       }
 

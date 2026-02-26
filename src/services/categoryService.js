@@ -54,9 +54,10 @@ export const categoryService = {
   // Assign categories to item
   assignCategoriesToItem: async (itemId, categoryIds) => {
     try {
-      const response = await api.post(`/items/${itemId}/categories`, {
-        category_ids: categoryIds,
-      });
+      const normalizedIds = Array.isArray(categoryIds)
+        ? categoryIds.map((id) => Number(id)).filter((id) => Number.isFinite(id))
+        : [];
+      const response = await api.post(`/items/${itemId}/categories`, normalizedIds);
       return response.data;
     } catch (error) {
       throw error;

@@ -51,6 +51,7 @@ export const ItemForm = ({
   const [error, setError] = useState(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [savingCategory, setSavingCategory] = useState(false);
 
   // Use external error if available, otherwise internal error
   const displayError = externalError || error;
@@ -75,7 +76,10 @@ export const ItemForm = ({
 
   useEffect(() => {
     if (Array.isArray(initialCategoryIds)) {
-      setSelectedCategories(initialCategoryIds);
+      const normalizedIds = initialCategoryIds
+        .map((id) => Number(id))
+        .filter((id) => Number.isFinite(id));
+      setSelectedCategories(normalizedIds);
     }
   }, [initialCategoryIds]);
 
@@ -137,11 +141,15 @@ export const ItemForm = ({
   };
 
   const handleCategoryToggle = (categoryId) => {
+    const normalizedId = Number(categoryId);
+    if (!Number.isFinite(normalizedId)) {
+      return;
+    }
     setSelectedCategories(prev => {
-      if (prev.includes(categoryId)) {
-        return prev.filter(id => id !== categoryId);
+      if (prev.includes(normalizedId)) {
+        return prev.filter(id => id !== normalizedId);
       } else {
-        return [...prev, categoryId];
+        return [...prev, normalizedId];
       }
     });
     setError(null);
@@ -215,10 +223,11 @@ export const ItemForm = ({
   };
 
   const isEditMode = !!item;
-  const selectedCategoryObjects = categories.filter(cat => selectedCategories.includes(cat.id));
+  const selectedCategoryObjects = categories.filter(cat => selectedCategories.includes(Number(cat.id)));
 
   return (
-    <Form onSubmit={handleSubmit}>
+    <>
+      <Form onSubmit={handleSubmit}>
       {displayError && (
         <Alert variant="danger" onClose={() => {
           setError(null);
@@ -415,9 +424,9 @@ export const ItemForm = ({
                   backgroundColor: '#fff',
                 }}
               >
-                {categories.filter(cat => !selectedCategories.includes(cat.id)).length > 0 ? (
+                {categories.filter(cat => !selectedCategories.includes(Number(cat.id))).length > 0 ? (
                   categories
-                    .filter(cat => !selectedCategories.includes(cat.id))
+                    .filter(cat => !selectedCategories.includes(Number(cat.id)))
                     .map(cat => (
                       <button
                         key={cat.id}
@@ -504,6 +513,7 @@ export const ItemForm = ({
           Cancelar
         </Button>
       </div>
+      </Form>
 
       {/* Category Modal */}
       <CategoryModal
@@ -511,16 +521,19 @@ export const ItemForm = ({
         category={null}
         onClose={() => setShowCategoryModal(false)}
         onSave={async (categoryData) => {
+          setSavingCategory(true);
           try {
             await categoryService.createCategory(categoryData);
             handleCategoryAdded();
           } catch (err) {
             setError(translateError(err));
+          } finally {
+            setSavingCategory(false);
           }
         }}
-        loading={loading}
+        loading={savingCategory}
       />
-    </Form>
+    </>
   );
 };
 
