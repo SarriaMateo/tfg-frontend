@@ -52,10 +52,12 @@ export const itemService = {
   },
 
   // Get item image
-  getItemImage: async (itemId) => {
+  getItemImage: async (itemId, cacheBuster) => {
     try {
+      const params = cacheBuster ? { t: cacheBuster } : {};
       const response = await api.get(`/items/${itemId}/image`, {
         responseType: 'blob',
+        params,
       });
       return response.data;
     } catch (error) {

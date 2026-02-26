@@ -20,6 +20,7 @@ export const ItemDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [imageRefresh, setImageRefresh] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
@@ -60,7 +61,7 @@ export const ItemDetailPage = () => {
     const fetchImage = async () => {
       if (!item?.id) return;
       try {
-        const blob = await itemService.getItemImage(item.id);
+        const blob = await itemService.getItemImage(item.id, Date.now());
         objectUrl = URL.createObjectURL(blob);
         setImageUrl(objectUrl);
       } catch (err) {
@@ -75,7 +76,7 @@ export const ItemDetailPage = () => {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [item?.id]);
+  }, [item?.id, imageRefresh]);
 
   const handleSave = async (formData, categoryIds) => {
     if (!item) return;
@@ -92,6 +93,7 @@ export const ItemDetailPage = () => {
         setCategories(updatedCategories || []);
       }
 
+      setImageRefresh(r => r + 1);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {

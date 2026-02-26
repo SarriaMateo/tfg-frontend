@@ -46,7 +46,6 @@ export const ItemForm = ({
   });
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -68,9 +67,6 @@ export const ItemForm = ({
         image_url_form: item.image_url || '',
         is_active: item.is_active !== undefined ? item.is_active : true,
       });
-      if (item.image_url) {
-        setImagePreview(item.image_url);
-      }
     }
   }, [item]);
 
@@ -131,12 +127,6 @@ export const ItemForm = ({
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -241,13 +231,13 @@ export const ItemForm = ({
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3">
-            <Form.Label>Nombre del artículo <span className="text-danger">*</span></Form.Label>
+            <Form.Label>Nombre <span className="text-danger">*</span></Form.Label>
             <Form.Control
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Ej: Laptop Dell XPS 13"
+              placeholder="Nombre del artículo"
               maxLength={100}
               disabled={loading}
             />
@@ -261,7 +251,7 @@ export const ItemForm = ({
               name="sku"
               value={formData.sku}
               onChange={handleChange}
-              placeholder="Ej: XPS13ABC123"
+              placeholder="SKU único"
               maxLength={12}
               disabled={loading}
             />
@@ -297,7 +287,7 @@ export const ItemForm = ({
               name="brand"
               value={formData.brand}
               onChange={handleChange}
-              placeholder="Ej: Dell"
+              placeholder="Marca del artículo"
               maxLength={100}
               disabled={loading}
             />
@@ -333,30 +323,12 @@ export const ItemForm = ({
               disabled={loading}
             />
             <Form.Text className="text-muted">
-              Formatos: JPG, PNG, WEBP. Tamaño máximo: 5MB.
+              Formatos: JPG, PNG, WEBP. Tamaño máximo: 5MB
             </Form.Text>
           </Form.Group>
         </Col>
       </Row>
 
-      {/* Image Preview */}
-      {imagePreview && (
-        <Form.Group className="mb-3">
-          <Form.Label>Vista previa de imagen</Form.Label>
-          <div>
-            <img 
-              src={imagePreview} 
-              alt="Preview"
-              style={{
-                maxWidth: '150px',
-                maxHeight: '150px',
-                borderRadius: '4px',
-                border: '1px solid #ddd',
-              }}
-            />
-          </div>
-        </Form.Group>
-      )}
 
       {/* Description */}
       <Form.Group className="mb-3">
