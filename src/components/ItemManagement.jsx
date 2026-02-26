@@ -11,7 +11,7 @@ import { translateError } from '../utils/errorTranslator';
 
 export const ItemManagement = () => {
   const { user } = useAuth();
-  const { checkRole } = useAuthorization();
+  const { hasAnyRole, hasRole } = useAuthorization();
   const [selectedItem, setSelectedItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -22,8 +22,8 @@ export const ItemManagement = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Check permissions: only MANAGER+ can create/edit items, only ADMIN can delete
-  const canCreateEdit = checkRole('MANAGER');
-  const canDelete = checkRole('ADMIN');
+  const canCreateEdit = hasAnyRole(['MANAGER', 'ADMIN']);
+  const canDelete = hasRole('ADMIN');
 
   const handleCreateItem = () => {
     setSelectedItem(null);

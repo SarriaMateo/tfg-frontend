@@ -5,6 +5,7 @@ import { ItemForm } from './ItemForm';
 export const ItemModal = ({
   isOpen,
   item,
+  initialCategoryIds = [],
   onClose,
   onSave,
   loading = false,
@@ -36,6 +37,7 @@ export const ItemModal = ({
     >
       <ItemForm
         item={item}
+        initialCategoryIds={initialCategoryIds}
         onSubmit={handleFormSubmit}
         onCancel={onClose}
         loading={loading}

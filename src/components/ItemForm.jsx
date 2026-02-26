@@ -9,6 +9,7 @@ const UNITS = ['ud', 'kg', 'g', 'l', 'ml', 'm', 'box', 'pack'];
 
 export const ItemForm = ({ 
   item,
+  initialCategoryIds = [],
   onSubmit, 
   onCancel,
   loading = false,
@@ -53,6 +54,12 @@ export const ItemForm = ({
       }
     }
   }, [item]);
+
+  useEffect(() => {
+    if (Array.isArray(initialCategoryIds)) {
+      setSelectedCategories(initialCategoryIds);
+    }
+  }, [initialCategoryIds]);
 
   useEffect(() => {
     const fetchCategories = async () => {
