@@ -5,7 +5,16 @@ import { CategoryBadge } from './CategoryBadge';
 import { CategoryModal } from './CategoryModal';
 import { translateError } from '../utils/errorTranslator';
 
-const UNITS = ['ud', 'kg', 'g', 'l', 'ml', 'm', 'box', 'pack'];
+const UNITS = [
+  { value: 'ud', label: 'Unidad' },
+  { value: 'kg', label: 'Kilogramo' },
+  { value: 'g', label: 'Gramo' },
+  { value: 'l', label: 'Litro' },
+  { value: 'ml', label: 'Mililitro' },
+  { value: 'm', label: 'Metro' },
+  { value: 'box', label: 'Caja' },
+  { value: 'pack', label: 'Pack' }
+];
 
 const getTextColor = (hexColor) => {
   if (!hexColor || typeof hexColor !== 'string') {
@@ -262,6 +271,7 @@ export const ItemForm = ({
         </Col>
       </Row>
 
+      {/* Unit, Brand, and Active Status */}
       {/* Unit and Brand */}
       <Row>
         <Col md={6}>
@@ -274,7 +284,7 @@ export const ItemForm = ({
               disabled={loading}
             >
               {UNITS.map(unit => (
-                <option key={unit} value={unit}>{unit}</option>
+                <option key={unit.value} value={unit.value}>{unit.label}</option>
               ))}
             </Form.Select>
           </Form.Group>
@@ -329,6 +339,47 @@ export const ItemForm = ({
         </Col>
       </Row>
 
+      {/* Active Status (Edit Mode Only) */}
+      {isEditMode && (
+        <Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                id="is_active"
+                name="is_active"
+                label="Artículo activo"
+                checked={formData.is_active}
+                onChange={handleChange}
+                disabled={loading}
+                className="d-flex align-items-center item-active-check"
+                style={{
+                  marginBottom: 0,
+                  gap: '6px',
+                }}
+              />
+              <style>{`
+                .item-active-check.form-check {
+                  padding-left: 0 !important;
+                  margin-left: 0 !important;
+                }
+                #is_active.form-check-input {
+                  width: 14px !important;
+                  height: 14px !important;
+                  margin: 0 !important;
+                  cursor: pointer;
+                  flex-shrink: 0;
+                  margin-top: 0 !important;
+                }
+                #is_active.form-check-input:disabled {
+                  cursor: not-allowed;
+                }
+              `}</style>
+            </Form.Group>
+          </Col>
+        </Row>
+      )}
+
 
       {/* Description */}
       <Form.Group className="mb-3">
@@ -347,7 +398,7 @@ export const ItemForm = ({
 
       {/* Categories */}
       <Form.Group className="mb-3">
-        <Form.Label>Categorías <span className="text-danger">*</span></Form.Label>
+        <Form.Label>Categorías</Form.Label>
         
         {loadingCategories ? (
           <div>
@@ -439,27 +490,32 @@ export const ItemForm = ({
         )}
       </Form.Group>
 
-      {/* Active Status (Edit Mode Only) */}
-      {isEditMode && (
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="checkbox"
-            id="is_active"
-            name="is_active"
-            label="Artículo activo"
-            checked={formData.is_active}
-            onChange={handleChange}
-            disabled={loading}
-          />
-        </Form.Group>
-      )}
-
       {/* Submit Buttons */}
-      <div className="d-flex gap-2">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '8px',
+        width: '100%'
+      }}>
+        <Button 
+          variant="secondary" 
+          onClick={onCancel}
+          disabled={loading}
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden'
+          }}
+        >
+          Cancelar
+        </Button>
         <Button 
           variant="primary" 
           type="submit"
           disabled={loading}
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden'
+          }}
         >
           {loading ? (
             <>
@@ -476,13 +532,6 @@ export const ItemForm = ({
           ) : (
             isEditMode ? 'Actualizar artículo' : 'Crear artículo'
           )}
-        </Button>
-        <Button 
-          variant="secondary" 
-          onClick={onCancel}
-          disabled={loading}
-        >
-          Cancelar
         </Button>
       </div>
       </Form>

@@ -180,3 +180,11 @@
   animation: slideIn 0.3s ease-out;
 }
 
+.modal.category-modal {
+  z-index: 1060;
+}
+
+.modal-backdrop.category-modal-backdrop {
+  z-index: 1058;
+}
+

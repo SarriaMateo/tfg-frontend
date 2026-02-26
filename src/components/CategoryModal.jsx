@@ -37,6 +37,8 @@ export const CategoryModal = ({
       title={title}
       onClose={onClose}
       size="md"
+      className="category-modal"
+      backdropClassName="category-modal-backdrop"
     >
       <CategoryForm
         category={category}

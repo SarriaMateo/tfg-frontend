@@ -85,19 +85,16 @@ export const CategoryForm = ({
       )}
 
       <Form.Group className="mb-3">
-        <Form.Label>Nombre de la categoría</Form.Label>
+        <Form.Label>Nombre</Form.Label>
         <Form.Control
           type="text"
           name="name"
           value={formData.name}
           onChange={handleChange}
-          placeholder="Ej: Electrónica"
+          placeholder="Nombre de la categoría"
           maxLength={50}
           disabled={loading}
         />
-        <Form.Text className="text-muted">
-          {formData.name.length}/50 caracteres
-        </Form.Text>
       </Form.Group>
 
       <Form.Group className="mb-3">
