@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
 import { categoryService } from '../services/categoryService';
+import { itemService } from '../services/itemService';
 import { CategoryBadge } from './CategoryBadge';
 import { CategoryModal } from './CategoryModal';
 import { translateError } from '../utils/errorTranslator';
@@ -56,8 +57,11 @@ export const ItemForm = ({
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [imageFile, setImageFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [deleteImage, setDeleteImage] = useState(false);
   const [error, setError] = useState(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingImage, setLoadingImage] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [savingCategory, setSavingCategory] = useState(false);
 
@@ -105,6 +109,33 @@ export const ItemForm = ({
     fetchCategories();
   }, []);
 
+  // Load image when in edit mode
+  useEffect(() => {
+    let objectUrl = null;
+    const fetchImage = async () => {
+      if (!item?.id || !item?.image_url) return;
+      setLoadingImage(true);
+      try {
+        const blob = await itemService.getItemImage(item.id, Date.now());
+        objectUrl = URL.createObjectURL(blob);
+        setImageUrl(objectUrl);
+      } catch (err) {
+        // Ignore missing images and other fetch errors
+        console.error('Error loading image:', err);
+      } finally {
+        setLoadingImage(false);
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [item?.id, item?.image_url]);
+
   // When a new category is added, fetch updated list
   const handleCategoryAdded = () => {
     setShowCategoryModal(false);
@@ -136,7 +167,17 @@ export const ItemForm = ({
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
+      setDeleteImage(false);
     }
+  };
+
+  const handleDeleteImage = () => {
+    setDeleteImage(true);
+    setImageFile(null);
+  };
+
+  const handleCancelDeleteImage = () => {
+    setDeleteImage(false);
   };
 
   const handleCategoryToggle = (categoryId) => {
@@ -213,8 +254,16 @@ export const ItemForm = ({
     if (formData.description) data.append('description', formData.description);
     if (formData.price) data.append('price', parseFloat(formData.price));
     if (formData.brand) data.append('brand', formData.brand);
-    if (formData.image_url_form && !imageFile) data.append('image_url_form', formData.image_url_form);
-    if (imageFile) data.append('image', imageFile);
+    
+    // Handle image: upload new, delete existing, or keep current
+    if (deleteImage) {
+      data.append('delete_image', 'true');
+    } else if (formData.image_url_form && !imageFile) {
+      data.append('image_url_form', formData.image_url_form);
+    } else if (imageFile) {
+      data.append('image', imageFile);
+    }
+    
     if (item) data.append('is_active', formData.is_active);
 
     // Pass the FormData and selected categories to parent
@@ -305,9 +354,9 @@ export const ItemForm = ({
         </Col>
       </Row>
 
-      {/* Price and Image */}
+      {/* Price, Image and Active Status */}
       <Row>
-        <Col md={6}>
+        <Col md={4}>
           <Form.Group className="mb-3">
             <Form.Label>Precio</Form.Label>
             <Form.Control
@@ -322,28 +371,78 @@ export const ItemForm = ({
             />
           </Form.Group>
         </Col>
-        <Col md={6}>
+        <Col md={4}>
           <Form.Group className="mb-3">
             <Form.Label>Imagen</Form.Label>
-            <Form.Control
-              type="file"
-              name="image"
-              onChange={handleImageChange}
-              accept="image/*"
-              disabled={loading}
-            />
-            <Form.Text className="text-muted">
-              Formatos: JPG, PNG, WEBP. Tamaño máximo: 5MB
-            </Form.Text>
+            {isEditMode && loadingImage ? (
+              <div className="d-flex align-items-center gap-2">
+                <Spinner animation="border" size="sm" />
+                <span className="text-muted">Cargando...</span>
+              </div>
+            ) : (
+              <>
+                <Form.Control
+                  type="file"
+                  name="image"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  disabled={loading || deleteImage}
+                />
+                <Form.Text className="text-muted" style={{ fontSize: '0.75rem' }}>
+                  JPG, PNG, WEBP. Máx 5MB
+                </Form.Text>
+              </>
+            )}
           </Form.Group>
-        </Col>
-      </Row>
 
-      {/* Active Status (Edit Mode Only) */}
-      {isEditMode && (
-        <Row>
-          <Col md={6}>
+          {/* Current Image Display (Edit Mode) */}
+          {isEditMode && imageUrl && !deleteImage && !imageFile && (
+            <div className="mt-2 p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '0.4rem', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <img
+                src={imageUrl}
+                alt="Imagen actual"
+                style={{
+                  maxWidth: '80px',
+                  maxHeight: '80px',
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '0.3rem',
+                  border: '1px solid #dee2e6',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                }}
+              />
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleDeleteImage}
+                disabled={loading}
+                style={{ alignSelf: 'center' }}
+              >
+                Eliminar
+              </Button>
+            </div>
+          )}
+
+          {/* Delete Confirmation */}
+          {isEditMode && deleteImage && (
+            <Alert variant="warning" className="mt-2 mb-0" style={{ padding: '0.5rem 0.75rem', fontSize: '0.875rem' }}>
+              <p className="mb-2">Imagen marcada para eliminar</p>
+              <Button
+                variant="outline-warning"
+                size="sm"
+                onClick={handleCancelDeleteImage}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+            </Alert>
+          )}
+        </Col>
+        {isEditMode && (
+          <Col md={4}>
             <Form.Group className="mb-3">
+              <Form.Label>&nbsp;</Form.Label>
               <Form.Check
                 type="checkbox"
                 id="is_active"
@@ -377,8 +476,8 @@ export const ItemForm = ({
               `}</style>
             </Form.Group>
           </Col>
-        </Row>
-      )}
+        )}
+      </Row>
 
 
       {/* Description */}

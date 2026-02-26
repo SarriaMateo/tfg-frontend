@@ -59,7 +59,7 @@ export const ItemDetailPage = () => {
   useEffect(() => {
     let objectUrl = null;
     const fetchImage = async () => {
-      if (!item?.id) return;
+      if (!item?.id || !item?.image_url) return;
       try {
         const blob = await itemService.getItemImage(item.id, Date.now());
         objectUrl = URL.createObjectURL(blob);
@@ -76,7 +76,7 @@ export const ItemDetailPage = () => {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [item?.id, imageRefresh]);
+  }, [item?.id, item?.image_url, imageRefresh]);
 
   const handleSave = async (formData, categoryIds) => {
     if (!item) return;
@@ -213,31 +213,62 @@ export const ItemDetailPage = () => {
               </Card>
             </Col>
 
-            <Col lg={5}>
-              <Card className="shadow-sm border-0">
-                <Card.Body className="p-4">
-                  <h5 className="fw-bold mb-3">Imagen del artículo</h5>
-                  {imageUrl ? (
-                    <div className="text-center">
-                      <img
-                        src={imageUrl}
-                        alt={item.name}
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '280px',
-                          borderRadius: '6px',
-                          border: '1px solid #e6e6e6',
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-muted mb-0">Sin imagen disponible</p>
-                  )}
-                </Card.Body>
-              </Card>
+            {item?.image_url && (
+              <Col lg={5}>
+                <Card className="shadow-sm border-0">
+                  <Card.Body className="p-4">
+                    <h5 className="fw-bold mb-3">Imagen del artículo</h5>
+                    {imageUrl ? (
+                      <div className="text-center">
+                        <img
+                          src={imageUrl}
+                          alt={item.name}
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '280px',
+                            borderRadius: '6px',
+                            border: '1px solid #e6e6e6',
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-muted mb-0">Cargando imagen...</p>
+                    )}
+                  </Card.Body>
+                </Card>
 
-              {(canEdit || canDelete) && (
-                <Card className="shadow-sm border-0 mt-4">
+                {(canEdit || canDelete) && (
+                  <Card className="shadow-sm border-0 mt-4">
+                    <Card.Body className="p-4">
+                      <h5 className="fw-bold mb-3">Acciones</h5>
+                      <div className="d-flex gap-2">
+                        {canEdit && (
+                          <Button
+                            variant="primary"
+                            onClick={() => setShowModal(true)}
+                            disabled={loadingAction}
+                          >
+                            Editar
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="danger"
+                            onClick={() => setShowConfirm(true)}
+                            disabled={loadingAction}
+                          >
+                            Eliminar
+                          </Button>
+                        )}
+                      </div>
+                    </Card.Body>
+                  </Card>
+                )}
+              </Col>
+            )}
+            {!item?.image_url && (canEdit || canDelete) && (
+              <Col lg={5}>
+                <Card className="shadow-sm border-0">
                   <Card.Body className="p-4">
                     <h5 className="fw-bold mb-3">Acciones</h5>
                     <div className="d-flex gap-2">
@@ -262,8 +293,8 @@ export const ItemDetailPage = () => {
                     </div>
                   </Card.Body>
                 </Card>
-              )}
-            </Col>
+              </Col>
+            )}
           </Row>
         ) : (
           <Alert variant="warning">Artículo no encontrado</Alert>
