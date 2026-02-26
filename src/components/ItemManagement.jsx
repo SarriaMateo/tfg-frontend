@@ -81,7 +81,11 @@ export const ItemManagement = () => {
       setRefreshKey(prev => prev + 1);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(translateError(err));
+      const errorMessage = translateError(err);
+      setError(errorMessage);
+      setLoading(false);
+      // Re-throw error so ItemModal can handle it
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }

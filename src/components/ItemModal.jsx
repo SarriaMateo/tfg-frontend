@@ -20,9 +20,13 @@ export const ItemModal = ({
   const handleFormSubmit = async (formData, categoryIds) => {
     try {
       await onSave(formData, categoryIds);
+      // Only close if onSave succeeds
       onClose();
     } catch (err) {
-      // Error handling happens in parent component
+      // Update internal error directly from the caught error
+      // This ensures the error is displayed immediately without waiting for prop update
+      setInternalError(err.message || 'Error al guardar el artículo');
+      // Keep modal open on error
     }
   };
 

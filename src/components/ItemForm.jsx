@@ -498,12 +498,17 @@ export const ItemForm = ({
             await categoryService.createCategory(categoryData);
             handleCategoryAdded();
           } catch (err) {
-            setError(translateError(err));
+            const errorMessage = translateError(err);
+            setError(errorMessage);
+            setSavingCategory(false);
+            // Re-throw error so CategoryModal can handle it
+            throw new Error(errorMessage);
           } finally {
             setSavingCategory(false);
           }
         }}
         loading={savingCategory}
+        error={error}
       />
     </>
   );

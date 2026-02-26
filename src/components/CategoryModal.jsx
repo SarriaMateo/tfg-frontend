@@ -19,9 +19,13 @@ export const CategoryModal = ({
   const handleFormSubmit = async (formData) => {
     try {
       await onSave(formData);
+      // Only close if onSave succeeds
       onClose();
     } catch (err) {
-      // Error handling happens in parent component
+      // Update internal error directly from the caught error
+      // This ensures the error is displayed immediately without waiting for prop update
+      setInternalError(err.message || 'Error al guardar la categoría');
+      // Keep modal open on error
     }
   };
 
