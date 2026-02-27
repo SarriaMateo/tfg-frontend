@@ -25,12 +25,7 @@ export default function LandingPage() {
             await login(username, password);
             navigate("/dashboard");
         } catch (err) {
-            const status = err?.response?.status;
-            if (status === 400 || status === 401) {
-                setLoginError(translateError(err));
-            } else {
-                setLoginError(err.message || "Error en el login");
-            }
+            setLoginError(translateError(err));
         }
     };
 

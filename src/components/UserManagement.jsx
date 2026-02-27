@@ -78,6 +78,11 @@ export const UserManagement = () => {
             updateData.branch_id = newBranchId;
           }
 
+          // is_active: solo incluir si ha cambiado
+          if (formData.is_active !== selectedUser.is_active) {
+            updateData.is_active = formData.is_active;
+          }
+
           console.log('Datos enviados al backend (admin update):', updateData);
           updatedUser = await userService.updateUserAdmin(selectedUser.id, updateData);
         } else {

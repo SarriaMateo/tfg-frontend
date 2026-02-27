@@ -33,8 +33,9 @@ export const ERROR_MESSAGES = {
     BRANCH_NAME_ALREADY_EXISTS: "Ya existe una sede con ese nombre en esta empresa",
   },
   business_logic_errors: {
-    CANNOT_CHANGE_ROLE_LAST_ADMIN: "No se puede cambiar el rol del último administrador de la empresa",
-    CANNOT_DELETE_LAST_ADMIN: "No se puede eliminar el último administrador de la empresa",
+    CANNOT_CHANGE_ROLE_LAST_ADMIN: "No se puede cambiar el rol del último administrador activo de la empresa",
+    CANNOT_DELETE_LAST_ADMIN: "No se puede eliminar el último administrador activo de la empresa",
+    CANNOT_DEACTIVATE_LAST_ACTIVE_ADMIN: "No se puede desactivar el único administrador activo de la empresa",
     BRANCH_BELONGS_TO_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
     ADMIN_CANNOT_HAVE_BRANCH: "Los usuarios con rol administrador no pueden tener una sede asociada",
     BRANCH_HAS_USERS: "No se puede eliminar la sede porque tiene usuarios asociados",
@@ -44,6 +45,7 @@ export const ERROR_MESSAGES = {
   },
   authorization_errors: {
     INSUFFICIENT_ROLE: "El usuario no tiene permisos suficientes para esta acción",
+    USER_INACTIVE: "El usuario está inactivo y no puede acceder a recursos protegidos",
     BRANCH_ACCESS_DENIED: "Acceso a la sede denegado",
     COMPANY_ACCESS_DENIED: "Acceso denegado a la empresa solicitada",
     BRANCH_FROM_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",

@@ -63,6 +63,7 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser }) => {
               <th style={{ fontWeight: '600' }}>Usuario</th>
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Rol</th>
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Sede</th>
+              <th style={{ fontWeight: '600', textAlign: 'center' }}>Activo</th>
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Acciones</th>
             </tr>
           </thead>
@@ -83,6 +84,11 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser }) => {
                 </td>
                 <td className="text-center">
                   {user.branch_id ? branches[user.branch_id] || `Sede #${user.branch_id}` : '-'}
+                </td>
+                <td className="text-center">
+                  <span className={`badge ${user.is_active ? 'bg-success' : 'bg-secondary'}`}>
+                    {user.is_active ? 'Sí' : 'No'}
+                  </span>
                 </td>
                 <td>
                   <div className="d-flex gap-2 justify-content-center">

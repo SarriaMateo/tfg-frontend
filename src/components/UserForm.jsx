@@ -19,6 +19,7 @@ export const UserForm = ({
     password: '',
     role: 'EMPLOYEE',
     branch_id: '',
+    is_active: true,
   });
   const [error, setError] = useState(null);
   const [branches, setBranches] = useState([]);
@@ -35,6 +36,7 @@ export const UserForm = ({
         password: '',
         role: user.role || 'EMPLOYEE',
         branch_id: user.branch_id || '',
+        is_active: user.is_active !== undefined ? user.is_active : true,
       });
     }
   }, [user]);
@@ -59,10 +61,10 @@ export const UserForm = ({
   }, [isAdmin]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
     // Limpiar tanto el error interno como el externo
     setError(null);
@@ -194,6 +196,42 @@ export const UserForm = ({
               </Form.Text>
             )}
           </Form.Group>
+
+          {!isCreating && (
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                id="is_active"
+                name="is_active"
+                label="Usuario activo"
+                checked={formData.is_active}
+                onChange={handleChange}
+                disabled={loading}
+                className="d-flex align-items-center user-active-check"
+                style={{
+                  marginBottom: 0,
+                  gap: '6px',
+                }}
+              />
+              <style>{`
+                .user-active-check.form-check {
+                  padding-left: 0 !important;
+                  margin-left: 0 !important;
+                }
+                #is_active.form-check-input {
+                  width: 14px !important;
+                  height: 14px !important;
+                  margin: 0 !important;
+                  cursor: pointer;
+                  flex-shrink: 0;
+                  margin-top: 0 !important;
+                }
+                #is_active.form-check-input:disabled {
+                  cursor: not-allowed;
+                }
+              `}</style>
+            </Form.Group>
+          )}
         </>
       )}
 

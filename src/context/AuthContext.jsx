@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
+import { translateError } from '../utils/errorTranslator';
 
 export const AuthContext = createContext();
 
@@ -65,7 +66,8 @@ export const AuthProvider = ({ children }) => {
 
       return userData;
     } catch (err) {
-      setError(err.message || 'Error en login');
+      const translatedError = translateError(err);
+      setError(translatedError);
       throw err;
     } finally {
       setLoading(false);
