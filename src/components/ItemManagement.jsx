@@ -95,13 +95,13 @@ export const ItemManagement = ({ items = [], loading: listLoading = false, error
     <div>
       {/* Items Management Section */}
       <Card className="shadow-sm border-0">
-        <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-          <Card.Title className="mb-0">Artículos</Card.Title>
+        <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center py-3">
+          <Card.Title as="h4" className="mb-0">Artículos</Card.Title>
           {canCreateEdit && (
             <Button
               size="sm"
               onClick={handleCreateItem}
-              style={{ height: '32px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
+              style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white', margin: '-0.25rem 0' }}
             >
               + Nuevo Artículo
             </Button>

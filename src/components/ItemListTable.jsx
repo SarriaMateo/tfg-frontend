@@ -35,6 +35,9 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
   const [pageSize, setPageSize] = useState(() => Number(initialQuery?.pageSize) || 20);
   const inputControlStyle = { minHeight: '38px' };
   const selectControlStyle = { height: '46px' };
+  const filterButtonStyle = { height: '46px', padding: '0 1rem' };
+  const pageButtonStyle = { minWidth: '36px', height: '32px', padding: '0.25rem 0.5rem' };
+  const currentPageButtonStyle = { minWidth: '40px', height: '34px', padding: '0.25rem 0.5rem' };
 
   useEffect(() => {
     if (pagination?.pageSize && pagination.pageSize !== pageSize) {
@@ -166,7 +169,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
 
     return (
       <Tooltip id={`stock-tooltip-${item.id}`}>
-        <div className="text-start">
+        <div className="text-start" style={{ fontSize: '0.95rem', lineHeight: '1.35' }}>
           <div className="fw-semibold mb-1">Stock por sede</div>
           {branches.length > 0 ? (
             branches.map((sb) => (
@@ -293,11 +296,11 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             </Form.Group>
           </Col>
 
-          <Col md={3} className="d-flex gap-2">
-            <Button variant="primary" onClick={handleApplyFilters}>
+          <Col md={3} className="d-flex gap-2 align-items-end">
+            <Button variant="primary" onClick={handleApplyFilters} style={filterButtonStyle}>
               Aplicar
             </Button>
-            <Button variant="outline-secondary" onClick={handleResetFilters}>
+            <Button variant="outline-secondary" onClick={handleResetFilters} style={filterButtonStyle}>
               Limpiar
             </Button>
           </Col>
@@ -308,17 +311,17 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
         Mostrando {items.length} de {pagination.total} artículos
       </p>
       <div className="table-responsive">
-        <table className="table table-hover">
+        <table className="table table-hover align-middle">
           <thead>
             <tr>
               <th>Nombre</th>
               <th>SKU</th>
-              <th>Stock en sede</th>
-              <th>Stock total</th>
-              <th>Marca</th>
-              <th>Precio</th>
-              <th>Activo</th>
-              <th>Acciones</th>
+              <th className="text-center">Stock en sede</th>
+              <th className="text-center">Stock total</th>
+              <th className="text-center">Marca</th>
+              <th className="text-center">Precio</th>
+              <th className="text-center">Activo</th>
+              <th className="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -335,30 +338,31 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
                   <td>
                     <code>{item.sku}</code>
                   </td>
-                  <td>
+                  <td className="text-center">
                     {getBranchStock(item)} {item.unit}
                   </td>
-                  <td>
+                  <td className="text-center">
                     <OverlayTrigger trigger={['hover', 'focus']} placement="top" overlay={renderStockTooltip(item)}>
                       <span style={{ textDecoration: 'underline dotted' }}>
                         {getTotalStock(item)} {item.unit}
                       </span>
                     </OverlayTrigger>
                   </td>
-                  <td>{item.brand || '-'}</td>
-                  <td>{formatPrice(item.price)}</td>
-                  <td>
+                  <td className="text-center">{item.brand || '-'}</td>
+                  <td className="text-center">{formatPrice(item.price)}</td>
+                  <td className="text-center">
                     {item.is_active ? (
                       <span className="badge bg-success">Activo</span>
                     ) : (
                       <span className="badge bg-secondary">Inactivo</span>
                     )}
                   </td>
-                  <td>
+                  <td className="text-center">
                     <Button
                       variant="primary"
                       size="sm"
                       onClick={() => handleDetailsClick(item.id)}
+                      style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
                     >
                       Detalles
                     </Button>
@@ -393,6 +397,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             size="sm"
             onClick={() => handlePageChange(1)}
             disabled={(pagination?.page || 1) <= 1 || loading}
+            style={pageButtonStyle}
           >
             «
           </Button>
@@ -402,6 +407,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             size="sm"
             onClick={() => handlePageChange((pagination?.page || 1) - 1)}
             disabled={(pagination?.page || 1) <= 1 || loading}
+            style={pageButtonStyle}
           >
             ‹
           </Button>
@@ -413,7 +419,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
               size="sm"
               onClick={() => handlePageChange(pageNumber)}
               disabled={loading}
-              style={{ minWidth: '36px' }}
+              style={pageNumber === (pagination?.page || 1) ? currentPageButtonStyle : pageButtonStyle}
             >
               {pageNumber}
             </Button>
@@ -424,6 +430,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             size="sm"
             onClick={() => handlePageChange((pagination?.page || 1) + 1)}
             disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
+            style={pageButtonStyle}
           >
             ›
           </Button>
@@ -433,6 +440,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             size="sm"
             onClick={() => handlePageChange(pagination?.totalPages || 1)}
             disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
+            style={pageButtonStyle}
           >
             »
           </Button>
