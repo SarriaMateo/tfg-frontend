@@ -9,10 +9,18 @@ export const ConfirmDialog = ({
   onCancel, 
   confirmText = 'Confirmar',
   cancelText = 'Cancelar',
-  variant = 'primary' // 'primary' or 'danger'
+  variant = 'primary', // 'primary' or 'danger'
+  className = '',
+  backdropClassName = ''
 }) => {
   return (
-    <Modal show={isOpen} onHide={onCancel} centered>
+    <Modal 
+      show={isOpen} 
+      onHide={onCancel} 
+      centered
+      className={className}
+      backdropClassName={backdropClassName}
+    >
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>

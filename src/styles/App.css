@@ -188,6 +188,15 @@
   z-index: 1058;
 }
 
+/* Confirm dialog within nested modals */
+.modal.confirm-dialog-nested {
+  z-index: 1070;
+}
+
+.modal-backdrop.confirm-dialog-backdrop-nested {
+  z-index: 1068;
+}
+
 /* Navbar Layout */
 .navbar-container {
   display: flex;

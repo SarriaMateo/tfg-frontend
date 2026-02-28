@@ -192,6 +192,8 @@ export const CategoryManagementModal = ({ isOpen, onClose }) => {
         confirmText="Eliminar"
         cancelText="Cancelar"
         variant="danger"
+        className="confirm-dialog-nested"
+        backdropClassName="confirm-dialog-backdrop-nested"
       />
     </>
   );
