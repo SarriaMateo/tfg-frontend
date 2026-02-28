@@ -3,13 +3,13 @@ import { useAuth } from '../hooks/useAuth';
 import { useAuthorization } from '../hooks/useAuthorization';
 import { itemService } from '../services/itemService';
 import { categoryService } from '../services/categoryService';
-import { ItemList } from './ItemList';
+import { ItemListTable } from './ItemListTable';
 import { ItemModal } from './ItemModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Card, Button, Alert } from 'react-bootstrap';
 import { translateError } from '../utils/errorTranslator';
 
-export const ItemManagement = () => {
+export const ItemManagement = ({ items = [], loading: listLoading = false, error: listError = null, pagination = {}, onFetchItems = () => {} }) => {
   const { user } = useAuth();
   const { hasAnyRole, hasRole } = useAuthorization();
   const [selectedItem, setSelectedItem] = useState(null);
@@ -120,7 +120,13 @@ export const ItemManagement = () => {
             </Alert>
           )}
 
-          <ItemList key={refreshKey} />
+          <ItemListTable
+            items={items}
+            loading={listLoading}
+            error={listError}
+            pagination={pagination}
+            onFetchItems={onFetchItems}
+          />
         </Card.Body>
       </Card>
 

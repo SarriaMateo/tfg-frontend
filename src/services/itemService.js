@@ -64,4 +64,14 @@ export const itemService = {
       throw error;
     }
   },
+
+  // List items with filters, search, sort and pagination
+  listItems: async (params = {}) => {
+    try {
+      const response = await api.get('/items', { params });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };

@@ -24,6 +24,7 @@ export const ERROR_MESSAGES = {
     CATEGORY_NAME_TOO_SHORT: "El nombre de la categoría debe tener al menos 1 carácter",
     CATEGORY_NAME_TOO_LONG: "El nombre de la categoría no puede exceder 50 caracteres",
     INVALID_COLOR_FORMAT: "El color debe estar en formato hexadecimal válido (#RRGGBB)",
+    INVALID_UNIT: "La unidad de medida es inválida",
   },
   conflict_errors: {
     COMPANY_EMAIL_ALREADY_EXISTS: "El email de la empresa ya está en uso",
