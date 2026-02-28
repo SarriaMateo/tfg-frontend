@@ -1,4 +1,4 @@
-// Predefined color palette for categories
+// Predefined color palette for categories (3x3 grid)
 export const CATEGORY_COLORS = [
   { hex: '#FF6B6B', name: 'Rojo' },
   { hex: '#FF922B', name: 'Naranja' },
@@ -9,10 +9,4 @@ export const CATEGORY_COLORS = [
   { hex: '#7950F2', name: 'Púrpura' },
   { hex: '#E64980', name: 'Rosa' },
   { hex: '#748FFC', name: 'Índigo' },
-  { hex: '#94D82D', name: 'Lima' },
-  { hex: '#FF8C42', name: 'Naranja oscuro' },
-  { hex: '#37B7C3', name: 'Cian' },
-  { hex: '#5C7CFA', name: 'Azul grisáceo' },
-  { hex: '#DA77F2', name: 'Violeta' },
-  { hex: '#A9E34B', name: 'Pistacho' },
 ];
