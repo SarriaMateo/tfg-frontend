@@ -11,7 +11,7 @@ export default function LandingPage() {
     const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState(null);
 
-    // Redirigir al dashboard si ya está autenticado
+    // Redirect to dashboard if already authenticated
     useEffect(() => {
         if (isAuthenticated && !loading) {
             navigate("/dashboard", { replace: true });

@@ -25,7 +25,7 @@ export const UserForm = ({
   const [branches, setBranches] = useState([]);
   const [loadingBranches, setLoadingBranches] = useState(false);
 
-  // Usar el error externo si está disponible, sino el error interno
+  // Use external error if available, otherwise internal error
   const displayError = externalError || error;
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export const UserForm = ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    // Limpiar tanto el error interno como el externo
+    // Clear both internal and external errors
     setError(null);
     if (onErrorChange) {
       onErrorChange(null);

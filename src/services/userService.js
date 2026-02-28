@@ -1,7 +1,7 @@
 import api from '../api/api';
 
 export const userService = {
-  // Obtener usuario por ID
+  // Get user by ID
   getUserById: async (userId) => {
     try {
       const response = await api.get(`/users/${userId}`);
@@ -11,7 +11,7 @@ export const userService = {
     }
   },
 
-  // Obtener todos los usuarios de una empresa
+  // Get all company users
   getUsersByCompany: async () => {
     try {
       const response = await api.get(`/users`);
@@ -21,7 +21,7 @@ export const userService = {
     }
   },
 
-  // Crear nuevo usuario
+  // Create new user
   createUser: async (userData) => {
     try {
       const response = await api.post(`/users`, userData);
@@ -31,7 +31,7 @@ export const userService = {
     }
   },
 
-  // Actualizar usuario (solo usuario normal)
+  // Update user (regular user only)
   updateUser: async (userId, userData) => {
     try {
       const response = await api.put(`/users/${userId}`, userData);
@@ -41,7 +41,7 @@ export const userService = {
     }
   },
 
-  // Actualizar usuario (admin)
+  // Update user (admin)
   updateUserAdmin: async (userId, userData) => {
     try {
       const response = await api.put(`/users/${userId}/admin`, userData);
@@ -51,7 +51,7 @@ export const userService = {
     }
   },
 
-  // Eliminar usuario
+  // Delete user
   deleteUser: async (userId) => {
     try {
       await api.delete(`/users/${userId}`);

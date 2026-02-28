@@ -63,7 +63,7 @@ export const authService = {
   },
 
   setUser: (user) => {
-    // Normalizar el rol a mayúsculas antes de guardar
+    // Normalize role to uppercase before saving
     const normalizedUser = {
       ...user,
       role: user.role ? user.role.toUpperCase() : user.role,

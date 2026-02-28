@@ -18,13 +18,13 @@ export default function TestDashboard() {
             try {
                 setLoadingInfo(true);
 
-                // Obtener información de la empresa
+                // Get company information
                 if (user?.company_id) {
                     const company = await companyService.getCompanyInfo();
                     setCompanyInfo(company);
                 }
 
-                // Obtener información de la rama si existe
+                // Get branch information if it exists
                 if (user?.branch_id) {
                     const branch = await companyService.getBranchInfo(user.branch_id);
                     setBranchInfo(branch);

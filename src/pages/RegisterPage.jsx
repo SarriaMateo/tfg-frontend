@@ -31,7 +31,7 @@ export default function RegisterPage() {
         try {
             const response = await registerCompany(form);
             
-            // Guardar la información del usuario y empresa en localStorage
+            // Save user and company information to localStorage
             if (response.user && response.company) {
                 localStorage.setItem('user', JSON.stringify(response.user));
                 localStorage.setItem('company', JSON.stringify(response.company));
@@ -40,7 +40,7 @@ export default function RegisterPage() {
             alert("Empresa registrada correctamente");
             navigate("/dashboard");
         } catch (err) {
-            console.error("Error al registrar la empresa:", err);
+            console.error("Error registering company:", err);
             const errorMessage = translateError(err);
             setError(errorMessage);
         } finally {

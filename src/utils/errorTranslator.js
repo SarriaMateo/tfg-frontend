@@ -1,19 +1,19 @@
 import { ERROR_MESSAGES, DEFAULT_ERROR_MESSAGE } from "../constants/errorMessages";
 
 /**
- * Traduce los códigos de error del backend a mensajes en español
- * @param {Object} error - Objeto de error de axios o similar
- * @returns {string} - Mensaje de error traducido
+ * Translates backend error codes to error messages in Spanish
+ * @param {Object} error - Error object from axios or similar
+ * @returns {string} - Translated error message
  */
 export const translateError = (error) => {
   try {
-    // Verificar si es un error con response del backend
+    // Check if it's an error with response from the backend
     if (error.response?.data) {
       const errorData = error.response.data;
 
-      // Si el backend devuelve un código en el campo 'code'
+      // If the backend returns a code in the 'code' field
       if (errorData.code) {
-        // Buscar en todas las categorías de errores
+        // Search in all error categories
         for (const category of Object.values(ERROR_MESSAGES)) {
           if (category[errorData.code]) {
             return category[errorData.code];
@@ -21,20 +21,20 @@ export const translateError = (error) => {
         }
       }
 
-      // Si el backend devuelve un detail
+      // If the backend returns a detail
       if (typeof errorData.detail === "string") {
-        // Primero, intentar buscar el detail completo como código en todas las categorías
+        // First, try to find the complete detail as code in all categories
         for (const category of Object.values(ERROR_MESSAGES)) {
           if (category[errorData.detail]) {
             return category[errorData.detail];
           }
         }
 
-        // Si no coincide directamente, intentar extraer código del formato "CODE: message"
+        // If it doesn't match directly, try to extract code from format "CODE: message"
         const codeMatch = errorData.detail.match(/^([A-Z_]+):/);
         if (codeMatch) {
           const code = codeMatch[1];
-          // Buscar en todas las categorías de errores
+          // Search in all error categories
           for (const category of Object.values(ERROR_MESSAGES)) {
             if (category[code]) {
               return category[code];
@@ -42,24 +42,24 @@ export const translateError = (error) => {
           }
         }
 
-        // Si no hay código coincidente, devolver el detail completo
+        // If no matching code, return the complete detail
         return errorData.detail;
       }
 
-      // Si tiene un campo message
+      // If it has a message field
       if (errorData.message) {
         return errorData.message;
       }
     }
 
-    // Si no hay estructura conocida de error, devolver el mensaje general
+    // If there's no known error structure, return the general message
     if (error.message) {
       return error.message;
     }
 
     return DEFAULT_ERROR_MESSAGE;
   } catch (e) {
-    console.error("Error al traducir el error:", e);
+    console.error("Error translating error:", e);
     return DEFAULT_ERROR_MESSAGE;
   }
 };

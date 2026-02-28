@@ -23,17 +23,17 @@ export const useAuthorization = () => {
   };
 
   const hasPermission = (permission) => {
-    // Formato: 'resource:action' o 'resource:action:branch'
+    // Format: 'resource:action' or 'resource:action:branch'
     const [resource, action, branch] = permission.split(':');
 
-    // Verificar si el usuario tiene la acción sobre el recurso
+    // Check if user has the action on the resource
     const hasResourcePermission = user?.permissions?.includes(`${resource}:${action}`);
 
     if (!hasResourcePermission) {
       return false;
     }
 
-    // Si especifica branch, verificar acceso a esa sede
+    // If branch is specified, check access to that branch
     if (branch) {
       return checkBranch(user, branch);
     }

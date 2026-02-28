@@ -60,25 +60,25 @@ export const UserManagement = () => {
     try {
       let updatedUser;
       if (selectedUser) {
-        // Editar usuario
+        // Edit user
         let updateData;
         if (isAdmin) {
           updateData = {};
 
-          // Solo incluir campos que realmente queremos actualizar
+          // Only include fields we actually want to update
           if (formData.name) updateData.name = formData.name;
           if (formData.username) updateData.username = formData.username;
           if (formData.password) updateData.password = formData.password;
           if (formData.role) updateData.role = formData.role;
 
-          // branch_id: solo incluir si ha cambiado
+          // branch_id: only include if it changed
           const newBranchId = formData.branch_id ? parseInt(formData.branch_id) : null;
           const originalBranchId = selectedUser.branch_id || null;
           if (newBranchId !== originalBranchId) {
             updateData.branch_id = newBranchId;
           }
 
-          // is_active: solo incluir si ha cambiado
+          // is_active: only include if it changed
           if (formData.is_active !== selectedUser.is_active) {
             updateData.is_active = formData.is_active;
           }
@@ -97,12 +97,12 @@ export const UserManagement = () => {
           updatedUser = await userService.updateUser(selectedUser.id, updateData);
         }
 
-        // Si el usuario editado es el usuario actual, actualizar el contexto
+        // If edited user is the current user, update the context
         if (selectedUser.id === user.id) {
           updateUser(updatedUser);
         }
       } else {
-        // Crear usuario
+        // Create user
         const createData = {
           name: formData.name,
           username: formData.username,

@@ -1,7 +1,7 @@
 import api from '../api/api';
 
 export const branchService = {
-  // Obtener todas las sedes
+  // Get all branches
   getBranches: async () => {
     try {
       const response = await api.get('/branches');
@@ -11,7 +11,7 @@ export const branchService = {
     }
   },
 
-  // Obtener sede por ID
+  // Get branch by ID
   getBranchById: async (branchId) => {
     try {
       const response = await api.get(`/branches/${branchId}`);
@@ -21,7 +21,7 @@ export const branchService = {
     }
   },
 
-  // Crear nueva sede (solo ADMIN)
+  // Create new branch (ADMIN only)
   createBranch: async (branchData) => {
     try {
       const response = await api.post('/branches', branchData);
@@ -31,7 +31,7 @@ export const branchService = {
     }
   },
 
-  // Actualizar sede (solo ADMIN)
+  // Update branch (ADMIN only)
   updateBranch: async (branchId, branchData) => {
     try {
       const response = await api.put(`/branches/${branchId}`, branchData);
@@ -41,7 +41,7 @@ export const branchService = {
     }
   },
 
-  // Eliminar sede (solo ADMIN)
+  // Delete branch (ADMIN only)
   deleteBranch: async (branchId) => {
     try {
       await api.delete(`/branches/${branchId}`);

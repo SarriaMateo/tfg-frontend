@@ -25,7 +25,7 @@ export const PrivateRoute = ({ children, requiredRoles = null }) => {
     return <Navigate to="/" replace />;
   }
 
-  // Verificar roles si se requieren
+  // Check roles if required
   if (requiredRoles) {
     const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
     const hasRequiredRole = roles.includes(user?.role);

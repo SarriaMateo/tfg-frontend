@@ -21,7 +21,7 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser }) => {
       const usersData = await userService.getUsersByCompany();
       setUsers(usersData);
 
-      // Obtener información de todas las sedes
+      // Get information for all branches
       const branchesData = await companyService.getCompanyBranches();
       const branchMap = {};
       branchesData.forEach(branch => {

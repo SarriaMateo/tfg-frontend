@@ -18,11 +18,11 @@ export default function TestBranchPage() {
                 setLoading(true);
                 if (user) {
                     const branchesData = await companyService.getCompanyBranches();
-                    // Asegurar que branchesData es un array
+                    // Ensure branchesData is an array
                     if (Array.isArray(branchesData)) {
                         setBranches(branchesData);
                     } else if (branchesData && typeof branchesData === 'object') {
-                        // Si es un objeto con una propiedad que contiene el array
+                        // If it's an object with a property that contains the array
                         setBranches(Object.values(branchesData).find(Array.isArray) || []);
                     }
                 }

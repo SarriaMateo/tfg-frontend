@@ -6,7 +6,7 @@
  */
 export const checkRole = (user, role) => {
   if (!user || !user.role) return false;
-  // Normalizar ambos a mayúsculas para la comparación
+  // Normalize both to uppercase for comparison
   const userRole = typeof user.role === 'string' ? user.role.toUpperCase() : user.role;
   const targetRole = typeof role === 'string' ? role.toUpperCase() : role;
   return userRole === targetRole;
@@ -22,10 +22,10 @@ export const checkRole = (user, role) => {
 export const checkBranch = (user, branchId) => {
   if (!user) return false;
 
-  // Si no tiene branch_id, tiene acceso a todas las sedes
+  // If user has no branch_id, they have access to all branches
   if (!user.branch_id) return true;
 
-  // Si tiene branch_id, solo puede acceder a su sede
+  // If user has branch_id, they can only access their branch
   return user.branch_id === parseInt(branchId);
 };
 
@@ -39,10 +39,10 @@ export const checkBranch = (user, branchId) => {
 export const canPerformAction = (user, action, branchId = null) => {
   if (!user) return false;
 
-  // Admin puede hacer cualquier cosa en cualquier sede
+  // Admin can do anything on any branch
   if (user.role === 'ADMIN') return true;
 
-  // Manager puede hacer acciones en su sede o en todas si no tiene sede asignada
+  // Manager can perform actions on their branch or all branches if none assigned
   if (user.role === 'MANAGER') {
     if (branchId) {
       return checkBranch(user, branchId);
@@ -50,13 +50,13 @@ export const canPerformAction = (user, action, branchId = null) => {
     return true;
   }
 
-  // Employee tiene permisos limitados
+  // Employee has limited permissions
   if (user.role === 'EMPLOYEE') {
-    // Solo puede acceder a acciones en su sede
+    // Can only access actions on their branch
     if (branchId) {
       return checkBranch(user, branchId);
     }
-    // Si no especifica sede, solo puede hacer read
+    // If no branch is specified, can only read
     return action === 'read';
   }
 
@@ -64,8 +64,8 @@ export const canPerformAction = (user, action, branchId = null) => {
 };
 
 /**
- * Obtiene el nivel de acceso de un usuario (0 = sin acceso, 1 = lectura, 2 = escritura, 3 = admin)
- * @param {Object} user - Objeto del usuario
+ * Gets the access level of a user (0 = no access, 1 = read, 2 = write, 3 = admin)
+ * @param {Object} user - User object
  * @returns {number}
  */
 export const getAccessLevel = (user) => {

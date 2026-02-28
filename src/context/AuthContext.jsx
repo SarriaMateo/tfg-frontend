@@ -11,14 +11,14 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const normalizeUserData = (userData) => {
-    // Normalizar el rol a mayúsculas
+    // Normalize role to uppercase
     if (userData.role) {
       userData.role = userData.role.toUpperCase();
     }
     return userData;
   };
 
-  // Inicializar desde localStorage
+  // Initialize from localStorage
   useEffect(() => {
     const storedToken = authService.getToken();
     const storedUser = authService.getUser();
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Actualizar header de API cuando cambia el token
+  // Update API header when token changes
   useEffect(() => {
     if (token) {
       authService.setToken(token);
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      // Limpiar cualquier sesión anterior antes de hacer login
+      // Clear any previous session before logging in
       authService.logout();
       setUser(null);
       setToken(null);
@@ -51,13 +51,13 @@ export const AuthProvider = ({ children }) => {
         password
       );
 
-      // Obtener información del usuario
+      // Get user information
       let userData = await authService.getMe(access_token);
       
-      // Normalizar datos del usuario
+      // Normalize user data
       userData = normalizeUserData(userData);
 
-      // Guardar token y usuario
+      // Save token and user
       authService.setToken(access_token);
       authService.setUser(userData);
 
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (updatedUserData) => {
-    // Normalizar y actualizar el usuario en el estado y localStorage
+    // Normalize and update user in state and localStorage
     const normalizedUser = normalizeUserData({ ...user, ...updatedUserData });
     setUser(normalizedUser);
     authService.setUser(normalizedUser);
