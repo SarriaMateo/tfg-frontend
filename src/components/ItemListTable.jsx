@@ -7,21 +7,32 @@ import { useBranchSelection } from '../hooks/useBranchSelection';
 import { categoryService } from '../services/categoryService';
 import { formatDecimal, formatPrice } from '../utils/formatters';
 
-export const ItemListTable = ({ items, loading, error, pagination, onFetchItems }) => {
+const DEFAULT_FILTERS = {
+  search: '',
+  is_active: '',
+  category_id: '',
+  unit: '',
+  order_by: 'created_at',
+  order_desc: 'true',
+};
+
+const queryToFilters = (query = {}) => ({
+  search: query.search || '',
+  is_active: query.is_active === undefined ? '' : String(query.is_active),
+  category_id: query.category_id === undefined ? '' : String(query.category_id),
+  unit: query.unit || '',
+  order_by: query.order_by || 'created_at',
+  order_desc: String(query.order_desc ?? true),
+});
+
+export const ItemListTable = ({ items, loading, error, pagination, initialQuery = {}, onFetchItems }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { selectedBranchId } = useBranchSelection();
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
-  const [filters, setFilters] = useState({
-    search: '',
-    is_active: '',
-    category_id: '',
-    unit: '',
-    order_by: 'created_at',
-    order_desc: 'true',
-  });
-  const [pageSize, setPageSize] = useState(20);
+  const [filters, setFilters] = useState(() => queryToFilters(initialQuery));
+  const [pageSize, setPageSize] = useState(() => Number(initialQuery?.pageSize) || 20);
   const inputControlStyle = { minHeight: '38px' };
   const selectControlStyle = { height: '46px' };
 
@@ -47,6 +58,12 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
 
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (!initialQuery || Object.keys(initialQuery).length === 0) return;
+    setFilters(queryToFilters(initialQuery));
+    setPageSize(Number(initialQuery.pageSize) || 20);
+  }, [initialQuery]);
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
@@ -77,16 +94,7 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
   };
 
   const handleResetFilters = () => {
-    const resetFilters = {
-      search: '',
-      is_active: '',
-      category_id: '',
-      unit: '',
-      order_by: 'created_at',
-      order_desc: 'true',
-    };
-
-    setFilters(resetFilters);
+    setFilters(DEFAULT_FILTERS);
     setPageSize(20);
     onFetchItems({
       page: 1,

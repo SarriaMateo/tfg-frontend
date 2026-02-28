@@ -5,7 +5,7 @@ import { ItemManagement } from '../components/ItemManagement';
 import { useItems } from '../hooks/useItems';
 
 export const InventoryPage = () => {
-  const { items, loading, error, pagination, fetchItems } = useItems();
+  const { items, loading, error, pagination, currentQuery, fetchItems } = useItems();
 
   useEffect(() => {
     // Fetch initial items
@@ -26,6 +26,7 @@ export const InventoryPage = () => {
           loading={loading}
           error={error}
           pagination={pagination}
+          currentQuery={currentQuery}
           onFetchItems={fetchItems}
         />
       </Container>

@@ -1,5 +1,22 @@
 import api from '../api/api';
 
+const SESSION_STORAGE_CLEAR_PREFIXES = ['itemsListState:'];
+
+const clearSessionScopedUiState = () => {
+  try {
+    const keysToRemove = [];
+    for (let index = 0; index < sessionStorage.length; index += 1) {
+      const key = sessionStorage.key(index);
+      if (key && SESSION_STORAGE_CLEAR_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+  } catch {
+    // Ignore storage cleanup errors
+  }
+};
+
 export const authService = {
   login: async (username, password) => {
     try {
@@ -29,6 +46,7 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    clearSessionScopedUiState();
   },
 
   getToken: () => {

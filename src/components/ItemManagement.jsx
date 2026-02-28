@@ -9,7 +9,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { Card, Button, Alert } from 'react-bootstrap';
 import { translateError } from '../utils/errorTranslator';
 
-export const ItemManagement = ({ items = [], loading: listLoading = false, error: listError = null, pagination = {}, onFetchItems = () => {} }) => {
+export const ItemManagement = ({ items = [], loading: listLoading = false, error: listError = null, pagination = {}, currentQuery = {}, onFetchItems = () => {} }) => {
   const { user } = useAuth();
   const { hasAnyRole, hasRole } = useAuthorization();
   const [selectedItem, setSelectedItem] = useState(null);
@@ -125,6 +125,7 @@ export const ItemManagement = ({ items = [], loading: listLoading = false, error
             loading={listLoading}
             error={listError}
             pagination={pagination}
+            initialQuery={currentQuery}
             onFetchItems={onFetchItems}
           />
         </Card.Body>
