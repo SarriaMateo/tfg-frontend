@@ -17,15 +17,12 @@ export const useItems = () => {
     setLoading(true);
     setError(null);
     try {
+      const { page = 1, pageSize = 20, ...restFilters } = filters;
       const params = {
-        page: filters.page || 1,
-        page_size: filters.pageSize || 20,
-        ...filters,
+        page,
+        page_size: pageSize,
+        ...restFilters,
       };
-
-      // Remove page and pageSize from params as they'll be sent separately
-      delete params.page;
-      delete params.pageSize;
 
       const response = await itemService.listItems(params);
 

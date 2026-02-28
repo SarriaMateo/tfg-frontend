@@ -21,8 +21,15 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
     order_by: 'created_at',
     order_desc: 'true',
   });
+  const [pageSize, setPageSize] = useState(20);
   const inputControlStyle = { minHeight: '38px' };
   const selectControlStyle = { height: '46px' };
+
+  useEffect(() => {
+    if (pagination?.pageSize && pagination.pageSize !== pageSize) {
+      setPageSize(pagination.pageSize);
+    }
+  }, [pagination?.pageSize, pageSize]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -49,10 +56,10 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
     }));
   };
 
-  const handleApplyFilters = () => {
+  const buildFetchPayload = ({ page = 1, nextPageSize = pageSize } = {}) => {
     const payload = {
-      page: 1,
-      pageSize: 20,
+      page,
+      pageSize: nextPageSize,
       order_by: filters.order_by,
       order_desc: filters.order_desc === 'true',
     };
@@ -62,7 +69,11 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
     if (filters.category_id !== '') payload.category_id = Number(filters.category_id);
     if (filters.unit) payload.unit = filters.unit;
 
-    onFetchItems(payload);
+    return payload;
+  };
+
+  const handleApplyFilters = () => {
+    onFetchItems(buildFetchPayload({ page: 1 }));
   };
 
   const handleResetFilters = () => {
@@ -76,12 +87,44 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
     };
 
     setFilters(resetFilters);
+    setPageSize(20);
     onFetchItems({
       page: 1,
       pageSize: 20,
       order_by: 'created_at',
       order_desc: true,
     });
+  };
+
+  const handlePageChange = (nextPage) => {
+    if (nextPage < 1 || nextPage > (pagination?.totalPages || 1)) return;
+    onFetchItems(buildFetchPayload({ page: nextPage }));
+  };
+
+  const handlePageSizeChange = (event) => {
+    const nextSize = Number(event.target.value);
+    setPageSize(nextSize);
+    onFetchItems(buildFetchPayload({ page: 1, nextPageSize: nextSize }));
+  };
+
+  const getVisiblePages = () => {
+    const totalPages = pagination?.totalPages || 1;
+    const currentPage = pagination?.page || 1;
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = startPage + maxVisible - 1;
+
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = endPage - maxVisible + 1;
+    }
+
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
   };
 
   // Get the branch ID to display stock (user's branch or selected from localStorage)
@@ -317,6 +360,75 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
+        <div className="d-flex align-items-center gap-2">
+          <span className="text-muted">Elementos por página</span>
+          <Form.Select
+            value={pageSize}
+            onChange={handlePageSizeChange}
+            style={{ width: '92px', height: '38px' }}
+          >
+            <option value={1}>1</option>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </Form.Select>
+        </div>
+
+        <div className="w-100 d-flex justify-content-center align-items-center gap-2">
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={() => handlePageChange(1)}
+            disabled={(pagination?.page || 1) <= 1 || loading}
+          >
+            «
+          </Button>
+
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={() => handlePageChange((pagination?.page || 1) - 1)}
+            disabled={(pagination?.page || 1) <= 1 || loading}
+          >
+            ‹
+          </Button>
+
+          {getVisiblePages().map((pageNumber) => (
+            <Button
+              key={pageNumber}
+              variant={pageNumber === (pagination?.page || 1) ? 'primary' : 'outline-secondary'}
+              size="sm"
+              onClick={() => handlePageChange(pageNumber)}
+              disabled={loading}
+              style={{ minWidth: '36px' }}
+            >
+              {pageNumber}
+            </Button>
+          ))}
+
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={() => handlePageChange((pagination?.page || 1) + 1)}
+            disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
+          >
+            ›
+          </Button>
+
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={() => handlePageChange(pagination?.totalPages || 1)}
+            disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
+          >
+            »
+          </Button>
+        </div>
       </div>
     </div>
   );
