@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { itemService } from '../services/itemService';
+import { translateError } from '../utils/errorTranslator';
 
 export const useItems = () => {
   const [items, setItems] = useState([]);
@@ -34,7 +35,7 @@ export const useItems = () => {
         totalPages: response.total_pages,
       });
     } catch (err) {
-      setError(err.response?.data?.message || 'Error fetching items');
+      setError(translateError(err));
       setItems([]);
     } finally {
       setLoading(false);
