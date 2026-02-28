@@ -5,6 +5,7 @@ import { itemService } from '../services/itemService';
 import { categoryService } from '../services/categoryService';
 import { ItemListTable } from './ItemListTable';
 import { ItemModal } from './ItemModal';
+import { CategoryManagementModal } from './CategoryManagementModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Card, Button, Alert } from 'react-bootstrap';
 import { translateError } from '../utils/errorTranslator';
@@ -14,6 +15,7 @@ export const ItemManagement = ({ items = [], loading: listLoading = false, error
   const { hasAnyRole, hasRole } = useAuthorization();
   const [selectedItem, setSelectedItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -97,15 +99,24 @@ export const ItemManagement = ({ items = [], loading: listLoading = false, error
       <Card className="shadow-sm border-0">
         <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center py-3">
           <Card.Title as="h4" className="mb-0">Artículos</Card.Title>
-          {canCreateEdit && (
+          <div className="d-flex gap-2">
             <Button
               size="sm"
-              onClick={handleCreateItem}
-              style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white', margin: '-0.25rem 0' }}
+              onClick={() => setShowCategoryModal(true)}
+              style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#6c757d', borderColor: '#6c757d', color: 'white', margin: '-0.25rem 0' }}
             >
-              + Nuevo Artículo
+              Categorías
             </Button>
-          )}
+            {canCreateEdit && (
+              <Button
+                size="sm"
+                onClick={handleCreateItem}
+                style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white', margin: '-0.25rem 0' }}
+              >
+                + Nuevo Artículo
+              </Button>
+            )}
+          </div>
         </Card.Header>
         <Card.Body>
           {success && (
@@ -143,6 +154,12 @@ export const ItemManagement = ({ items = [], loading: listLoading = false, error
         onSave={handleItemSubmit}
         loading={loading}
         error={error}
+      />
+
+      {/* Category Management Modal */}
+      <CategoryManagementModal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
       />
 
       {/* Confirm Delete Dialog */}
