@@ -9,11 +9,11 @@ import { formatDecimal, formatPrice } from '../utils/formatters';
 export const ItemListTable = ({ items, loading, error, pagination, onFetchItems }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { selectedBranch } = useBranchSelection();
+  const { selectedBranchId } = useBranchSelection();
 
   // Get the branch ID to display stock (user's branch or selected from localStorage)
   const getBranchIdForStock = () => {
-    return user?.branch_id || selectedBranch;
+    return user?.branch_id || selectedBranchId;
   };
 
   // Get stock for current branch
@@ -37,21 +37,26 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
   };
 
   // Render stock by branch tooltip
-  const renderStockTooltip = (item) => (
-    <Tooltip id={`stock-tooltip-${item.id}`}>
-      <div className="text-start">
-        {item.stock_by_branch && item.stock_by_branch.length > 0 ? (
-          item.stock_by_branch.map((sb) => (
-            <div key={sb.branch_id}>
-              <strong>{sb.branch_name}:</strong> {formatDecimal(sb.stock)} {item.unit}
-            </div>
-          ))
-        ) : (
-          <div>Sin stock en sedes</div>
-        )}
-      </div>
-    </Tooltip>
-  );
+  const renderStockTooltip = (item) => {
+    const branches = item.stock_by_branch || [];
+
+    return (
+      <Tooltip id={`stock-tooltip-${item.id}`}>
+        <div className="text-start">
+          <div className="fw-semibold mb-1">Stock por sede</div>
+          {branches.length > 0 ? (
+            branches.map((sb) => (
+              <div key={sb.branch_id}>
+                <strong>{sb.branch_name}:</strong> {formatDecimal(sb.stock)} {item.unit}
+              </div>
+            ))
+          ) : (
+            <div>Sin stock en sedes</div>
+          )}
+        </div>
+      </Tooltip>
+    );
+  };
 
   const handleDetailsClick = (itemId) => {
     navigate(`/inventory/items/${itemId}`);
@@ -112,8 +117,8 @@ export const ItemListTable = ({ items, loading, error, pagination, onFetchItems 
                     {getBranchStock(item)} {item.unit}
                   </td>
                   <td>
-                    <OverlayTrigger placement="top" overlay={renderStockTooltip(item)}>
-                      <span style={{ cursor: 'pointer', textDecoration: 'underline' }}>
+                    <OverlayTrigger trigger={['hover', 'focus']} placement="top" overlay={renderStockTooltip(item)}>
+                      <span style={{ textDecoration: 'underline dotted' }}>
                         {getTotalStock(item)} {item.unit}
                       </span>
                     </OverlayTrigger>
