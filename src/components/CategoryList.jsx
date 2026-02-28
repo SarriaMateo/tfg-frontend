@@ -41,9 +41,9 @@ export const CategoryList = ({
       <Table hover className="align-middle">
         <thead className="table-light">
           <tr>
-            <th style={{ fontWeight: '600', width: '50px' }}>Color</th>
-            <th style={{ fontWeight: '600' }}>Nombre</th>
-            <th style={{ fontWeight: '600', width: '100px' }}>Código HEX</th>
+            <th style={{ fontWeight: '600', width: '80px', textAlign: 'center' }}>Color</th>
+            <th style={{ fontWeight: '600', width: '30%' }}>Nombre</th>
+            <th style={{ fontWeight: '600', width: '130px', textAlign: 'center' }}>Código HEX</th>
             {(canEdit || canDelete) && (
               <th style={{ fontWeight: '600', textAlign: 'center', width: '150px' }}>Acciones</th>
             )}
@@ -52,7 +52,7 @@ export const CategoryList = ({
         <tbody>
           {categories.map(category => (
             <tr key={category.id}>
-              <td>
+              <td style={{ textAlign: 'center' }}>
                 <div
                   style={{
                     backgroundColor: category.color,
@@ -61,6 +61,7 @@ export const CategoryList = ({
                     borderRadius: '6px',
                     border: '2px solid #dee2e6',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    margin: '0 auto',
                   }}
                   title={category.color}
                 />
@@ -68,7 +69,7 @@ export const CategoryList = ({
               <td>
                 <div className="fw-500">{category.name}</div>
               </td>
-              <td>
+              <td style={{ textAlign: 'center' }}>
                 <code className="bg-light px-2 py-1 rounded" style={{ fontSize: '0.875rem' }}>
                   {category.color}
                 </code>
@@ -78,20 +79,22 @@ export const CategoryList = ({
                   <div className="d-flex gap-2 justify-content-center">
                     {canEdit && (
                       <Button
-                        variant="outline-primary"
+                        variant="primary"
                         size="sm"
                         onClick={() => onEditCategory(category)}
                         title="Editar categoría"
+                        style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
                       >
                         Editar
                       </Button>
                     )}
                     {canDelete && (
                       <Button
-                        variant="outline-danger"
+                        variant="danger"
                         size="sm"
                         onClick={() => onDeleteCategory(category.id)}
                         title="Eliminar categoría"
+                        style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
                       >
                         Eliminar
                       </Button>

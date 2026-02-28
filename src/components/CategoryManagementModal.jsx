@@ -132,12 +132,12 @@ export const CategoryManagementModal = ({ isOpen, onClose }) => {
         size="lg"
         className="category-management-modal"
       >
-        <div className="mb-3">
+        <div className="mb-3 d-flex justify-content-end">
           {canCreateEdit && (
             <Button
-              variant="success"
               size="sm"
               onClick={handleCreateCategory}
+              style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
             >
               + Nueva Categoría
             </Button>

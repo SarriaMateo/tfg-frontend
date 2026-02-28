@@ -101,9 +101,10 @@ export const ItemManagement = ({ items = [], loading: listLoading = false, error
           <Card.Title as="h4" className="mb-0">Artículos</Card.Title>
           <div className="d-flex gap-2">
             <Button
+              variant="info"
               size="sm"
               onClick={() => setShowCategoryModal(true)}
-              style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#6c757d', borderColor: '#6c757d', color: 'white', margin: '-0.25rem 0' }}
+              style={{ height: '36px', padding: '0.25rem 0.75rem', margin: '-0.25rem 0' }}
             >
               Categorías
             </Button>
