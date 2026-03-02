@@ -5,7 +5,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { categoryService } from '../services/categoryService';
-import { formatDecimal, formatPrice } from '../utils/formatters';
+import { formatDecimal, formatPrice, formatUnit } from '../utils/formatters';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -174,7 +174,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
           {branches.length > 0 ? (
             branches.map((sb) => (
               <div key={sb.branch_id}>
-                <strong>{sb.branch_name}:</strong> {formatDecimal(sb.stock)} {item.unit}
+                <strong>{sb.branch_name}:</strong> {formatDecimal(sb.stock)} {formatUnit(item.unit)}
               </div>
             ))
           ) : (
@@ -339,12 +339,12 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
                     <code>{item.sku}</code>
                   </td>
                   <td className="text-center">
-                    {getBranchStock(item)} {item.unit}
+                    {getBranchStock(item)} {formatUnit(item.unit)}
                   </td>
                   <td className="text-center">
                     <OverlayTrigger trigger={['hover', 'focus']} placement="top" overlay={renderStockTooltip(item)}>
                       <span style={{ textDecoration: 'underline dotted' }}>
-                        {getTotalStock(item)} {item.unit}
+                        {getTotalStock(item)} {formatUnit(item.unit)}
                       </span>
                     </OverlayTrigger>
                   </td>

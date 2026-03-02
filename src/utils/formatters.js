@@ -26,3 +26,18 @@ export const formatPrice = (price) => {
   if (isNaN(num)) return '-';
   return `${num.toFixed(2)}€`;
 };
+
+/**
+ * Formats unit display text
+ * Examples: l -> L, ml -> mL, kg -> kg
+ */
+export const formatUnit = (unit) => {
+  if (!unit) return unit;
+  
+  const unitMap = {
+    l: 'L',
+    ml: 'mL',
+  };
+  
+  return unitMap[unit] || unit;
+};
