@@ -13,11 +13,6 @@ import InventoryPage from "./pages/InventoryPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import OperationsPage from "./pages/OperationsPage";
 import SettingsPage from "./pages/SettingsPage";
-import TestDashboard from "./pages/test/TestDashboard";
-import AdminTestPage from "./pages/test/AdminTestPage";
-import ManagerTestPage from "./pages/test/ManagerTestPage";
-import EmployeeTestPage from "./pages/test/EmployeeTestPage";
-import TestBranchPage from "./pages/test/TestBranchPage";
 
 function App() {
   const [count, setCount] = useState(0)
@@ -68,48 +63,6 @@ function App() {
                   element={
                     <PrivateRoute>
                       <SettingsPage />
-                    </PrivateRoute>
-                  } 
-                />
-                
-                {/* Test Routes */}
-                <Route 
-                  path="/test" 
-                  element={
-                    <PrivateRoute>
-                      <TestDashboard />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/test/admin" 
-                  element={
-                    <PrivateRoute requiredRoles="ADMIN">
-                      <AdminTestPage />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/test/manager" 
-                  element={
-                    <PrivateRoute requiredRoles="MANAGER">
-                      <ManagerTestPage />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/test/employee" 
-                  element={
-                    <PrivateRoute requiredRoles="EMPLOYEE">
-                      <EmployeeTestPage />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/test/branch" 
-                  element={
-                    <PrivateRoute>
-                      <TestBranchPage />
                     </PrivateRoute>
                   } 
                 />

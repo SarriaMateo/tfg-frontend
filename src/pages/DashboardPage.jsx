@@ -62,20 +62,9 @@ export default function DashboardPage() {
         <>
             <Navbar />
             <Container className="py-5">
-            <div className="d-flex justify-content-between align-items-center mb-5">
-                <div>
-                    <h1 className="display-5 fw-bold text-primary mb-2">Dashboard</h1>
-                    <p className="text-muted">Bienvenido a tu panel de control</p>
-                </div>
-                <div className="d-flex gap-2">
-                    <Button 
-                        variant="outline-info"
-                        onClick={() => navigate("/test")}
-                        className="align-self-start"
-                    >
-                        🧪 Test Dashboard
-                    </Button>
-                </div>
+            <div className="mb-5">
+                <h1 className="display-5 fw-bold text-primary mb-2">Dashboard</h1>
+                <p className="text-muted">Bienvenido a tu panel de control</p>
             </div>
 
             {error && (
