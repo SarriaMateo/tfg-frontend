@@ -235,12 +235,20 @@ export const UserForm = ({
         </>
       )}
 
-      <div className="d-flex gap-2">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '8px',
+        width: '100%'
+      }}>
         <Button 
           variant="secondary"
           onClick={onCancel}
           disabled={loading}
-          className="flex-grow-1"
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden'
+          }}
         >
           Cancelar
         </Button>
@@ -248,9 +256,26 @@ export const UserForm = ({
           variant="primary"
           type="submit"
           disabled={loading}
-          className="flex-grow-1"
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden'
+          }}
         >
-          {loading ? <><Spinner size="sm" className="me-2" />Guardando...</> : (isCreating ? 'Crear Usuario' : 'Guardar Cambios')}
+          {loading ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+                className="me-2"
+              />
+              Guardando...
+            </>
+          ) : (
+            isCreating ? 'Crear Usuario' : 'Guardar Cambios'
+          )}
         </Button>
       </div>
     </Form>
