@@ -9,6 +9,7 @@ import { itemService } from '../services/itemService';
 import { categoryService } from '../services/categoryService';
 import { translateError } from '../utils/errorTranslator';
 import { useAuthorization } from '../hooks/useAuthorization';
+import { formatUnitExtended } from '../utils/formatters';
 
 export const ItemDetailPage = () => {
   const { itemId } = useParams();
@@ -169,7 +170,7 @@ export const ItemDetailPage = () => {
                   <Row className="mb-3">
                     <Col md={6}>
                       <p className="mb-1 text-muted">Unidad</p>
-                      <p className="fw-semibold">{item.unit}</p>
+                      <p className="fw-semibold">{formatUnitExtended(item.unit)}</p>
                     </Col>
                     <Col md={6}>
                       <p className="mb-1 text-muted">Precio</p>

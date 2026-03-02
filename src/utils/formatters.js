@@ -28,16 +28,82 @@ export const formatPrice = (price) => {
 };
 
 /**
+ * Unit mappings for different display formats
+ */
+const UNIT_MAPPINGS = {
+  // API format -> Extended Spanish format
+  extended: {
+    ud: 'Unidad',
+    kg: 'Kilogramo',
+    g: 'Gramo',
+    l: 'Litro',
+    ml: 'Mililitro',
+    m: 'Metro',
+    box: 'Caja',
+    pack: 'Pack',
+  },
+  // API format -> Short display format
+  short: {
+    ud: 'ud',
+    kg: 'kg',
+    g: 'g',
+    l: 'L',
+    ml: 'mL',
+    m: 'm',
+    box: 'caja',
+    pack: 'pack',
+  },
+};
+
+/**
+ * Array of units for use in select dropdowns
+ * Format: { value: 'api_value', label: 'Extended Spanish' }
+ */
+export const UNIT_OPTIONS = [
+  { value: 'ud', label: 'Unidad' },
+  { value: 'kg', label: 'Kilogramo' },
+  { value: 'g', label: 'Gramo' },
+  { value: 'l', label: 'Litro' },
+  { value: 'ml', label: 'Mililitro' },
+  { value: 'm', label: 'Metro' },
+  { value: 'box', label: 'Caja' },
+  { value: 'pack', label: 'Pack' },
+];
+
+/**
+ * Formats unit to extended Spanish format (for selects and detail pages)
+ * Examples: ud -> Unidades, kg -> Kilogramos, l -> Litros
+ */
+export const formatUnitExtended = (unit) => {
+  if (!unit) return unit;
+  return UNIT_MAPPINGS.extended[unit] || unit;
+};
+
+/**
+ * Formats unit to short display format (for tables and stock columns)
+ * Examples: l -> L, ml -> mL, box -> caja
+ */
+export const formatUnitShort = (unit) => {
+  if (!unit) return unit;
+  return UNIT_MAPPINGS.short[unit] || unit;
+};
+
+/**
+ * Formats unit for API calls (returns original value)
+ * This function exists for consistency and future-proofing
+ * Examples: Unidades -> ud, Litros -> l (if needed for reverse mapping)
+ */
+export const formatUnitForAPI = (unit) => {
+  // For now, values are already in API format
+  // This could be extended to handle reverse mapping if needed
+  return unit;
+};
+
+/**
+ * @deprecated Use formatUnitShort instead
  * Formats unit display text
  * Examples: l -> L, ml -> mL, kg -> kg
  */
 export const formatUnit = (unit) => {
-  if (!unit) return unit;
-  
-  const unitMap = {
-    l: 'L',
-    ml: 'mL',
-  };
-  
-  return unitMap[unit] || unit;
+  return formatUnitShort(unit);
 };

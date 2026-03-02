@@ -5,17 +5,7 @@ import { itemService } from '../services/itemService';
 import { CategoryBadge } from './CategoryBadge';
 import { CategoryModal } from './CategoryModal';
 import { translateError } from '../utils/errorTranslator';
-
-const UNITS = [
-  { value: 'ud', label: 'Unidad' },
-  { value: 'kg', label: 'Kilogramo' },
-  { value: 'g', label: 'Gramo' },
-  { value: 'l', label: 'Litro' },
-  { value: 'ml', label: 'Mililitro' },
-  { value: 'm', label: 'Metro' },
-  { value: 'box', label: 'Caja' },
-  { value: 'pack', label: 'Pack' }
-];
+import { UNIT_OPTIONS } from '../utils/formatters';
 
 const getTextColor = (hexColor) => {
   if (!hexColor || typeof hexColor !== 'string') {
@@ -332,7 +322,7 @@ export const ItemForm = ({
               onChange={handleChange}
               disabled={loading}
             >
-              {UNITS.map(unit => (
+              {UNIT_OPTIONS.map(unit => (
                 <option key={unit.value} value={unit.value}>{unit.label}</option>
               ))}
             </Form.Select>

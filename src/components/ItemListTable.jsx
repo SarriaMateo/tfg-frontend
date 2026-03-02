@@ -5,7 +5,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { categoryService } from '../services/categoryService';
-import { formatDecimal, formatPrice, formatUnit } from '../utils/formatters';
+import { formatDecimal, formatPrice, formatUnit, UNIT_OPTIONS } from '../utils/formatters';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -261,14 +261,9 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
               <Form.Label>Unidad</Form.Label>
               <Form.Select name="unit" value={filters.unit} onChange={handleFilterChange} style={selectControlStyle}>
                 <option value="">Todas</option>
-                <option value="ud">Unidades</option>
-                <option value="kg">Kilogramos</option>
-                <option value="g">Gramos</option>
-                <option value="l">Litros</option>
-                <option value="ml">Mililitros</option>
-                <option value="m">Metros</option>
-                <option value="box">Cajas</option>
-                <option value="pack">Packs</option>
+                {UNIT_OPTIONS.map(unit => (
+                  <option key={unit.value} value={unit.value}>{unit.label}</option>
+                ))}
               </Form.Select>
             </Form.Group>
           </Col>
