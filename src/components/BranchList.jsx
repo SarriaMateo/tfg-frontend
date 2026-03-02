@@ -42,6 +42,7 @@ export const BranchList = ({ onEditBranch, onDeleteBranch, canModify }) => {
             <tr>
               <th style={{ fontWeight: '600' }}>Nombre</th>
               <th style={{ fontWeight: '600' }}>Dirección</th>
+              <th style={{ fontWeight: '600', textAlign: 'center' }}>Activo</th>
               {canModify && <th style={{ fontWeight: '600', textAlign: 'center' }}>Acciones</th>}
             </tr>
           </thead>
@@ -53,6 +54,11 @@ export const BranchList = ({ onEditBranch, onDeleteBranch, canModify }) => {
                 </td>
                 <td>
                   {branch.address}
+                </td>
+                <td className="text-center">
+                  <span className={`badge ${branch.is_active ? 'bg-success' : 'bg-secondary'}`}>
+                    {branch.is_active ? 'Sí' : 'No'}
+                  </span>
                 </td>
                 {canModify && (
                   <td>

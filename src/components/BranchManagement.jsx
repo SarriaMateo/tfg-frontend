@@ -62,6 +62,7 @@ export const BranchManagement = () => {
         const updateData = {
           name: formData.name,
           address: formData.address,
+          is_active: formData.is_active,
         };
         await branchService.updateBranch(selectedBranch.id, updateData);
       } else {

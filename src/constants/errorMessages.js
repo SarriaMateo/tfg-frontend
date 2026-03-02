@@ -37,6 +37,7 @@ export const ERROR_MESSAGES = {
     CANNOT_CHANGE_ROLE_LAST_ADMIN: "No se puede cambiar el rol del último administrador activo de la empresa",
     CANNOT_DELETE_LAST_ADMIN: "No se puede eliminar el último administrador activo de la empresa",
     CANNOT_DEACTIVATE_LAST_ACTIVE_ADMIN: "No se puede desactivar el único administrador activo de la empresa",
+    CANNOT_DEACTIVATE_BRANCH_WITH_USERS: "No se puede desactivar una sede que tiene usuarios asociados",
     BRANCH_BELONGS_TO_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
     ADMIN_CANNOT_HAVE_BRANCH: "Los usuarios con rol administrador no pueden tener una sede asociada",
     BRANCH_HAS_USERS: "No se puede eliminar la sede porque tiene usuarios asociados",

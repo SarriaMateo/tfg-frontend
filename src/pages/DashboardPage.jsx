@@ -141,29 +141,6 @@ export default function DashboardPage() {
                 </Col>
             </Row>
 
-            {hasRole('ADMIN') && (
-                <Row className="g-4 mt-2">
-                    <Col>
-                        <Card className="shadow-sm border-0 bg-light">
-                            <Card.Body className="p-4">
-                                <h5 className="text-dark fw-bold">Herramientas de Administrador</h5>
-                                <p className="text-muted mb-3">
-                                    Como administrador, tienes acceso a funcionalidades adicionales
-                                </p>
-                                <div className="d-flex gap-2">
-                                    <Button variant="outline-primary" disabled>
-                                        Gestionar Usuarios
-                                    </Button>
-                                    <Button variant="outline-primary" disabled>
-                                        Gestionar Sedes
-                                    </Button>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
-            )}
-
             <Row className="g-4 mt-2">
                 <Col>
                     <Card className="shadow-sm border-0 bg-light">
