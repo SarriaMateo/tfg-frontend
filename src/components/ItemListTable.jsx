@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Spinner, Alert, Button, Form, Row, Col } from 'react-bootstrap';
+import { Spinner, Alert, Button, Form, Row, Col, Pagination } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
@@ -50,8 +50,6 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     fontSize: '1.1rem',
     lineHeight: 1,
   };
-  const pageButtonStyle = { minWidth: '36px', height: '32px', padding: '0.25rem 0.5rem' };
-  const currentPageButtonStyle = { minWidth: '40px', height: '34px', padding: '0.25rem 0.5rem' };
 
   useEffect(() => {
     if (pagination?.pageSize && pagination.pageSize !== pageSize) {
@@ -426,6 +424,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             onChange={handlePageSizeChange}
             style={{ width: '92px', height: '38px' }}
           >
+            <option value={1}>1</option>
             <option value={2}>2</option>
             <option value={5}>5</option>
             <option value={10}>10</option>
@@ -435,59 +434,39 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
           </Form.Select>
         </div>
 
-        <div className="w-100 d-flex justify-content-center align-items-center gap-2">
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={() => handlePageChange(1)}
-            disabled={(pagination?.page || 1) <= 1 || loading}
-            style={pageButtonStyle}
-          >
-            «
-          </Button>
+        <div className="w-100 d-flex justify-content-center">
+          <Pagination className="item-list-pagination mb-0">
+            <Pagination.First
+              onClick={() => handlePageChange(1)}
+              disabled={(pagination?.page || 1) <= 1 || loading}
+            />
 
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={() => handlePageChange((pagination?.page || 1) - 1)}
-            disabled={(pagination?.page || 1) <= 1 || loading}
-            style={pageButtonStyle}
-          >
-            ‹
-          </Button>
+            <Pagination.Prev
+              onClick={() => handlePageChange((pagination?.page || 1) - 1)}
+              disabled={(pagination?.page || 1) <= 1 || loading}
+            />
 
-          {getVisiblePages().map((pageNumber) => (
-            <Button
-              key={pageNumber}
-              variant={pageNumber === (pagination?.page || 1) ? 'primary' : 'outline-secondary'}
-              size="sm"
-              onClick={() => handlePageChange(pageNumber)}
-              disabled={loading}
-              style={pageNumber === (pagination?.page || 1) ? currentPageButtonStyle : pageButtonStyle}
-            >
-              {pageNumber}
-            </Button>
-          ))}
+            {getVisiblePages().map((pageNumber) => (
+              <Pagination.Item
+                key={pageNumber}
+                active={pageNumber === (pagination?.page || 1)}
+                onClick={() => handlePageChange(pageNumber)}
+                disabled={loading}
+              >
+                {pageNumber}
+              </Pagination.Item>
+            ))}
 
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={() => handlePageChange((pagination?.page || 1) + 1)}
-            disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
-            style={pageButtonStyle}
-          >
-            ›
-          </Button>
+            <Pagination.Next
+              onClick={() => handlePageChange((pagination?.page || 1) + 1)}
+              disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
+            />
 
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={() => handlePageChange(pagination?.totalPages || 1)}
-            disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
-            style={pageButtonStyle}
-          >
-            »
-          </Button>
+            <Pagination.Last
+              onClick={() => handlePageChange(pagination?.totalPages || 1)}
+              disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
+            />
+          </Pagination>
         </div>
       </div>
     </div>
