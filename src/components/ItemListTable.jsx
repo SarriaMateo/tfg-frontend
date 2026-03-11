@@ -28,6 +28,7 @@ const queryToFilters = (query = {}) => ({
 export const ItemListTable = ({ items, loading, error, pagination, initialQuery = {}, onFetchItems }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const canFilterByActive = ['ADMIN', 'MANAGER'].includes((user?.role || '').toUpperCase());
   const { selectedBranchId } = useBranchSelection();
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -36,6 +37,17 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
   const inputControlStyle = { minHeight: '38px' };
   const selectControlStyle = { height: '46px' };
   const filterButtonStyle = { height: '46px', padding: '0 1rem' };
+  const sortDirectionButtonStyle = {
+    width: '46px',
+    height: '46px',
+    padding: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '10px',
+    fontSize: '1.1rem',
+    lineHeight: 1,
+  };
   const pageButtonStyle = { minWidth: '36px', height: '32px', padding: '0.25rem 0.5rem' };
   const currentPageButtonStyle = { minWidth: '40px', height: '34px', padding: '0.25rem 0.5rem' };
 
@@ -76,20 +88,31 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     }));
   };
 
-  const buildFetchPayload = ({ page = 1, nextPageSize = pageSize } = {}) => {
+  const buildFetchPayload = ({ page = 1, nextPageSize = pageSize, sourceFilters = filters } = {}) => {
     const payload = {
       page,
       pageSize: nextPageSize,
-      order_by: filters.order_by,
-      order_desc: filters.order_desc === 'true',
+      order_by: sourceFilters.order_by,
+      order_desc: sourceFilters.order_desc === 'true',
     };
 
-    if (filters.search.trim()) payload.search = filters.search.trim();
-    if (filters.is_active !== '') payload.is_active = filters.is_active === 'true';
-    if (filters.category_id !== '') payload.category_id = Number(filters.category_id);
-    if (filters.unit) payload.unit = filters.unit;
+    if (sourceFilters.search.trim()) payload.search = sourceFilters.search.trim();
+    if (sourceFilters.is_active !== '') payload.is_active = sourceFilters.is_active === 'true';
+    if (sourceFilters.category_id !== '') payload.category_id = Number(sourceFilters.category_id);
+    if (sourceFilters.unit) payload.unit = sourceFilters.unit;
 
     return payload;
+  };
+
+  const handleToggleOrderDirection = () => {
+    const nextOrderDesc = filters.order_desc === 'true' ? 'false' : 'true';
+    const nextFilters = {
+      ...filters,
+      order_desc: nextOrderDesc,
+    };
+
+    setFilters(nextFilters);
+    onFetchItems(buildFetchPayload({ page: pagination?.page || 1, sourceFilters: nextFilters }));
   };
 
   const handleApplyFilters = () => {
@@ -211,7 +234,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     <div className="mb-5">
       <div className="border rounded p-3 mb-3 bg-light">
         <Row className="g-3 align-items-end">
-          <Col md={4}>
+          <Col md={2}>
             <Form.Group>
               <Form.Label>Buscar</Form.Label>
               <Form.Control
@@ -225,16 +248,18 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             </Form.Group>
           </Col>
 
-          <Col md={2}>
-            <Form.Group>
-              <Form.Label>Activo</Form.Label>
-              <Form.Select name="is_active" value={filters.is_active} onChange={handleFilterChange} style={selectControlStyle}>
-                <option value="">Todos</option>
-                <option value="true">Activos</option>
-                <option value="false">Inactivos</option>
-              </Form.Select>
-            </Form.Group>
-          </Col>
+          {canFilterByActive && (
+            <Col md={2}>
+              <Form.Group>
+                <Form.Label>Activo</Form.Label>
+                <Form.Select name="is_active" value={filters.is_active} onChange={handleFilterChange} style={selectControlStyle}>
+                  <option value="">Todos</option>
+                  <option value="true">Activos</option>
+                  <option value="false">Inactivos</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          )}
 
           <Col md={3}>
             <Form.Group>
@@ -256,7 +281,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             </Form.Group>
           </Col>
 
-          <Col md={3}>
+          <Col md={2}>
             <Form.Group>
               <Form.Label>Unidad</Form.Label>
               <Form.Select name="unit" value={filters.unit} onChange={handleFilterChange} style={selectControlStyle}>
@@ -268,7 +293,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             </Form.Group>
           </Col>
 
-          <Col md={3}>
+          <Col md={2}>
             <Form.Group>
               <Form.Label>Ordenar por</Form.Label>
               <Form.Select name="order_by" value={filters.order_by} onChange={handleFilterChange} style={selectControlStyle}>
@@ -281,13 +306,16 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             </Form.Group>
           </Col>
 
-          <Col md={2}>
+          <Col md={1} className="d-flex justify-content-start">
             <Form.Group>
-              <Form.Label>Dirección</Form.Label>
-              <Form.Select name="order_desc" value={filters.order_desc} onChange={handleFilterChange} style={selectControlStyle}>
-                <option value="true">Descendente</option>
-                <option value="false">Ascendente</option>
-              </Form.Select>
+              <Button
+                variant="outline-secondary"
+                onClick={handleToggleOrderDirection}
+                style={sortDirectionButtonStyle}
+                title={filters.order_desc === 'true' ? 'Descendente' : 'Ascendente'}
+              >
+                {filters.order_desc === 'true' ? '↓' : '↑'}
+              </Button>
             </Form.Group>
           </Col>
 
@@ -377,7 +405,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             onChange={handlePageSizeChange}
             style={{ width: '92px', height: '38px' }}
           >
-            <option value={1}>1</option>
+            <option value={2}>2</option>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>

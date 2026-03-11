@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
 import { userService } from '../services/userService';
 import { companyService } from '../services/companyService';
 import { translateError } from '../utils/errorTranslator';
@@ -24,6 +24,7 @@ export const UserForm = ({
   const [error, setError] = useState(null);
   const [branches, setBranches] = useState([]);
   const [loadingBranches, setLoadingBranches] = useState(false);
+  const selectControlStyle = { minHeight: '49px' };
 
   // Use external error if available, otherwise internal error
   const displayError = externalError || error;
@@ -129,73 +130,87 @@ export const UserForm = ({
         />
       </Form.Group>
 
-      <Form.Group className="mb-3">
-        <Form.Label>Usuario <span className="text-danger">*</span></Form.Label>
-        <Form.Control
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          placeholder="Nombre de usuario único"
-          disabled={loading}
-          required
-        />
-      </Form.Group>
+      <Row>
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label>Usuario <span className="text-danger">*</span></Form.Label>
+            <Form.Control
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="Nombre de usuario único"
+              disabled={loading}
+              required
+            />
+          </Form.Group>
+        </Col>
 
-      <Form.Group className="mb-3">
-        <Form.Label>
-          Contraseña {isCreating && <span className="text-danger">*</span>}
-        </Form.Label>
-        <Form.Control
-          type="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder={isCreating ? "Contraseña" : "Dejar vacío para mantener la actual"}
-          disabled={loading}
-          required={isCreating}
-        />
-      </Form.Group>
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label>
+              Contraseña {isCreating && <span className="text-danger">*</span>}
+            </Form.Label>
+            <Form.Control
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder={isCreating ? "Contraseña" : "Dejar vacío para mantener la actual"}
+              disabled={loading}
+              required={isCreating}
+            />
+          </Form.Group>
+        </Col>
+      </Row>
 
       {isAdmin && (
         <>
-          <Form.Group className="mb-3">
-            <Form.Label>Rol <span className="text-danger">*</span></Form.Label>
-            <Form.Select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={loading}
-              required
-            >
-              <option value="EMPLOYEE">EMPLOYEE</option>
-              <option value="MANAGER">MANAGER</option>
-              <option value="ADMIN">ADMIN</option>
-            </Form.Select>
-          </Form.Group>
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Rol <span className="text-danger">*</span></Form.Label>
+                <Form.Select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  disabled={loading}
+                  required
+                  style={selectControlStyle}
+                >
+                  <option value="EMPLOYEE">EMPLOYEE</option>
+                  <option value="MANAGER">MANAGER</option>
+                  <option value="ADMIN">ADMIN</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
 
-          <Form.Group className="mb-3">
-            <Form.Label>Sede</Form.Label>
-            <Form.Select
-              name="branch_id"
-              value={formData.branch_id}
-              onChange={handleChange}
-              disabled={loading || loadingBranches}
-            >
-              <option value="">Sin sede asignada</option>
-              {branches.map(branch => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
-            </Form.Select>
-            {loadingBranches && (
-              <Form.Text className="text-muted">
-                <Spinner size="sm" className="me-1" />
-                Cargando sedes...
-              </Form.Text>
-            )}
-          </Form.Group>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Sede</Form.Label>
+                <Form.Select
+                  name="branch_id"
+                  value={formData.branch_id}
+                  onChange={handleChange}
+                  disabled={loading || loadingBranches}
+                  style={selectControlStyle}
+                >
+                  <option value="">Sin sede asignada</option>
+                  {branches.map(branch => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </Form.Select>
+                {loadingBranches && (
+                  <Form.Text className="text-muted">
+                    <Spinner size="sm" className="me-1" />
+                    Cargando sedes...
+                  </Form.Text>
+                )}
+              </Form.Group>
+            </Col>
+          </Row>
 
           {!isCreating && (
             <Form.Group className="mb-3">
@@ -207,29 +222,7 @@ export const UserForm = ({
                 checked={formData.is_active}
                 onChange={handleChange}
                 disabled={loading}
-                className="d-flex align-items-center user-active-check"
-                style={{
-                  marginBottom: 0,
-                  gap: '6px',
-                }}
               />
-              <style>{`
-                .user-active-check.form-check {
-                  padding-left: 0 !important;
-                  margin-left: 0 !important;
-                }
-                #is_active.form-check-input {
-                  width: 14px !important;
-                  height: 14px !important;
-                  margin: 0 !important;
-                  cursor: pointer;
-                  flex-shrink: 0;
-                  margin-top: 0 !important;
-                }
-                #is_active.form-check-input:disabled {
-                  cursor: not-allowed;
-                }
-              `}</style>
             </Form.Group>
           )}
         </>

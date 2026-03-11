@@ -125,29 +125,7 @@ export const BranchForm = ({
             checked={formData.is_active}
             onChange={handleChange}
             disabled={loading}
-            className="d-flex align-items-center user-active-check"
-            style={{
-              marginBottom: 0,
-              gap: '6px',
-            }}
           />
-          <style>{`
-            .user-active-check.form-check {
-              padding-left: 0 !important;
-              margin-left: 0 !important;
-            }
-            #is_active.form-check-input {
-              width: 14px !important;
-              height: 14px !important;
-              margin: 0 !important;
-              cursor: pointer;
-              flex-shrink: 0;
-              margin-top: 0 !important;
-            }
-            #is_active.form-check-input:disabled {
-              cursor: not-allowed;
-            }
-          `}</style>
         </Form.Group>
       )}
 

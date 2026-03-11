@@ -67,7 +67,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
-input,
+input:not([type='checkbox']):not([type='radio']),
 textarea,
 select {
   border-radius: 0.5rem;
@@ -78,7 +78,7 @@ select {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-input:focus,
+input:not([type='checkbox']):not([type='radio']):focus,
 textarea:focus,
 select:focus {
   outline: none;

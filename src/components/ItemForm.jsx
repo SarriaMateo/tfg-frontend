@@ -54,6 +54,7 @@ export const ItemForm = ({
   const [loadingImage, setLoadingImage] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [savingCategory, setSavingCategory] = useState(false);
+  const selectControlStyle = { minHeight: '50px' };
 
   // Use external error if available, otherwise internal error
   const displayError = externalError || error;
@@ -321,6 +322,7 @@ export const ItemForm = ({
               value={formData.unit}
               onChange={handleChange}
               disabled={loading}
+              style={selectControlStyle}
             >
               {UNIT_OPTIONS.map(unit => (
                 <option key={unit.value} value={unit.value}>{unit.label}</option>
@@ -346,7 +348,7 @@ export const ItemForm = ({
 
       {/* Price, Image and Active Status */}
       <Row>
-        <Col md={4}>
+        <Col md={3}>
           <Form.Group className="mb-3">
             <Form.Label>Precio</Form.Label>
             <Form.Control
@@ -361,7 +363,7 @@ export const ItemForm = ({
             />
           </Form.Group>
         </Col>
-        <Col md={4}>
+        <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Imagen</Form.Label>
             {isEditMode && loadingImage ? (
@@ -430,9 +432,8 @@ export const ItemForm = ({
           )}
         </Col>
         {isEditMode && (
-          <Col md={4}>
-            <Form.Group className="mb-3">
-              <Form.Label>&nbsp;</Form.Label>
+          <Col md={3} className="d-flex align-items-start">
+            <Form.Group className="mt-5 w-100">
               <Form.Check
                 type="checkbox"
                 id="is_active"
@@ -441,29 +442,7 @@ export const ItemForm = ({
                 checked={formData.is_active}
                 onChange={handleChange}
                 disabled={loading}
-                className="d-flex align-items-center item-active-check"
-                style={{
-                  marginBottom: 0,
-                  gap: '6px',
-                }}
               />
-              <style>{`
-                .item-active-check.form-check {
-                  padding-left: 0 !important;
-                  margin-left: 0 !important;
-                }
-                #is_active.form-check-input {
-                  width: 14px !important;
-                  height: 14px !important;
-                  margin: 0 !important;
-                  cursor: pointer;
-                  flex-shrink: 0;
-                  margin-top: 0 !important;
-                }
-                #is_active.form-check-input:disabled {
-                  cursor: not-allowed;
-                }
-              `}</style>
             </Form.Group>
           </Col>
         )}
