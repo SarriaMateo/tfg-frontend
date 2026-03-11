@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Spinner, Button, Form, Row, Col } from 'react-bootstrap';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { branchService } from '../services/branchService';
 import { userService } from '../services/userService';
 import { itemService } from '../services/itemService';
+import { formatDecimal, formatUnit } from '../utils/formatters';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -37,6 +39,25 @@ const normalizeFiltersFromQuery = (query = {}, fallbackBranchId = '') => ({
   order_by: query.order_by || 'created_at',
   order_desc: String(query.order_desc ?? true),
 });
+
+const OPERATION_TYPE_LABELS = {
+  IN: 'Entrada',
+  OUT: 'Salida',
+  TRANSFER: 'Transferencia',
+  ADJUSTMENT: 'Ajuste',
+};
+
+const STATUS_LABELS = {
+  PENDING: 'Pendiente',
+  COMPLETED: 'Completada',
+  CANCELLED: 'Cancelada',
+};
+
+const STATUS_BADGE_CLASSES = {
+  PENDING: 'bg-warning text-dark',
+  COMPLETED: 'bg-success',
+  CANCELLED: 'bg-secondary',
+};
 
 export const TransactionListTable = ({
   transactions = [],
@@ -75,6 +96,22 @@ export const TransactionListTable = ({
   }, [selectedBranchId, user?.branch_id]);
 
   const [filters, setFilters] = useState(() => normalizeFiltersFromQuery(initialQuery, resolvedBranchId));
+
+  const itemsById = useMemo(() => {
+    const lookup = new Map();
+    items.forEach((item) => {
+      lookup.set(Number(item.id), item);
+    });
+    return lookup;
+  }, [items]);
+
+  const branchesById = useMemo(() => {
+    const lookup = new Map();
+    branches.forEach((branch) => {
+      lookup.set(Number(branch.id), branch.name);
+    });
+    return lookup;
+  }, [branches]);
 
   const defaultFilters = useMemo(() => ({
     ...DEFAULT_FILTERS,
@@ -140,6 +177,73 @@ export const TransactionListTable = ({
       page: pagination?.page || 1,
       sourceFilters: nextFilters,
     }));
+  };
+
+  const formatTransactionDateTime = (value) => {
+    if (!value) return '-';
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) return '-';
+
+    return parsedDate.toLocaleString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const cropDescription = (description) => {
+    if (!description) return '-';
+    const maxLength = 80;
+    if (description.length <= maxLength) return description;
+    return `${description.slice(0, maxLength)}…`;
+  };
+
+  const getOperationTypeLabel = (operationType) => {
+    return OPERATION_TYPE_LABELS[operationType] || operationType || '-';
+  };
+
+  const getStatusLabel = (status) => {
+    return STATUS_LABELS[status] || status || '-';
+  };
+
+  const getStatusBadgeClassName = (status) => {
+    return STATUS_BADGE_CLASSES[status] || 'bg-secondary';
+  };
+
+  const getBranchName = (transaction) => {
+    const branchId = Number(transaction?.branch_id);
+    if (!branchId) return '-';
+    return branchesById.get(branchId) || `Sede #${branchId}`;
+  };
+
+  const renderLinesTooltip = (transaction) => {
+    const lines = Array.isArray(transaction?.lines) ? transaction.lines : [];
+
+    return (
+      <Tooltip id={`transaction-lines-tooltip-${transaction.id}`}>
+        <div className="text-start" style={{ fontSize: '0.95rem', lineHeight: '1.35' }}>
+          <div className="fw-semibold mb-1">Detalle de líneas</div>
+          {lines.length > 0 ? (
+            lines.map((line) => {
+              const item = itemsById.get(Number(line.item_id));
+              const itemName = item?.name || `Artículo #${line.item_id}`;
+              const formattedQuantity = formatDecimal(line.quantity);
+              const formattedUnit = item?.unit ? formatUnit(item.unit) : '-';
+
+              return (
+                <div key={line.id || `${transaction.id}-${line.item_id}`}>
+                  <strong>{itemName}:</strong> {formattedQuantity} {formattedUnit}
+                </div>
+              );
+            })
+          ) : (
+            <div>Sin líneas</div>
+          )}
+        </div>
+      </Tooltip>
+    );
   };
 
   useEffect(() => {
@@ -372,13 +476,60 @@ export const TransactionListTable = ({
         </Row>
       </div>
 
-      <Alert variant="secondary" className="mb-0">
-        <div className="fw-semibold mb-2">Filtros y ordenación listos</div>
-        <div className="small">
-          <div>Operaciones cargadas: {transactions.length} de {pagination.total || 0}</div>
-          <div>En la siguiente etapa se implementará la tabla completa con columnas y tooltip de líneas.</div>
-        </div>
-      </Alert>
+      <p className="text-muted">
+        Mostrando {transactions.length} de {pagination.total || 0} operaciones
+      </p>
+
+      <div className="table-responsive">
+        <table className="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Sede</th>
+              <th>Fecha y hora</th>
+              <th>Descripción</th>
+              <th className="text-center">Nº líneas</th>
+              <th className="text-center">Estado</th>
+              <th className="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transactions.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="text-center text-muted py-4">
+                  No hay operaciones disponibles
+                </td>
+              </tr>
+            ) : (
+              transactions.map((transaction) => {
+                const linesCount = Array.isArray(transaction.lines) ? transaction.lines.length : 0;
+
+                return (
+                  <tr key={transaction.id}>
+                    <td>{getOperationTypeLabel(transaction.operation_type)}</td>
+                    <td>{getBranchName(transaction)}</td>
+                    <td>{formatTransactionDateTime(transaction.created_at)}</td>
+                    <td>{cropDescription(transaction.description)}</td>
+                    <td className="text-center">
+                      <OverlayTrigger trigger={['hover', 'focus']} placement="top" overlay={renderLinesTooltip(transaction)}>
+                        <span style={{ textDecoration: 'underline dotted' }}>
+                          {linesCount}
+                        </span>
+                      </OverlayTrigger>
+                    </td>
+                    <td className="text-center">
+                      <span className={`badge ${getStatusBadgeClassName(transaction.status)}`}>
+                        {getStatusLabel(transaction.status)}
+                      </span>
+                    </td>
+                    <td className="text-center">-</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
