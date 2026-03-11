@@ -19,15 +19,10 @@ export const TransactionsPage = () => {
   } = useTransactions();
 
   React.useEffect(() => {
-    // Keep the initial transaction scope aligned with the user's branch context.
+    // Use the navbar branch only as the initial fallback when no stored query exists.
     const resolvedBranchId = user?.branch_id || selectedBranchId;
 
-    if (resolvedBranchId) {
-      fetchTransactions({ branch_id: resolvedBranchId });
-      return;
-    }
-
-    fetchTransactions();
+    fetchTransactions({}, { defaultBranchId: resolvedBranchId });
   }, [fetchTransactions, selectedBranchId, user?.branch_id]);
 
   return (

@@ -96,7 +96,9 @@ export const TransactionListTable = ({
     return '';
   }, [selectedBranchId, user?.branch_id]);
 
-  const [filters, setFilters] = useState(() => normalizeFiltersFromQuery(initialQuery, resolvedBranchId));
+  const shouldUseInitialBranchFallback = !initialQuery || Object.keys(initialQuery).length === 0;
+
+  const [filters, setFilters] = useState(() => normalizeFiltersFromQuery(initialQuery, shouldUseInitialBranchFallback ? resolvedBranchId : ''));
 
   const itemsById = useMemo(() => {
     const lookup = new Map();
@@ -120,8 +122,8 @@ export const TransactionListTable = ({
   }), [selectedBranchId, user?.branch_id]);
 
   useEffect(() => {
-    setFilters(normalizeFiltersFromQuery(initialQuery, resolvedBranchId));
-  }, [initialQuery, resolvedBranchId]);
+    setFilters(normalizeFiltersFromQuery(initialQuery, shouldUseInitialBranchFallback ? resolvedBranchId : ''));
+  }, [initialQuery, resolvedBranchId, shouldUseInitialBranchFallback]);
 
   useEffect(() => {
     if (pagination?.pageSize && pagination.pageSize !== pageSize) {
@@ -338,7 +340,7 @@ export const TransactionListTable = ({
   }
 
   return (
-    <div className="mb-3">
+    <div className="mb-5">
       {catalogError && (
         <Alert variant="warning" className="mb-3">
           {catalogError}
@@ -553,7 +555,11 @@ export const TransactionListTable = ({
                     <td>{getOperationTypeLabel(transaction.operation_type)}</td>
                     <td>{getBranchName(transaction)}</td>
                     <td>{formatTransactionDateTime(transaction.created_at)}</td>
-                    <td>{cropDescription(transaction.description)}</td>
+                    <td>
+                      <span title={transaction.description || ''}>
+                        {cropDescription(transaction.description)}
+                      </span>
+                    </td>
                     <td className="text-center">
                       <OverlayTrigger trigger={['hover', 'focus']} placement="top" overlay={renderLinesTooltip(transaction)}>
                         <span style={{ textDecoration: 'underline dotted' }}>

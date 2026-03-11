@@ -12,6 +12,11 @@ const DEFAULT_TRANSACTIONS_QUERY = {
 
 const TRANSACTIONS_QUERY_STORAGE_PREFIX = 'transactionsListState:';
 
+const buildDefaultTransactionsQuery = (defaultBranchId) => ({
+  ...DEFAULT_TRANSACTIONS_QUERY,
+  ...(defaultBranchId ? { branch_id: Number(defaultBranchId) } : {}),
+});
+
 const getTransactionsQueryStorageKey = (userId) => `${TRANSACTIONS_QUERY_STORAGE_PREFIX}${userId}`;
 
 const readStoredTransactionsQuery = (userId) => {
@@ -67,10 +72,11 @@ export const useTransactions = () => {
   });
 
   // Fetch transactions with filters, sorting and pagination
-  const fetchTransactions = useCallback(async (filters = {}) => {
+  const fetchTransactions = useCallback(async (filters = {}, options = {}) => {
     setLoading(true);
     setError(null);
     try {
+      const { defaultBranchId } = options;
       const hasFilters = Object.keys(filters).length > 0;
       const storedQuery = !hasFilters ? readStoredTransactionsQuery(user?.id) : null;
       const nextQuery = hasFilters
@@ -78,14 +84,18 @@ export const useTransactions = () => {
             ...DEFAULT_TRANSACTIONS_QUERY,
             ...filters,
           }
-        : (storedQuery || DEFAULT_TRANSACTIONS_QUERY);
+        : (storedQuery || buildDefaultTransactionsQuery(defaultBranchId));
 
       const { page = 1, pageSize = 20, ...restFilters } = nextQuery;
       const params = {
         page,
         page_size: pageSize,
-        ...restFilters,
       };
+
+      Object.entries(restFilters).forEach(([key, value]) => {
+        if (value === '' || value === null || value === undefined) return;
+        params[key] = value;
+      });
 
       const response = await transactionService.listTransactions(params);
 
