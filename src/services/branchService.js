@@ -2,9 +2,9 @@ import api from '../api/api';
 
 export const branchService = {
   // Get all branches
-  getBranches: async () => {
+  getBranches: async (params = {}) => {
     try {
-      const response = await api.get('/branches');
+      const response = await api.get('/branches', { params });
       return response.data;
     } catch (error) {
       throw error;

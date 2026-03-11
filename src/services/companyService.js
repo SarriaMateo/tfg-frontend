@@ -40,9 +40,9 @@ export const companyService = {
     }
   },
 
-  getCompanyBranches: async () => {
+  getCompanyBranches: async (params = {}) => {
     try {
-      const response = await api.get(`/branches`);
+      const response = await api.get(`/branches`, { params });
       return response.data;
     } catch (error) {
       throw error;

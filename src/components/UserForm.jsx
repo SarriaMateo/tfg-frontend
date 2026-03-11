@@ -47,7 +47,7 @@ export const UserForm = ({
       if (isAdmin) {
         setLoadingBranches(true);
         try {
-          const data = await companyService.getCompanyBranches();
+          const data = await companyService.getCompanyBranches({ is_active: true });
           setBranches(data);
         } catch (err) {
           console.error('Error al cargar sedes:', err);

@@ -4,6 +4,7 @@ import { Spinner, Alert, Button, Form, Row, Col } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
+import { branchService } from '../services/branchService';
 import { categoryService } from '../services/categoryService';
 import { formatDecimal, formatPrice, formatUnit, UNIT_OPTIONS } from '../utils/formatters';
 
@@ -31,6 +32,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
   const canFilterByActive = ['ADMIN', 'MANAGER'].includes((user?.role || '').toUpperCase());
   const { selectedBranchId } = useBranchSelection();
   const [categories, setCategories] = useState([]);
+  const [activeBranches, setActiveBranches] = useState(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [filters, setFilters] = useState(() => queryToFilters(initialQuery));
   const [pageSize, setPageSize] = useState(() => Number(initialQuery?.pageSize) || 20);
@@ -72,6 +74,19 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     };
 
     loadCategories();
+  }, []);
+
+  useEffect(() => {
+    const loadActiveBranches = async () => {
+      try {
+        const response = await branchService.getBranches({ is_active: true });
+        setActiveBranches(Array.isArray(response) ? response : []);
+      } catch {
+        setActiveBranches(null);
+      }
+    };
+
+    loadActiveBranches();
   }, []);
 
   useEffect(() => {
@@ -188,7 +203,13 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
 
   // Render stock by branch tooltip
   const renderStockTooltip = (item) => {
-    const branches = item.stock_by_branch || [];
+    const activeBranchIds = activeBranches
+      ? new Set(activeBranches.map((branch) => Number(branch.id)))
+      : null;
+    const branches = (item.stock_by_branch || []).filter((branch) => {
+      if (!activeBranchIds) return true;
+      return activeBranchIds.has(Number(branch.branch_id));
+    });
 
     return (
       <Tooltip id={`stock-tooltip-${item.id}`}>
@@ -234,7 +255,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     <div className="mb-5">
       <div className="border rounded p-3 mb-3 bg-light">
         <Row className="g-3 align-items-end">
-          <Col md={2}>
+          <Col md={3}>
             <Form.Group>
               <Form.Label>Buscar</Form.Label>
               <Form.Control
@@ -261,7 +282,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             </Col>
           )}
 
-          <Col md={3}>
+          <Col md={2}>
             <Form.Group>
               <Form.Label>Categoría</Form.Label>
               <Form.Select

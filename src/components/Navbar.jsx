@@ -42,7 +42,7 @@ export const Navbar = () => {
           setBranchName(branch.name);
         } else {
           // Load available branches for users without branch_id
-          const branchesData = await branchService.getBranches();
+          const branchesData = await branchService.getBranches({ is_active: true });
           setBranches(branchesData);
           // Select first branch by default only if no branch is already selected
           if (branchesData && branchesData.length > 0 && !selectedBranchId) {
