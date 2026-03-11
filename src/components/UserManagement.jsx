@@ -130,12 +130,11 @@ export const UserManagement = () => {
       {/* Mi Perfil Section */}
       <UserProfile user={user} onUserUpdated={() => setRefreshKey(prev => prev + 1)} />
 
-      {/* Gestión de Usuarios Section (only for ADMINs) */}
-      {isAdmin && (
-        <div className="mt-3">
-          <Card className="shadow-sm border-0">
-            <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-              <Card.Title className="mb-0">Gestión de Usuarios</Card.Title>
+      <div className="mt-3">
+        <Card className="shadow-sm border-0">
+          <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+            <Card.Title className="mb-0">Lista de Usuarios</Card.Title>
+            {isAdmin && (
               <Button
                 size="sm"
                 onClick={handleCreateUser}
@@ -143,20 +142,21 @@ export const UserManagement = () => {
               >
                 + Nuevo Usuario
               </Button>
-            </Card.Header>
-            <Card.Body>
-              {success && <Alert variant="success" onClose={() => setSuccess(false)} dismissible>¡Operación completada correctamente!</Alert>}
+            )}
+          </Card.Header>
+          <Card.Body>
+            {success && <Alert variant="success" onClose={() => setSuccess(false)} dismissible>¡Operación completada correctamente!</Alert>}
 
-              <UserList
-                key={refreshKey}
-                currentUserId={user.id}
-                onEditUser={handleEditUser}
-                onDeleteUser={handleDeleteUser}
-              />
-            </Card.Body>
-          </Card>
-        </div>
-      )}
+            <UserList
+              key={refreshKey}
+              currentUserId={user.id}
+              onEditUser={handleEditUser}
+              onDeleteUser={handleDeleteUser}
+              isAdmin={isAdmin}
+            />
+          </Card.Body>
+        </Card>
+      </div>
 
       {/* Modal for Creating/Editing Users */}
       <Modal

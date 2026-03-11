@@ -4,7 +4,7 @@ import { userService } from '../services/userService';
 import { companyService } from '../services/companyService';
 import { translateError } from '../utils/errorTranslator';
 
-export const UserList = ({ currentUserId, onEditUser, onDeleteUser }) => {
+export const UserList = ({ currentUserId, onEditUser, onDeleteUser, isAdmin = false }) => {
   const [users, setUsers] = useState([]);
   const [branches, setBranches] = useState({});
   const [loading, setLoading] = useState(true);
@@ -64,7 +64,7 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser }) => {
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Rol</th>
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Sede</th>
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Activo</th>
-              <th style={{ fontWeight: '600', textAlign: 'center' }}>Acciones</th>
+              {isAdmin && <th style={{ fontWeight: '600', textAlign: 'center' }}>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -90,30 +90,32 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser }) => {
                     {user.is_active ? 'Sí' : 'No'}
                   </span>
                 </td>
-                <td>
-                  <div className="d-flex gap-2 justify-content-center">
-                    {user.id !== currentUserId && (
-                      <Button 
-                        variant="primary"
-                        size="sm"
-                        onClick={() => onEditUser(user)}
-                        style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
-                      >
-                        Editar
-                      </Button>
-                    )}
-                    {user.id !== currentUserId && (
-                      <Button 
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleDelete(user.id)}
-                        style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
-                      >
-                        Eliminar
-                      </Button>
-                    )}
-                  </div>
-                </td>
+                {isAdmin && (
+                  <td>
+                    <div className="d-flex gap-2 justify-content-center">
+                      {user.id !== currentUserId && (
+                        <Button 
+                          variant="primary"
+                          size="sm"
+                          onClick={() => onEditUser(user)}
+                          style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                        >
+                          Editar
+                        </Button>
+                      )}
+                      {user.id !== currentUserId && (
+                        <Button 
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDelete(user.id)}
+                          style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                        >
+                          Eliminar
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

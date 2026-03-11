@@ -25,6 +25,7 @@ export const ERROR_MESSAGES = {
     CATEGORY_NAME_TOO_LONG: "El nombre de la categoría no puede exceder 50 caracteres",
     INVALID_COLOR_FORMAT: "El color debe estar en formato hexadecimal válido (#RRGGBB)",
     INVALID_UNIT: "La unidad de medida es inválida",
+    QUANTITY_MUST_BE_INTEGER: "La cantidad debe ser un número entero para artículos en unidades, cajas o packs",
   },
   conflict_errors: {
     COMPANY_EMAIL_ALREADY_EXISTS: "El email de la empresa ya está en uso",
@@ -39,8 +40,18 @@ export const ERROR_MESSAGES = {
     CANNOT_DEACTIVATE_LAST_ACTIVE_ADMIN: "No se puede desactivar el único administrador activo de la empresa",
     CANNOT_DEACTIVATE_BRANCH_WITH_USERS: "No se puede desactivar una sede que tiene usuarios asociados",
     BRANCH_BELONGS_TO_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
+    BRANCH_INACTIVE: "No se puede asociar a una sede inactiva",
     ADMIN_CANNOT_HAVE_BRANCH: "Los usuarios con rol administrador no pueden tener una sede asociada",
     BRANCH_HAS_USERS: "No se puede eliminar la sede porque tiene usuarios asociados",
+    BRANCH_HAS_TRANSACTIONS: "No se puede eliminar la sede porque tiene operaciones asociadas",
+    USER_HAS_TRANSACTION_EVENTS: "No se puede eliminar el usuario porque tiene operaciones asociadas",
+    ITEM_INACTIVE: "No se puede asociar una operación a un artículo inactivo",
+    ITEM_HAS_TRANSACTION_LINES: "No se puede eliminar el artículo porque tiene líneas de operaciones asociadas",
+    OPERATION_TYPE_NOT_SUPPORTED: "Tipo de operación no soportado. Solo se permiten IN y OUT por ahora",
+    INSUFFICIENT_STOCK: "Stock insuficiente para completar esta operación de salida",
+    TRANSACTION_NOT_EDITABLE: "Esta operación no puede ser editada (debe estar en estado PENDIENTE)",
+    DOCUMENT_SIZE_EXCEEDED: "El documento excede el tamaño máximo permitido (10 MB)",
+    INVALID_DOCUMENT_FORMAT: "El formato del documento no es válido. Se aceptan: PDF, Word, Excel e imágenes",
   },
   auth_errors: {
     INVALID_CREDENTIALS: "Credenciales inválidas",
@@ -63,6 +74,8 @@ export const ERROR_MESSAGES = {
     ITEM_NOT_FOUND: "Artículo no encontrado",
     CATEGORY_NOT_FOUND: "Categoría no encontrada",
     IMAGE_NOT_FOUND: "Imagen no encontrada",
+    TRANSACTION_NOT_FOUND: "Operación no encontrada",
+    DOCUMENT_NOT_FOUND: "Documento no encontrado",
   },
 };
 
