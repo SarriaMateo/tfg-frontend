@@ -39,6 +39,26 @@
   color: #a0aec0;
 }
 
+.transaction-date-input.form-control {
+  min-height: 46px;
+  padding: 0.7rem 0.95rem;
+  font-size: 0.98rem;
+  line-height: 1.2;
+  background-color: #fff;
+}
+
+.transaction-date-input.form-control::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 0.2rem;
+  transform: scale(1.2);
+  opacity: 0.8;
+}
+
+.transaction-date-input.form-control:hover::-webkit-calendar-picker-indicator,
+.transaction-date-input.form-control:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
 /* Button Styles */
 .btn-primary {
   background-color: #0d6efd;

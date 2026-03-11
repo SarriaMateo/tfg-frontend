@@ -76,6 +76,7 @@ export const TransactionListTable = ({
   const [catalogError, setCatalogError] = useState(null);
   const [pageSize, setPageSize] = useState(() => Number(initialQuery?.pageSize) || 20);
   const inputControlStyle = { minHeight: '38px' };
+  const dateControlStyle = { height: '46px' };
   const selectControlStyle = { height: '46px' };
   const filterButtonStyle = { height: '46px', padding: '0 1rem' };
   const sortDirectionButtonStyle = {
@@ -224,6 +225,11 @@ export const TransactionListTable = ({
 
     return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
   };
+
+  const todayDate = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  const startDateMax = filters.end_date ? (filters.end_date < todayDate ? filters.end_date : todayDate) : todayDate;
+  const endDateMin = filters.start_date || undefined;
 
   const formatTransactionDateTime = (value) => {
     if (!value) return '-';
@@ -403,7 +409,7 @@ export const TransactionListTable = ({
             </Form.Group>
           </Col>
 
-          <Col md={2}>
+          <Col md={3}>
             <Form.Group>
               <Form.Label>Artículo</Form.Label>
               <Form.Select
@@ -440,7 +446,7 @@ export const TransactionListTable = ({
             </Form.Group>
           </Col>
 
-          <Col md={1}>
+          <Col md={2}>
             <Form.Group>
               <Form.Label>Estado</Form.Label>
               <Form.Select
@@ -462,10 +468,12 @@ export const TransactionListTable = ({
               <Form.Label>Fecha inicio</Form.Label>
               <Form.Control
                 type="date"
+                className="transaction-date-input"
                 name="start_date"
                 value={filters.start_date}
                 onChange={handleFilterChange}
-                style={inputControlStyle}
+                max={startDateMax}
+                style={dateControlStyle}
               />
             </Form.Group>
           </Col>
@@ -475,10 +483,13 @@ export const TransactionListTable = ({
               <Form.Label>Fecha fin</Form.Label>
               <Form.Control
                 type="date"
+                className="transaction-date-input"
                 name="end_date"
                 value={filters.end_date}
                 onChange={handleFilterChange}
-                style={inputControlStyle}
+                min={endDateMin}
+                max={todayDate}
+                style={dateControlStyle}
               />
             </Form.Group>
           </Col>
