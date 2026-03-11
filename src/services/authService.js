@@ -1,6 +1,6 @@
 import api from '../api/api';
 
-const SESSION_STORAGE_CLEAR_PREFIXES = ['itemsListState:'];
+const SESSION_STORAGE_CLEAR_PREFIXES = ['itemsListState:', 'transactionsListState:'];
 
 const clearSessionScopedUiState = () => {
   try {

@@ -12,9 +12,9 @@ export const userService = {
   },
 
   // Get all company users
-  getUsersByCompany: async () => {
+  getUsersByCompany: async (params = {}) => {
     try {
-      const response = await api.get(`/users`);
+      const response = await api.get(`/users`, { params });
       return response.data;
     } catch (error) {
       throw error;

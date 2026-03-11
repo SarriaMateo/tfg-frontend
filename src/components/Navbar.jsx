@@ -112,7 +112,7 @@ export const Navbar = () => {
             </Nav.Link>
             <Nav.Link 
               className="fw-600"
-              onClick={() => navigateTo('/operations')}
+              onClick={() => navigateTo('/transactions')}
             >
               Operaciones
             </Nav.Link>

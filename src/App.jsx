@@ -11,7 +11,7 @@ import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import InventoryPage from "./pages/InventoryPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
-import OperationsPage from "./pages/OperationsPage";
+import TransactionsPage from "./pages/TransactionsPage";
 import SettingsPage from "./pages/SettingsPage";
 
 function App() {
@@ -51,10 +51,10 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/operations" 
+                  path="/transactions" 
                   element={
                     <PrivateRoute>
-                      <OperationsPage />
+                      <TransactionsPage />
                     </PrivateRoute>
                   } 
                 />
