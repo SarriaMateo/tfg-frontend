@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner, Button, Form, Row, Col } from 'react-bootstrap';
+import { Alert, Spinner, Button, Form, Row, Col, Pagination } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
@@ -74,6 +74,7 @@ export const TransactionListTable = ({
   const [items, setItems] = useState([]);
   const [loadingCatalogs, setLoadingCatalogs] = useState(false);
   const [catalogError, setCatalogError] = useState(null);
+  const [pageSize, setPageSize] = useState(() => Number(initialQuery?.pageSize) || 20);
   const inputControlStyle = { minHeight: '38px' };
   const selectControlStyle = { height: '46px' };
   const filterButtonStyle = { height: '46px', padding: '0 1rem' };
@@ -122,6 +123,17 @@ export const TransactionListTable = ({
     setFilters(normalizeFiltersFromQuery(initialQuery, resolvedBranchId));
   }, [initialQuery, resolvedBranchId]);
 
+  useEffect(() => {
+    if (pagination?.pageSize && pagination.pageSize !== pageSize) {
+      setPageSize(pagination.pageSize);
+    }
+  }, [pagination?.pageSize, pageSize]);
+
+  useEffect(() => {
+    if (!initialQuery || Object.keys(initialQuery).length === 0) return;
+    setPageSize(Number(initialQuery.pageSize) || 20);
+  }, [initialQuery]);
+
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
     setFilters((prev) => ({
@@ -130,10 +142,10 @@ export const TransactionListTable = ({
     }));
   };
 
-  const buildFetchPayload = ({ page = 1, sourceFilters = filters } = {}) => {
+  const buildFetchPayload = ({ page = 1, nextPageSize = pageSize, sourceFilters = filters } = {}) => {
     const payload = {
       page,
-      pageSize: Number(initialQuery?.pageSize) || Number(pagination?.pageSize) || 20,
+      pageSize: nextPageSize,
       order_by: sourceFilters.order_by,
       order_desc: sourceFilters.order_desc === 'true',
     };
@@ -156,9 +168,10 @@ export const TransactionListTable = ({
 
   const handleResetFilters = () => {
     setFilters(defaultFilters);
+    setPageSize(20);
     onFetchTransactions({
       page: 1,
-      pageSize: Number(initialQuery?.pageSize) || Number(pagination?.pageSize) || 20,
+      pageSize: 20,
       order_by: 'created_at',
       order_desc: true,
       ...(defaultFilters.branch_id ? { branch_id: Number(defaultFilters.branch_id) } : {}),
@@ -177,6 +190,37 @@ export const TransactionListTable = ({
       page: pagination?.page || 1,
       sourceFilters: nextFilters,
     }));
+  };
+
+  const handlePageChange = (nextPage) => {
+    if (nextPage < 1 || nextPage > (pagination?.totalPages || 1)) return;
+    onFetchTransactions(buildFetchPayload({ page: nextPage }));
+  };
+
+  const handlePageSizeChange = (event) => {
+    const nextSize = Number(event.target.value);
+    setPageSize(nextSize);
+    onFetchTransactions(buildFetchPayload({ page: 1, nextPageSize: nextSize }));
+  };
+
+  const getVisiblePages = () => {
+    const totalPages = pagination?.totalPages || 1;
+    const currentPage = pagination?.page || 1;
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = startPage + maxVisible - 1;
+
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = endPage - maxVisible + 1;
+    }
+
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
   };
 
   const formatTransactionDateTime = (value) => {
@@ -529,6 +573,60 @@ export const TransactionListTable = ({
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
+        <div className="d-flex align-items-center gap-2">
+          <span className="text-muted">Elementos por página</span>
+          <Form.Select
+            value={pageSize}
+            onChange={handlePageSizeChange}
+            style={{ width: '92px', height: '38px' }}
+          >
+            <option value={1}>1</option>
+            <option value={2}>2</option>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </Form.Select>
+        </div>
+
+        <div className="w-100 d-flex justify-content-center">
+          <Pagination className="item-list-pagination mb-0">
+            <Pagination.First
+              onClick={() => handlePageChange(1)}
+              disabled={(pagination?.page || 1) <= 1 || loading}
+            />
+
+            <Pagination.Prev
+              onClick={() => handlePageChange((pagination?.page || 1) - 1)}
+              disabled={(pagination?.page || 1) <= 1 || loading}
+            />
+
+            {getVisiblePages().map((pageNumber) => (
+              <Pagination.Item
+                key={pageNumber}
+                active={pageNumber === (pagination?.page || 1)}
+                onClick={() => handlePageChange(pageNumber)}
+                disabled={loading}
+              >
+                {pageNumber}
+              </Pagination.Item>
+            ))}
+
+            <Pagination.Next
+              onClick={() => handlePageChange((pagination?.page || 1) + 1)}
+              disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
+            />
+
+            <Pagination.Last
+              onClick={() => handlePageChange(pagination?.totalPages || 1)}
+              disabled={(pagination?.page || 1) >= (pagination?.totalPages || 1) || loading}
+            />
+          </Pagination>
+        </div>
       </div>
     </div>
   );
