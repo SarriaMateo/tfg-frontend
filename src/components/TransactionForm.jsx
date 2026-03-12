@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
@@ -8,6 +8,9 @@ import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { formatUnit } from '../utils/formatters';
 import { translateError } from '../utils/errorTranslator';
+
+const ITEMS_PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 300;
 
 const OPERATION_TYPE_OPTIONS = [
   { value: 'IN', label: 'Entrada' },
@@ -54,7 +57,15 @@ export const TransactionForm = ({
   });
 
   const [branches, setBranches] = useState([]);
-  const [allItems, setAllItems] = useState([]);
+
+  // Typeahead item search state
+  const [itemOptions, setItemOptions] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(false);
+  const [itemSearchQuery, setItemSearchQuery] = useState('');
+  const [itemPage, setItemPage] = useState(1);
+  const [itemTotalPages, setItemTotalPages] = useState(1);
+  const debounceRef = useRef(null);
+
   const [typeaheadSelected, setTypeaheadSelected] = useState([]);
   const [lineQuantities, setLineQuantities] = useState({});
   const [loadingData, setLoadingData] = useState(false);
@@ -63,17 +74,34 @@ export const TransactionForm = ({
 
   const displayError = externalError || internalError;
 
-  // Load branches and items on mount
+  // Fetch items for the typeahead (server-side search + pagination)
+  const fetchItems = useCallback(async (search, page, append = false) => {
+    setLoadingItems(true);
+    try {
+      const res = await itemService.listItems({
+        is_active: true,
+        search: search || undefined,
+        page,
+        page_size: ITEMS_PAGE_SIZE,
+      });
+      const items = normalizeArrayResponse(res);
+      const totalPages = res?.totalPages ?? res?.total_pages ?? 1;
+      setItemTotalPages(totalPages);
+      setItemOptions((prev) => (append ? [...prev, ...items] : items));
+    } catch (err) {
+      setDataError(translateError(err));
+    } finally {
+      setLoadingItems(false);
+    }
+  }, []);
+
+  // Load branches on mount; initial item load (empty search)
   useEffect(() => {
     const fetchData = async () => {
       setLoadingData(true);
       try {
-        const [branchesRes, itemsRes] = await Promise.all([
-          branchService.getBranches({ is_active: true }),
-          itemService.listItems({ is_active: true, page_size: 1000 }),
-        ]);
+        const branchesRes = await branchService.getBranches({ is_active: true });
         setBranches(normalizeArrayResponse(branchesRes));
-        setAllItems(normalizeArrayResponse(itemsRes));
       } catch (err) {
         setDataError(translateError(err));
       } finally {
@@ -81,7 +109,25 @@ export const TransactionForm = ({
       }
     };
     fetchData();
-  }, []);
+    fetchItems('', 1, false);
+  }, [fetchItems]);
+
+  // Debounced input change → reset to page 1 and search
+  const handleItemInputChange = (text) => {
+    setItemSearchQuery(text);
+    setItemPage(1);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchItems(text, 1, false);
+    }, SEARCH_DEBOUNCE_MS);
+  };
+
+  // Paginate → load next page and append
+  const handleItemPaginate = () => {
+    const nextPage = itemPage + 1;
+    setItemPage(nextPage);
+    fetchItems(itemSearchQuery, nextPage, true);
+  };
 
   // Populate form from transaction in edit mode
   useEffect(() => {
@@ -97,24 +143,38 @@ export const TransactionForm = ({
     });
   }, [transaction, isEditMode]);
 
-  // Populate lines once items are loaded in edit mode
+  // Populate lines in edit mode: fetch each item by id if not already in options
   useEffect(() => {
-    if (!isEditMode || !transaction?.lines || allItems.length === 0) return;
+    if (!isEditMode || !transaction?.lines?.length) return;
 
-    const quantities = {};
-    const selected = [];
+    const loadEditLines = async () => {
+      const quantities = {};
+      const selected = [];
 
-    for (const line of transaction.lines) {
-      const item = allItems.find((i) => i.id === line.item_id);
-      if (item) {
-        selected.push(item);
-        quantities[item.id] = String(line.quantity);
+      for (const line of transaction.lines) {
+        try {
+          // Try to find in already-loaded options first
+          let item = itemOptions.find((i) => i.id === line.item_id);
+          if (!item) {
+            item = await itemService.getItemById(line.item_id);
+          }
+          if (item) {
+            selected.push(item);
+            quantities[item.id] = String(line.quantity);
+          }
+        } catch {
+          // Skip items that can't be fetched
+        }
       }
-    }
 
-    setTypeaheadSelected(selected);
-    setLineQuantities(quantities);
-  }, [transaction, isEditMode, allItems]);
+      setTypeaheadSelected(selected);
+      setLineQuantities(quantities);
+    };
+
+    loadEditLines();
+    // Only run when the transaction changes (not on every itemOptions update)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transaction, isEditMode]);
 
   const clearError = () => {
     setInternalError(null);
@@ -364,14 +424,20 @@ export const TransactionForm = ({
         <Typeahead
           id="transaction-items-typeahead"
           multiple
-          options={allItems}
+          options={itemOptions}
           selected={typeaheadSelected}
           onChange={handleTypeaheadChange}
+          onInputChange={handleItemInputChange}
+          onPaginate={handleItemPaginate}
+          paginate={itemPage < itemTotalPages}
+          maxResults={ITEMS_PAGE_SIZE}
           labelKey={(option) => `${option.name} (${option.sku})`}
-          filterBy={['name', 'sku']}
+          filterBy={() => true}
           placeholder="Buscar por nombre o SKU..."
           disabled={loading}
+          isLoading={loadingItems}
           emptyLabel="No se encontraron artículos"
+          paginationText="Cargar más resultados..."
         />
       </Form.Group>
 
