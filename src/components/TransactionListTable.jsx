@@ -43,7 +43,7 @@ const normalizeFiltersFromQuery = (query = {}, fallbackBranchId = '') => ({
 const OPERATION_TYPE_LABELS = {
   IN: 'Entrada',
   OUT: 'Salida',
-  TRANSFER: 'Transferencia',
+  TRANSFER: 'Traspaso',
   ADJUSTMENT: 'Ajuste',
 };
 
@@ -440,7 +440,7 @@ export const TransactionListTable = ({
                 <option value="">Todos</option>
                 <option value="IN">Entrada</option>
                 <option value="OUT">Salida</option>
-                <option value="TRANSFER">Transferencia</option>
+                <option value="TRANSFER">Traspaso</option>
                 <option value="ADJUSTMENT">Ajuste</option>
               </Form.Select>
             </Form.Group>
