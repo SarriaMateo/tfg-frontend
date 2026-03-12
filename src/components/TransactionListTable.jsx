@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner, Button, Form, Row, Col, Pagination } from 'react-bootstrap';
+import { Alert, Spinner, Button, Form, Row, Col, Pagination, Modal } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { branchService } from '../services/branchService';
@@ -66,6 +67,10 @@ export const TransactionListTable = ({
   pagination = {},
   initialQuery = {},
   onFetchTransactions = () => {},
+  onEditTransaction = null,
+  onCompleteTransaction = null,
+  onCancelTransaction = null,
+  actionLoading = false,
 }) => {
   const { user } = useAuth();
   const { selectedBranchId } = useBranchSelection();
@@ -75,6 +80,28 @@ export const TransactionListTable = ({
   const [loadingCatalogs, setLoadingCatalogs] = useState(false);
   const [catalogError, setCatalogError] = useState(null);
   const [pageSize, setPageSize] = useState(() => Number(initialQuery?.pageSize) || 20);
+
+  // Action confirmation dialogs
+  const [confirmComplete, setConfirmComplete] = useState(null); // transaction object
+  const [confirmCancel, setConfirmCancel] = useState(null);     // transaction object
+  const [cancelReason, setCancelReason] = useState('');
+
+  const handleOpenComplete = (transaction) => setConfirmComplete(transaction);
+  const handleConfirmComplete = () => {
+    if (onCompleteTransaction) onCompleteTransaction(confirmComplete.id);
+    setConfirmComplete(null);
+  };
+
+  const handleOpenCancel = (transaction) => {
+    setCancelReason('');
+    setConfirmCancel(transaction);
+  };
+  const handleConfirmCancel = () => {
+    if (onCancelTransaction) onCancelTransaction(confirmCancel.id, cancelReason || undefined);
+    setConfirmCancel(null);
+    setCancelReason('');
+  };
+
   const inputControlStyle = { minHeight: '38px' };
   const dateControlStyle = { height: '46px' };
   const selectControlStyle = { height: '46px' };
@@ -583,7 +610,44 @@ export const TransactionListTable = ({
                         {getStatusLabel(transaction.status)}
                       </span>
                     </td>
-                    <td className="text-center">-</td>
+                    <td className="text-center">
+                      <div className="d-flex gap-1 justify-content-center">
+                        {onEditTransaction && transaction.status === 'PENDING' && (
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            onClick={() => onEditTransaction(transaction)}
+                            disabled={actionLoading}
+                            title="Editar"
+                          >
+                            ✏️
+                          </Button>
+                        )}
+                        {onCompleteTransaction && transaction.status === 'PENDING' && (
+                          <Button
+                            variant="outline-success"
+                            size="sm"
+                            onClick={() => handleOpenComplete(transaction)}
+                            disabled={actionLoading}
+                            title="Completar"
+                          >
+                            ✓
+                          </Button>
+                        )}
+                        {onCancelTransaction && transaction.status === 'PENDING' && (
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => handleOpenCancel(transaction)}
+                            disabled={actionLoading}
+                            title="Cancelar"
+                          >
+                            ✕
+                          </Button>
+                        )}
+                        {transaction.status !== 'PENDING' && <span className="text-muted">—</span>}
+                      </div>
+                    </td>
                   </tr>
                 );
               })
@@ -645,6 +709,43 @@ export const TransactionListTable = ({
           </Pagination>
         </div>
       </div>
+
+      {/* Confirm complete dialog */}
+      <ConfirmDialog
+        isOpen={!!confirmComplete}
+        title="Completar operación"
+        message={`¿Seguro que quieres completar la operación #${confirmComplete?.id}? Esta acción no se puede deshacer.`}
+        confirmText="Completar"
+        cancelText="Cancelar"
+        variant="success"
+        onConfirm={handleConfirmComplete}
+        onCancel={() => setConfirmComplete(null)}
+      />
+
+      {/* Confirm cancel dialog with optional reason */}
+      <Modal show={!!confirmCancel} onHide={() => setConfirmCancel(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Cancelar operación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>¿Seguro que quieres cancelar la operación <strong>#{confirmCancel?.id}</strong>? Esta acción no se puede deshacer.</p>
+          <Form.Group>
+            <Form.Label>Motivo de cancelación <span className="text-muted">(opcional)</span></Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Indica el motivo de la cancelación..."
+              maxLength={500}
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setConfirmCancel(null)}>Volver</Button>
+          <Button variant="danger" onClick={handleConfirmCancel}>Cancelar operación</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
