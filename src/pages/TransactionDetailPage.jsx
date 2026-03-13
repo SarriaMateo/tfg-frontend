@@ -409,6 +409,7 @@ export const TransactionDetailPage = () => {
                 {canCreateEdit && (
                   <Button
                     variant="primary"
+                    className="detail-page-action-btn"
                     onClick={() => { setModalError(null); setShowEditModal(true); }}
                     disabled={actionLoading}
                   >
@@ -418,6 +419,7 @@ export const TransactionDetailPage = () => {
                 )}
                 <Button
                   variant="success"
+                  className="detail-page-action-btn"
                   onClick={() => setShowConfirmComplete(true)}
                   disabled={actionLoading}
                 >
@@ -426,6 +428,7 @@ export const TransactionDetailPage = () => {
                 </Button>
                 <Button
                   variant="danger"
+                  className="detail-page-action-btn"
                   onClick={() => { setCancelReason(''); setShowConfirmCancel(true); }}
                   disabled={actionLoading}
                 >
@@ -434,7 +437,12 @@ export const TransactionDetailPage = () => {
                 </Button>
               </>
             )}
-            <Button variant="outline-secondary" onClick={() => navigate('/transactions')} disabled={actionLoading}>
+            <Button
+              variant="outline-secondary"
+              className="detail-page-action-btn"
+              onClick={() => navigate('/transactions')}
+              disabled={actionLoading}
+            >
               Volver
             </Button>
           </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Alert, Spinner } from 'react-bootstrap';
+import { BsFillTrash3Fill, BsPencilSquare } from 'react-icons/bs';
 import { Navbar } from '../components/Navbar';
 import { ItemModal } from '../components/ItemModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -131,9 +132,38 @@ export const ItemDetailPage = () => {
             <h1 className="display-5 fw-bold text-primary mb-2">Detalle del artículo</h1>
             <p className="text-muted">Información completa del artículo</p>
           </div>
-          <Button variant="outline-secondary" onClick={() => navigate('/inventory')}>
-            Volver
-          </Button>
+          <div className="d-flex gap-2 align-items-center">
+            {item && canEdit && (
+              <Button
+                variant="primary"
+                className="detail-page-action-btn"
+                onClick={() => setShowModal(true)}
+                disabled={loadingAction}
+              >
+                <BsPencilSquare className="me-1" />
+                Editar
+              </Button>
+            )}
+            {item && canDelete && (
+              <Button
+                variant="danger"
+                className="detail-page-action-btn"
+                onClick={() => setShowConfirm(true)}
+                disabled={loadingAction}
+              >
+                <BsFillTrash3Fill className="me-1" />
+                Eliminar
+              </Button>
+            )}
+            <Button
+              variant="outline-secondary"
+              className="detail-page-action-btn"
+              onClick={() => navigate('/inventory')}
+              disabled={loadingAction}
+            >
+              Volver
+            </Button>
+          </div>
         </div>
 
         {error && (
@@ -235,63 +265,6 @@ export const ItemDetailPage = () => {
                     ) : (
                       <p className="text-muted mb-0">Cargando imagen...</p>
                     )}
-                  </Card.Body>
-                </Card>
-
-                {(canEdit || canDelete) && (
-                  <Card className="shadow-sm border-0 mt-4">
-                    <Card.Body className="p-4">
-                      <h5 className="fw-bold mb-3">Acciones</h5>
-                      <div className="d-flex gap-2">
-                        {canEdit && (
-                          <Button
-                            variant="primary"
-                            onClick={() => setShowModal(true)}
-                            disabled={loadingAction}
-                          >
-                            Editar
-                          </Button>
-                        )}
-                        {canDelete && (
-                          <Button
-                            variant="danger"
-                            onClick={() => setShowConfirm(true)}
-                            disabled={loadingAction}
-                          >
-                            Eliminar
-                          </Button>
-                        )}
-                      </div>
-                    </Card.Body>
-                  </Card>
-                )}
-              </Col>
-            )}
-            {!item?.image_url && (canEdit || canDelete) && (
-              <Col lg={5}>
-                <Card className="shadow-sm border-0">
-                  <Card.Body className="p-4">
-                    <h5 className="fw-bold mb-3">Acciones</h5>
-                    <div className="d-flex gap-2">
-                      {canEdit && (
-                        <Button
-                          variant="primary"
-                          onClick={() => setShowModal(true)}
-                          disabled={loadingAction}
-                        >
-                          Editar
-                        </Button>
-                      )}
-                      {canDelete && (
-                        <Button
-                          variant="danger"
-                          onClick={() => setShowConfirm(true)}
-                          disabled={loadingAction}
-                        >
-                          Eliminar
-                        </Button>
-                      )}
-                    </div>
                   </Card.Body>
                 </Card>
               </Col>
