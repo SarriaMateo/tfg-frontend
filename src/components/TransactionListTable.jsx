@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Spinner, Button, Form, Row, Col, Pagination, Modal } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { BsCheckSquare, BsFillTrash3Fill, BsPencilSquare } from 'react-icons/bs';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
@@ -115,6 +116,17 @@ export const TransactionListTable = ({
     justifyContent: 'center',
     borderRadius: '10px',
     fontSize: '1.1rem',
+    lineHeight: 1,
+  };
+  const actionButtonStyle = {
+    width: '32px',
+    height: '32px',
+    padding: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '8px',
+    fontSize: '1rem',
     lineHeight: 1,
   };
 
@@ -430,6 +442,7 @@ export const TransactionListTable = ({
                 {users.map((currentUser) => (
                   <option key={currentUser.id} value={currentUser.id}>
                     {currentUser.name || currentUser.username}
+                    {Number(currentUser.id) === Number(user?.id) ? ' (tú)' : ''}
                   </option>
                 ))}
               </Form.Select>
@@ -611,38 +624,41 @@ export const TransactionListTable = ({
                       </span>
                     </td>
                     <td className="text-center">
-                      <div className="d-flex gap-1 justify-content-center">
+                      <div className="d-flex gap-2 justify-content-center">
                         {onEditTransaction && transaction.status === 'PENDING' && (
                           <Button
-                            variant="outline-primary"
+                            variant="primary"
                             size="sm"
                             onClick={() => onEditTransaction(transaction)}
                             disabled={actionLoading}
                             title="Editar"
+                            style={actionButtonStyle}
                           >
-                            ✏️
+                            <BsPencilSquare />
                           </Button>
                         )}
                         {onCompleteTransaction && transaction.status === 'PENDING' && (
                           <Button
-                            variant="outline-success"
+                            variant="success"
                             size="sm"
                             onClick={() => handleOpenComplete(transaction)}
                             disabled={actionLoading}
                             title="Completar"
+                            style={actionButtonStyle}
                           >
-                            ✓
+                            <BsCheckSquare />
                           </Button>
                         )}
                         {onCancelTransaction && transaction.status === 'PENDING' && (
                           <Button
-                            variant="outline-danger"
+                            variant="danger"
                             size="sm"
                             onClick={() => handleOpenCancel(transaction)}
                             disabled={actionLoading}
                             title="Cancelar"
+                            style={actionButtonStyle}
                           >
-                            ✕
+                            <BsFillTrash3Fill />
                           </Button>
                         )}
                         {transaction.status !== 'PENDING' && <span className="text-muted">—</span>}

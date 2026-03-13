@@ -106,22 +106,20 @@ export const TransactionManagement = ({
       <Card className="shadow-sm border-0">
         <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center py-3">
           <Card.Title as="h4" className="mb-0">Historial de Operaciones</Card.Title>
-          {canCreateEdit && (
-            <Button
-              size="sm"
-              onClick={handleCreateTransaction}
-              style={{
-                height: '36px',
-                padding: '0.25rem 0.75rem',
-                backgroundColor: '#198754',
-                borderColor: '#198754',
-                color: 'white',
-                margin: '-0.25rem 0',
-              }}
-            >
-              + Nueva Operación
-            </Button>
-          )}
+          <Button
+            size="sm"
+            onClick={handleCreateTransaction}
+            style={{
+              height: '36px',
+              padding: '0.25rem 0.75rem',
+              backgroundColor: '#198754',
+              borderColor: '#198754',
+              color: 'white',
+              margin: '-0.25rem 0',
+            }}
+          >
+            + Nueva Operación
+          </Button>
         </Card.Header>
         <Card.Body>
           {actionSuccess && (

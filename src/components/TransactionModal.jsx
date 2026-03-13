@@ -32,7 +32,7 @@ export const TransactionModal = ({
     }
   };
 
-  const title = transaction ? 'Editar operación' : 'Nueva operación';
+  const title = transaction ? 'Editar Operación' : 'Nueva Operación';
 
   return (
     <Modal

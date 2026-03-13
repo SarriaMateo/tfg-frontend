@@ -11,6 +11,7 @@ import { translateError } from '../utils/errorTranslator';
 
 const ITEMS_PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
+const INTEGER_ONLY_UNITS = ['ud', 'box', 'pack'];
 
 const OPERATION_TYPE_OPTIONS = [
   { value: 'IN', label: 'Entrada' },
@@ -31,6 +32,8 @@ const normalizeArrayResponse = (response) => {
   if (Array.isArray(response?.data)) return response.data;
   return [];
 };
+
+const requiresIntegerQuantity = (unit) => INTEGER_ONLY_UNITS.includes(unit);
 
 export const TransactionForm = ({
   transaction,
@@ -143,6 +146,18 @@ export const TransactionForm = ({
     });
   }, [transaction, isEditMode]);
 
+  // Ensure branch_id has a valid value in create mode when user has no fixed branch
+  useEffect(() => {
+    if (isEditMode || userBranchId) return;
+    if (formData.branch_id) return;
+    if (!branches.length) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      branch_id: String(branches[0].id),
+    }));
+  }, [branches, formData.branch_id, isEditMode, userBranchId]);
+
   // Populate lines in edit mode: fetch each item by id if not already in options
   useEffect(() => {
     if (!isEditMode || !transaction?.lines?.length) return;
@@ -199,8 +214,18 @@ export const TransactionForm = ({
     });
   };
 
-  const handleQuantityChange = (itemId, value) => {
-    setLineQuantities((prev) => ({ ...prev, [itemId]: value }));
+  const handleQuantityChange = (item, value) => {
+    const normalizedValue = value.replace(',', '.');
+
+    if (requiresIntegerQuantity(item.unit)) {
+      if (!/^\d*$/.test(normalizedValue)) {
+        return;
+      }
+    } else if (!/^\d*(?:\.\d{0,3})?$/.test(normalizedValue)) {
+      return;
+    }
+
+    setLineQuantities((prev) => ({ ...prev, [item.id]: normalizedValue }));
   };
 
   const validateForm = () => {
@@ -231,6 +256,10 @@ export const TransactionForm = ({
       const qty = parseFloat(lineQuantities[item.id]);
       if (!qty || qty < 0.001) {
         setInternalError(`La cantidad de "${item.name}" debe ser mayor que 0`);
+        return false;
+      }
+      if (requiresIntegerQuantity(item.unit) && !Number.isInteger(qty)) {
+        setInternalError(`La cantidad de "${item.name}" debe ser un número entero`);
         return false;
       }
     }
@@ -281,6 +310,10 @@ export const TransactionForm = ({
   const destinationBranchOptions = branches.filter(
     (b) => String(b.id) !== effectiveBranchId,
   );
+  const selectedItemIds = new Set(typeaheadSelected.map((item) => Number(item.id)));
+  const availableItemOptions = itemOptions.filter(
+    (item) => !selectedItemIds.has(Number(item.id)),
+  );
 
   if (loadingData) {
     return (
@@ -301,69 +334,73 @@ export const TransactionForm = ({
 
       {dataError && <Alert variant="warning">{dataError}</Alert>}
 
-      {/* Tipo de operación */}
-      <Form.Group className="mb-3">
-        <Form.Label>
-          Tipo de operación{!isEditMode && <span className="text-danger"> *</span>}
-        </Form.Label>
-        {isEditMode ? (
-          <Form.Control
-            type="text"
-            value={OPERATION_TYPE_LABELS[formData.operation_type] || formData.operation_type}
-            readOnly
-            disabled
-          />
-        ) : (
-          <Form.Select
-            name="operation_type"
-            value={formData.operation_type}
-            onChange={handleChange}
-            disabled={loading}
-            style={{ height: '46px' }}
-          >
-            {OPERATION_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </Form.Select>
-        )}
-      </Form.Group>
+      <Row>
+        <Col md={userBranchId ? 12 : 6}>
+          {/* Tipo de operación */}
+          <Form.Group className="mb-3">
+            <Form.Label>
+              Tipo de operación{!isEditMode && <span className="text-danger"> *</span>}
+            </Form.Label>
+            {isEditMode ? (
+              <Form.Control
+                type="text"
+                value={OPERATION_TYPE_LABELS[formData.operation_type] || formData.operation_type}
+                readOnly
+                disabled
+              />
+            ) : (
+              <Form.Select
+                name="operation_type"
+                value={formData.operation_type}
+                onChange={handleChange}
+                disabled={loading}
+                style={{ height: '46px' }}
+              >
+                {OPERATION_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Form.Select>
+            )}
+          </Form.Group>
+        </Col>
 
-      {/* Sede (hidden if user has a fixed branch) */}
-      {!userBranchId && (
-        <Form.Group className="mb-3">
-          <Form.Label>
-            Sede{!isEditMode && <span className="text-danger"> *</span>}
-          </Form.Label>
-          {isEditMode ? (
-            <Form.Control
-              type="text"
-              value={
-                branches.find((b) => String(b.id) === formData.branch_id)?.name ||
-                formData.branch_id
-              }
-              readOnly
-              disabled
-            />
-          ) : (
-            <Form.Select
-              name="branch_id"
-              value={formData.branch_id}
-              onChange={handleChange}
-              disabled={loading}
-              style={{ height: '46px' }}
-            >
-              <option value="">-- Selecciona una sede --</option>
-              {branches.map((b) => (
-                <option key={b.id} value={String(b.id)}>
-                  {b.name}
-                </option>
-              ))}
-            </Form.Select>
-          )}
-        </Form.Group>
-      )}
+        {!userBranchId && (
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                Sede{!isEditMode && <span className="text-danger"> *</span>}
+              </Form.Label>
+              {isEditMode ? (
+                <Form.Control
+                  type="text"
+                  value={
+                    branches.find((b) => String(b.id) === formData.branch_id)?.name ||
+                    formData.branch_id
+                  }
+                  readOnly
+                  disabled
+                />
+              ) : (
+                <Form.Select
+                  name="branch_id"
+                  value={formData.branch_id}
+                  onChange={handleChange}
+                  disabled={loading}
+                  style={{ height: '46px' }}
+                >
+                  {branches.map((b) => (
+                    <option key={b.id} value={String(b.id)}>
+                      {b.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              )}
+            </Form.Group>
+          </Col>
+        )}
+      </Row>
 
       {/* Sede de destino (solo para Traspaso) */}
       {isTransfer && (
@@ -424,11 +461,12 @@ export const TransactionForm = ({
         <Typeahead
           id="transaction-items-typeahead"
           multiple
-          options={itemOptions}
+          options={availableItemOptions}
           selected={typeaheadSelected}
           onChange={handleTypeaheadChange}
           onInputChange={handleItemInputChange}
           onPaginate={handleItemPaginate}
+          flip
           paginate={itemPage < itemTotalPages}
           maxResults={ITEMS_PAGE_SIZE}
           labelKey={(option) => `${option.name} (${option.sku})`}
@@ -452,37 +490,38 @@ export const TransactionForm = ({
           }}
         >
           <Row className="mb-1">
-            <Col xs={6} md={7}>
+            <Col xs={6} md={8}>
               <small className="text-muted fw-semibold">Artículo</small>
             </Col>
-            <Col xs={4} md={3}>
+            <Col xs={4} md={2}>
               <small className="text-muted fw-semibold">Cantidad</small>
             </Col>
-            <Col xs={2}>
+            <Col xs={2} md={2}>
               <small className="text-muted fw-semibold">Unidad</small>
             </Col>
           </Row>
           {typeaheadSelected.map((item) => (
             <Row key={item.id} className="align-items-center mb-2">
-              <Col xs={6} md={7}>
+              <Col xs={6} md={8}>
                 <span className="fw-medium" style={{ fontSize: '0.9rem' }}>
                   {item.name}
                 </span>
-                <small className="text-muted ms-2">{item.sku}</small>
+                <code className="ms-2">{item.sku}</code>
               </Col>
-              <Col xs={4} md={3}>
+              <Col xs={4} md={2}>
                 <Form.Control
                   type="number"
                   value={lineQuantities[item.id] || ''}
-                  onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                  onChange={(e) => handleQuantityChange(item, e.target.value)}
                   placeholder="0"
-                  min="0.001"
-                  step="0.001"
+                  min={requiresIntegerQuantity(item.unit) ? '1' : '0'}
+                  step="1"
                   disabled={loading}
                   size="sm"
+                  style={{ maxWidth: '110px' }}
                 />
               </Col>
-              <Col xs={2}>
+              <Col xs={2} md={2}>
                 <small className="text-muted">{formatUnit(item.unit)}</small>
               </Col>
             </Row>
@@ -491,14 +530,34 @@ export const TransactionForm = ({
       )}
 
       {/* Botones */}
-      <div className="d-flex gap-2 justify-content-end flex-wrap mt-3">
-        <Button variant="secondary" onClick={onCancel} disabled={loading}>
+      <div
+        className="mt-3"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '8px',
+          width: '100%',
+        }}
+      >
+        <Button
+          variant="secondary"
+          onClick={onCancel}
+          disabled={loading}
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+          }}
+        >
           Cancelar
         </Button>
         <Button
           variant="primary"
           onClick={buildSubmitHandler(false)}
           disabled={loading}
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+          }}
         >
           {loading ? (
             <>
@@ -515,6 +574,10 @@ export const TransactionForm = ({
           variant="success"
           onClick={buildSubmitHandler(true)}
           disabled={loading}
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+          }}
         >
           {loading ? (
             <>
