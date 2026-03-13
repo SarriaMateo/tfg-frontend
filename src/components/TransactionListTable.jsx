@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Alert, Spinner, Button, Form, Row, Col, Pagination, Modal } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsCheckSquare, BsFillTrash3Fill, BsPencilSquare } from 'react-icons/bs';
+import { BsCheckSquare, BsFillTrash3Fill, BsInfoCircle } from 'react-icons/bs';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
@@ -68,11 +69,11 @@ export const TransactionListTable = ({
   pagination = {},
   initialQuery = {},
   onFetchTransactions = () => {},
-  onEditTransaction = null,
   onCompleteTransaction = null,
   onCancelTransaction = null,
   actionLoading = false,
 }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { selectedBranchId } = useBranchSelection();
   const [branches, setBranches] = useState([]);
@@ -307,6 +308,10 @@ export const TransactionListTable = ({
     const branchId = Number(transaction?.branch_id);
     if (!branchId) return '-';
     return branchesById.get(branchId) || `Sede #${branchId}`;
+  };
+
+  const handleDetailsClick = (transactionId) => {
+    navigate(`/transactions/${transactionId}`);
   };
 
   const renderLinesTooltip = (transaction) => {
@@ -625,18 +630,15 @@ export const TransactionListTable = ({
                     </td>
                     <td className="text-center">
                       <div className="d-flex gap-2 justify-content-center">
-                        {onEditTransaction && transaction.status === 'PENDING' && (
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => onEditTransaction(transaction)}
-                            disabled={actionLoading}
-                            title="Editar"
-                            style={actionButtonStyle}
-                          >
-                            <BsPencilSquare />
-                          </Button>
-                        )}
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleDetailsClick(transaction.id)}
+                          title="Ver detalles"
+                          style={actionButtonStyle}
+                        >
+                          <BsInfoCircle />
+                        </Button>
                         {onCompleteTransaction && transaction.status === 'PENDING' && (
                           <Button
                             variant="success"
@@ -661,7 +663,6 @@ export const TransactionListTable = ({
                             <BsFillTrash3Fill />
                           </Button>
                         )}
-                        {transaction.status !== 'PENDING' && <span className="text-muted">—</span>}
                       </div>
                     </td>
                   </tr>

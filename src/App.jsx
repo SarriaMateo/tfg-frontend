@@ -12,6 +12,7 @@ import DashboardPage from "./pages/DashboardPage";
 import InventoryPage from "./pages/InventoryPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import TransactionsPage from "./pages/TransactionsPage";
+import TransactionDetailPage from "./pages/TransactionDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 
 function App() {
@@ -55,6 +56,14 @@ function App() {
                   element={
                     <PrivateRoute>
                       <TransactionsPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/transactions/:transactionId" 
+                  element={
+                    <PrivateRoute>
+                      <TransactionDetailPage />
                     </PrivateRoute>
                   } 
                 />
