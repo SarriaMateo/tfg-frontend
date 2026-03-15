@@ -64,4 +64,54 @@ export const transactionService = {
       throw error;
     }
   },
+
+  // Upload or replace transaction document
+  uploadTransactionDocument: async (transactionId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('document', file);
+
+      const response = await api.post(`/transactions/${transactionId}/document`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get transaction document binary
+  getTransactionDocument: async (transactionId) => {
+    try {
+      const response = await api.get(`/transactions/${transactionId}/document`, {
+        responseType: 'blob',
+      });
+
+      const contentType = response.headers['content-type'] || response.data?.type || 'application/octet-stream';
+      const contentDisposition = response.headers['content-disposition'] || '';
+      const fileNameMatch = contentDisposition.match(/filename\*?=(?:UTF-8''|\")?([^\";]+)/i);
+      const fileName = fileNameMatch ? decodeURIComponent(fileNameMatch[1].replace(/\"/g, '').trim()) : null;
+
+      return {
+        blob: response.data,
+        contentType,
+        fileName,
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Delete transaction document
+  deleteTransactionDocument: async (transactionId) => {
+    try {
+      const response = await api.delete(`/transactions/${transactionId}/document`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };

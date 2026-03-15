@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Alert, Button, Card, Col, Container, Form, Modal, Row, Spinner, Table } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsCheckSquare, BsFillTrash3Fill, BsPencilSquare } from 'react-icons/bs';
+import { BsBoxArrowUpRight, BsCheckSquare, BsDownload, BsFillTrash3Fill, BsPencilSquare, BsUpload } from 'react-icons/bs';
 import { Navbar } from '../components/Navbar';
 import { TransactionModal } from '../components/TransactionModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -40,10 +40,59 @@ const EVENT_ACTION_LABELS = {
   COMPLETED: 'Completado',
 };
 
+const DOCUMENT_ACCEPT = '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp';
+const DOCUMENT_MAX_SIZE_BYTES = 10 * 1024 * 1024;
+
+const OFFICE_DOCUMENT_TYPES = new Set([
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]);
+
+const CONTENT_TYPE_EXTENSION = {
+  'application/pdf': 'pdf',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'application/vnd.ms-excel': 'xls',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
 const normalizeArrayResponse = (response) => {
   if (Array.isArray(response)) return response;
   if (Array.isArray(response?.data)) return response.data;
   return [];
+};
+
+const isUnknownFileName = (fileName) => {
+  if (!fileName || typeof fileName !== 'string') return true;
+  const normalized = fileName.trim().toLowerCase();
+  return !normalized || normalized === 'unknown' || normalized === 'undefined' || normalized === 'null';
+};
+
+const getFileNameFromDocumentUrl = (documentUrl) => {
+  if (!documentUrl || typeof documentUrl !== 'string') return '';
+
+  try {
+    const rawPath = documentUrl.split('?')[0].split('#')[0];
+    const candidate = rawPath.split('/').pop() || '';
+    return decodeURIComponent(candidate);
+  } catch {
+    return '';
+  }
+};
+
+const resolveDocumentFileName = ({ fileName, documentUrl, transactionId, contentType }) => {
+  if (!isUnknownFileName(fileName)) return fileName;
+
+  const fromUrl = getFileNameFromDocumentUrl(documentUrl);
+  if (!isUnknownFileName(fromUrl)) return fromUrl;
+
+  const extension = CONTENT_TYPE_EXTENSION[contentType] || 'bin';
+  return `documento-operacion-${transactionId}.${extension}`;
 };
 
 export const TransactionDetailPage = () => {
@@ -75,6 +124,16 @@ export const TransactionDetailPage = () => {
   // Cancel confirm state
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [showConfirmDeleteDocument, setShowConfirmDeleteDocument] = useState(false);
+
+  // Document state
+  const [documentPreviewUrl, setDocumentPreviewUrl] = useState(null);
+  const [documentContentType, setDocumentContentType] = useState('');
+  const [documentFileName, setDocumentFileName] = useState('');
+  const [documentLoading, setDocumentLoading] = useState(false);
+  const [documentError, setDocumentError] = useState(null);
+  const [documentActionLoading, setDocumentActionLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const parsedTransactionId = useMemo(() => parseInt(transactionId, 10), [transactionId]);
 
@@ -101,6 +160,10 @@ export const TransactionDetailPage = () => {
     });
     return lookup;
   }, [items]);
+
+  const isImageDocument = documentContentType.startsWith('image/');
+  const isPdfDocument = documentContentType === 'application/pdf';
+  const isOfficeDocument = OFFICE_DOCUMENT_TYPES.has(documentContentType);
 
   useEffect(() => {
     const fetchTransactionDetail = async () => {
@@ -160,6 +223,54 @@ export const TransactionDetailPage = () => {
     }
   }, [parsedTransactionId]);
 
+  useEffect(() => {
+    let objectUrl = null;
+
+    const fetchDocument = async () => {
+      if (!transaction?.id || !transaction?.document_url) {
+        setDocumentPreviewUrl(null);
+        setDocumentContentType('');
+        setDocumentFileName('');
+        setDocumentError(null);
+        return;
+      }
+
+      setDocumentLoading(true);
+      setDocumentError(null);
+
+      try {
+        const documentResponse = await transactionService.getTransactionDocument(transaction.id);
+        objectUrl = URL.createObjectURL(documentResponse.blob);
+        const resolvedContentType = documentResponse.contentType || documentResponse.blob?.type || 'application/octet-stream';
+        const resolvedFileName = resolveDocumentFileName({
+          fileName: documentResponse.fileName,
+          documentUrl: transaction.document_url,
+          transactionId: transaction.id,
+          contentType: resolvedContentType,
+        });
+
+        setDocumentPreviewUrl(objectUrl);
+        setDocumentContentType(resolvedContentType);
+        setDocumentFileName(resolvedFileName);
+      } catch {
+        setDocumentPreviewUrl(null);
+        setDocumentContentType('');
+        setDocumentFileName('');
+        setDocumentError('No se pudo cargar el documento adjunto.');
+      } finally {
+        setDocumentLoading(false);
+      }
+    };
+
+    fetchDocument();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [transaction?.id, transaction?.document_url]);
+
   const showSuccessMessage = (message) => {
     setActionSuccess(message);
     setTimeout(() => setActionSuccess(null), 3000);
@@ -171,6 +282,69 @@ export const TransactionDetailPage = () => {
       .then((data) => setTransaction(data))
       .catch((err) => setError(translateError(err)))
       .finally(() => setLoading(false));
+  };
+
+  const triggerDocumentPicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDocumentSelected = async (event) => {
+    const selectedFile = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!selectedFile || !transaction?.id) return;
+
+    if (selectedFile.size > DOCUMENT_MAX_SIZE_BYTES) {
+      setActionError('El documento no puede superar los 10 MB.');
+      return;
+    }
+
+    setDocumentActionLoading(true);
+    setActionError(null);
+
+    try {
+      await transactionService.uploadTransactionDocument(transaction.id, selectedFile);
+      reloadTransaction();
+      showSuccessMessage(transaction.document_url ? 'Documento actualizado correctamente' : 'Documento añadido correctamente');
+    } catch (err) {
+      setActionError(translateError(err));
+    } finally {
+      setDocumentActionLoading(false);
+    }
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!transaction?.id) return;
+
+    setShowConfirmDeleteDocument(false);
+    setDocumentActionLoading(true);
+    setActionError(null);
+
+    try {
+      await transactionService.deleteTransactionDocument(transaction.id);
+      reloadTransaction();
+      showSuccessMessage('Documento eliminado correctamente');
+    } catch (err) {
+      setActionError(translateError(err));
+    } finally {
+      setDocumentActionLoading(false);
+    }
+  };
+
+  const handleOpenDocument = () => {
+    if (!documentPreviewUrl) return;
+    window.open(documentPreviewUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDownloadDocument = () => {
+    if (!documentPreviewUrl) return;
+
+    const link = document.createElement('a');
+    link.href = documentPreviewUrl;
+    link.download = documentFileName || `documento-operacion-${transaction?.id}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleEditSubmit = async (payload) => {
@@ -394,6 +568,82 @@ export const TransactionDetailPage = () => {
   const linesCount = Array.isArray(transaction?.lines) ? transaction.lines.length : 0;
   const eventsCount = Array.isArray(transaction?.events) ? transaction.events.length : 0;
 
+  const renderDocumentPreview = () => {
+    if (documentLoading) {
+      return (
+        <div className="text-center py-4">
+          <Spinner animation="border" />
+          <div className="text-muted mt-3">Cargando documento...</div>
+        </div>
+      );
+    }
+
+    if (documentError) {
+      return <Alert variant="warning" className="mb-0">{documentError}</Alert>;
+    }
+
+    if (!documentPreviewUrl) {
+      return (
+        <div className="border rounded p-4 bg-light text-center">
+          <p className="text-muted mb-0">No hay documento adjunto para esta operación.</p>
+        </div>
+      );
+    }
+
+    if (isImageDocument) {
+      return (
+        <div className="text-center">
+          <img
+            src={documentPreviewUrl}
+            alt="Documento adjunto"
+            style={{
+              width: '100%',
+              maxHeight: '420px',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              border: '1px solid #e6e6e6',
+              backgroundColor: '#fff',
+            }}
+          />
+        </div>
+      );
+    }
+
+    if (isPdfDocument) {
+      return (
+        <div className="border rounded overflow-hidden" style={{ backgroundColor: '#fff' }}>
+          <iframe
+            title="Vista previa del documento"
+            src={documentPreviewUrl}
+            style={{ width: '100%', height: '420px', border: 0 }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <div className="border rounded p-4 bg-light text-center">
+          <p className="mb-1 fw-semibold">Vista previa no disponible en este navegador</p>
+          <p className="text-muted mb-0">
+            Usa los botones de abrir o descargar para ver el archivo
+            {documentFileName ? ` (${documentFileName})` : ''}.
+          </p>
+        </div>
+        {isOfficeDocument && (
+          <p className="text-muted small mt-2 mb-0">
+            Los documentos de Office no siempre permiten vista previa embebida.
+          </p>
+        )}
+        {!isPdfDocument && !isOfficeDocument && !isImageDocument && (
+          <p className="text-muted small mt-2 mb-0">
+            Este tipo de archivo se debe abrir o descargar para visualizarlo.
+          </p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <Navbar />
@@ -536,6 +786,77 @@ export const TransactionDetailPage = () => {
                   </div>
                 </Card.Body>
               </Card>
+
+              <Card className="shadow-sm border-0">
+                <Card.Body className="p-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={DOCUMENT_ACCEPT}
+                    onChange={handleDocumentSelected}
+                    className="d-none"
+                  />
+
+                  <div className="d-flex justify-content-between align-items-start mb-3 gap-3">
+                    <div>
+                      <h5 className="fw-bold mb-1">Documento adjunto</h5>
+                      <p className="text-muted mb-0">
+                        {transaction.document_url ? 'Documento disponible para consulta' : 'Sin documento adjunto'}
+                      </p>
+                    </div>
+
+                    {canCreateEdit && (
+                      <div className="d-flex gap-2 flex-wrap justify-content-end">
+                        <Button
+                          variant={transaction.document_url ? 'primary' : 'success'}
+                          className="detail-page-action-btn"
+                          onClick={triggerDocumentPicker}
+                          disabled={documentActionLoading}
+                        >
+                          {transaction.document_url ? <BsPencilSquare className="me-1" /> : <BsUpload className="me-1" />}
+                          {transaction.document_url ? 'Editar' : 'Añadir'}
+                        </Button>
+                        {transaction.document_url && (
+                          <Button
+                            variant="danger"
+                            className="detail-page-action-btn"
+                            onClick={() => setShowConfirmDeleteDocument(true)}
+                            disabled={documentActionLoading}
+                          >
+                            <BsFillTrash3Fill className="me-1" />
+                            Eliminar
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {renderDocumentPreview()}
+
+                  {transaction.document_url && documentPreviewUrl && (
+                    <div className="d-flex gap-2 flex-wrap mt-3">
+                      <Button
+                        variant="outline-primary"
+                        className="detail-page-action-btn"
+                        onClick={handleOpenDocument}
+                        disabled={documentActionLoading}
+                      >
+                        <BsBoxArrowUpRight className="me-1" />
+                        Abrir
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        className="detail-page-action-btn"
+                        onClick={handleDownloadDocument}
+                        disabled={documentActionLoading}
+                      >
+                        <BsDownload className="me-1" />
+                        Descargar
+                      </Button>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
               </Col>
             </Row>
 
@@ -663,6 +984,17 @@ export const TransactionDetailPage = () => {
           <Button variant="danger" onClick={handleConfirmCancel}>Cancelar operación</Button>
         </Modal.Footer>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={showConfirmDeleteDocument}
+        title="Eliminar documento"
+        message="¿Seguro que quieres eliminar el documento adjunto? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={handleDeleteDocument}
+        onCancel={() => setShowConfirmDeleteDocument(false)}
+      />
     </div>
   );
 };
