@@ -39,6 +39,7 @@ const UNIT_MAPPINGS = {
     l: 'Litro',
     ml: 'Mililitro',
     m: 'Metro',
+    m2: 'Metro cuadrado',
     box: 'Caja',
     pack: 'Pack',
   },
@@ -50,6 +51,7 @@ const UNIT_MAPPINGS = {
     l: 'L',
     ml: 'mL',
     m: 'm',
+    m2: 'm²',
     box: 'caja',
     pack: 'pack',
   },
@@ -66,6 +68,7 @@ export const UNIT_OPTIONS = [
   { value: 'l', label: 'Litro' },
   { value: 'ml', label: 'Mililitro' },
   { value: 'm', label: 'Metro' },
+  { value: 'm2', label: 'Metro cuadrado' },
   { value: 'box', label: 'Caja' },
   { value: 'pack', label: 'Pack' },
 ];
