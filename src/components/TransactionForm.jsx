@@ -576,67 +576,109 @@ export const TransactionForm = ({
       )}
 
       {/* Botones */}
-      <div
-        className="mt-3"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '8px',
-          width: '100%',
-        }}
-      >
-        <Button
-          variant="secondary"
-          onClick={onCancel}
-          disabled={loading}
+      {isAdjustment && !isEditMode ? (
+        <div
+          className="mt-3"
           style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '8px',
+            width: '100%',
           }}
         >
-          Cancelar
-        </Button>
-        <Button
-          variant="primary"
-          onClick={buildSubmitHandler(false)}
-          disabled={loading}
+          <Button
+            variant="secondary"
+            onClick={onCancel}
+            disabled={loading}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="success"
+            onClick={buildSubmitHandler(true)}
+            disabled={loading}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+            }}
+          >
+            {loading ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" className="me-2" />
+                Guardando...
+              </>
+            ) : (
+              'Crear + Completar'
+            )}
+          </Button>
+        </div>
+      ) : (
+        <div
+          className="mt-3"
           style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '8px',
+            width: '100%',
           }}
         >
-          {loading ? (
-            <>
-              <Spinner as="span" animation="border" size="sm" className="me-2" />
-              Guardando...
-            </>
-          ) : isEditMode ? (
-            'Actualizar'
-          ) : (
-            'Crear'
-          )}
-        </Button>
-        <Button
-          variant="success"
-          onClick={buildSubmitHandler(true)}
-          disabled={loading}
-          style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-          }}
-        >
-          {loading ? (
-            <>
-              <Spinner as="span" animation="border" size="sm" className="me-2" />
-              Guardando...
-            </>
-          ) : isEditMode ? (
-            isTransfer ? transferSubmitLabel : completeSubmitLabel
-          ) : (
-            isTransfer ? transferSubmitLabel : completeSubmitLabel
-          )}
-        </Button>
-      </div>
+          <Button
+            variant="secondary"
+            onClick={onCancel}
+            disabled={loading}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={buildSubmitHandler(false)}
+            disabled={loading}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+            }}
+          >
+            {loading ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" className="me-2" />
+                Guardando...
+              </>
+            ) : isEditMode ? (
+              'Actualizar'
+            ) : (
+              'Crear'
+            )}
+          </Button>
+          <Button
+            variant="success"
+            onClick={buildSubmitHandler(true)}
+            disabled={loading}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+            }}
+          >
+            {loading ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" className="me-2" />
+                Guardando...
+              </>
+            ) : isEditMode ? (
+              isTransfer ? transferSubmitLabel : completeSubmitLabel
+            ) : (
+              isTransfer ? transferSubmitLabel : completeSubmitLabel
+            )}
+          </Button>
+        </div>
+      )}
     </Form>
   );
 };
