@@ -119,17 +119,6 @@ export const TransactionListTable = ({
     fontSize: '1.1rem',
     lineHeight: 1,
   };
-  const actionButtonStyle = {
-    width: '32px',
-    height: '32px',
-    padding: 0,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '8px',
-    fontSize: '1rem',
-    lineHeight: 1,
-  };
 
   const resolvedBranchId = useMemo(() => {
     if (user?.branch_id) return String(user.branch_id);
@@ -633,9 +622,9 @@ export const TransactionListTable = ({
                         <Button
                           variant="primary"
                           size="sm"
+                          className="list-action-btn"
                           onClick={() => handleDetailsClick(transaction.id)}
                           title="Ver detalles"
-                          style={actionButtonStyle}
                         >
                           <BsInfoCircle />
                         </Button>
@@ -643,10 +632,10 @@ export const TransactionListTable = ({
                           <Button
                             variant="success"
                             size="sm"
+                            className="list-action-btn"
                             onClick={() => handleOpenComplete(transaction)}
                             disabled={actionLoading}
                             title="Completar"
-                            style={actionButtonStyle}
                           >
                             <BsCheckSquare />
                           </Button>
@@ -655,10 +644,10 @@ export const TransactionListTable = ({
                           <Button
                             variant="danger"
                             size="sm"
+                            className="list-action-btn"
                             onClick={() => handleOpenCancel(transaction)}
                             disabled={actionLoading}
                             title="Cancelar"
-                            style={actionButtonStyle}
                           >
                             <BsFillTrash3Fill />
                           </Button>

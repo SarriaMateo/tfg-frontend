@@ -6,6 +6,7 @@ import { BranchForm } from './BranchForm';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Card, Button, Alert } from 'react-bootstrap';
+import { BsBuilding } from 'react-icons/bs';
 import { translateError } from '../utils/errorTranslator';
 
 export const BranchManagement = () => {
@@ -91,14 +92,14 @@ export const BranchManagement = () => {
       <Card.Header className="bg-primary text-white">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <Card.Title className="mb-1">🏗️ Sedes</Card.Title>
+            <Card.Title className="mb-1 d-flex align-items-center gap-2"><BsBuilding /> Sedes</Card.Title>
             <small className="text-white-50">Gestión de sedes de la empresa</small>
           </div>
           {isAdmin && (
             <Button
               size="sm"
               onClick={handleCreateBranch}
-              style={{ height: '38px', padding: '0.5rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
+              style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white', margin: '-0.25rem 0' }}
             >
               + Nueva Sede
             </Button>

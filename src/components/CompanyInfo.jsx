@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Spinner, Alert, Row, Col } from 'react-bootstrap';
+import { BsPencilSquare } from 'react-icons/bs';
 import { companyService } from '../services/companyService';
 import { translateError } from '../utils/errorTranslator';
 
@@ -50,10 +51,10 @@ export const CompanyInfo = ({ onEditCompany, canEdit }) => {
           {canEdit && (
             <Button
               variant="primary"
-              size="sm"
+              className="detail-page-action-btn"
               onClick={() => onEditCompany(company, fetchCompany)}
-              style={{ height: '32px', padding: '0.25rem 1rem' }}
             >
+              <BsPencilSquare className="me-1" />
               Editar
             </Button>
           )}

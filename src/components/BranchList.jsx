@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Spinner, Alert } from 'react-bootstrap';
+import { BsPencilSquare, BsFillTrash3Fill } from 'react-icons/bs';
 import { branchService } from '../services/branchService';
 import { translateError } from '../utils/errorTranslator';
 
@@ -66,18 +67,20 @@ export const BranchList = ({ onEditBranch, onDeleteBranch, canModify }) => {
                       <Button 
                         variant="primary"
                         size="sm"
+                        className="list-action-btn"
                         onClick={() => onEditBranch(branch)}
-                        style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                        title="Editar"
                       >
-                        Editar
+                        <BsPencilSquare />
                       </Button>
                       <Button 
                         variant="danger"
                         size="sm"
+                        className="list-action-btn"
                         onClick={() => handleDelete(branch.id)}
-                        style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                        title="Eliminar"
                       >
-                        Eliminar
+                        <BsFillTrash3Fill />
                       </Button>
                     </div>
                   </td>

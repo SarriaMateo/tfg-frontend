@@ -1,5 +1,6 @@
 import React from 'react';
 import { Table, Button, Spinner, Alert } from 'react-bootstrap';
+import { BsPencilSquare, BsFillTrash3Fill } from 'react-icons/bs';
 import { useAuthorization } from '../hooks/useAuthorization';
 
 export const CategoryList = ({ 
@@ -45,7 +46,7 @@ export const CategoryList = ({
             <th style={{ fontWeight: '600', width: '30%' }}>Nombre</th>
             <th style={{ fontWeight: '600', width: '130px', textAlign: 'center' }}>Código HEX</th>
             {(canEdit || canDelete) && (
-              <th style={{ fontWeight: '600', textAlign: 'center', width: '150px' }}>Acciones</th>
+              <th style={{ fontWeight: '600', textAlign: 'center', width: '100px' }}>Acciones</th>
             )}
           </tr>
         </thead>
@@ -81,22 +82,22 @@ export const CategoryList = ({
                       <Button
                         variant="primary"
                         size="sm"
+                        className="list-action-btn"
                         onClick={() => onEditCategory(category)}
-                        title="Editar categoría"
-                        style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                        title="Editar"
                       >
-                        Editar
+                        <BsPencilSquare />
                       </Button>
                     )}
                     {canDelete && (
                       <Button
                         variant="danger"
                         size="sm"
+                        className="list-action-btn"
                         onClick={() => onDeleteCategory(category.id)}
-                        title="Eliminar categoría"
-                        style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                        title="Eliminar"
                       >
-                        Eliminar
+                        <BsFillTrash3Fill />
                       </Button>
                     )}
                   </div>

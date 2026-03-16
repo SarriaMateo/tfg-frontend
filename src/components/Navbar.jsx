@@ -5,6 +5,7 @@ import { useBranchSelection } from '../hooks/useBranchSelection';
 import { companyService } from '../services/companyService';
 import { branchService } from '../services/branchService';
 import { Navbar as BSNavbar, Container, Nav, Button, Dropdown, Spinner } from 'react-bootstrap';
+import { BsBuildingFill, BsPersonCircle } from 'react-icons/bs';
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -133,6 +134,7 @@ export const Navbar = () => {
                   id="branch-dropdown"
                   className="d-flex align-items-center gap-2"
                 >
+                  <BsBuildingFill />
                   <span className="text-truncate">{getSelectedBranchName()}</span>
                 </Dropdown.Toggle>
 
@@ -156,6 +158,7 @@ export const Navbar = () => {
                 id="user-dropdown"
                 className="d-flex align-items-center gap-2"
               >
+                <BsPersonCircle />
                 <span className="text-truncate">{user?.username}</span>
               </Dropdown.Toggle>
 

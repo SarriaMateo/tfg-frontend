@@ -9,6 +9,7 @@ import { CategoryManagementModal } from './CategoryManagementModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Card, Button, Alert } from 'react-bootstrap';
 import { translateError } from '../utils/errorTranslator';
+import { BsFillTagsFill } from 'react-icons/bs';
 
 export const ItemManagement = ({ items = [], loading: listLoading = false, error: listError = null, pagination = {}, currentQuery = {}, onFetchItems = () => {} }) => {
   const { user } = useAuth();
@@ -106,7 +107,7 @@ export const ItemManagement = ({ items = [], loading: listLoading = false, error
               onClick={() => setShowCategoryModal(true)}
               style={{ height: '36px', padding: '0.25rem 0.75rem', margin: '-0.25rem 0' }}
             >
-              Categorías
+              <BsFillTagsFill /> Categorías
             </Button>
             {canCreateEdit && (
               <Button

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Card, Button, Row, Col } from 'react-bootstrap';
+import { BsPencilSquare } from 'react-icons/bs';
 import { userService } from '../services/userService';
 import { translateError } from '../utils/errorTranslator';
 import { useAuth } from '../hooks/useAuth';
@@ -63,10 +64,10 @@ export const UserProfile = ({ user, onUserUpdated }) => {
               <h5 className="mb-0" style={{ fontWeight: '600' }}>Mi Perfil</h5>
               <Button
                 variant="primary"
-                size="sm"
+                className="detail-page-action-btn"
                 onClick={handleEditProfile}
-                style={{ height: '32px', padding: '0.25rem 1rem' }}
               >
+                <BsPencilSquare className="me-1" />
                 Editar
               </Button>
             </div>

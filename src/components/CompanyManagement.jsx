@@ -5,6 +5,7 @@ import { CompanyInfo } from './CompanyInfo';
 import { CompanyForm } from './CompanyForm';
 import { Modal } from './Modal';
 import { Card, Alert } from 'react-bootstrap';
+import { BsBuildings } from 'react-icons/bs';
 import { translateError } from '../utils/errorTranslator';
 
 export const CompanyManagement = () => {
@@ -49,7 +50,7 @@ export const CompanyManagement = () => {
   return (
     <Card className="shadow-sm border-0">
       <Card.Header className="bg-primary text-white">
-        <Card.Title className="mb-1">🏢 Empresa</Card.Title>
+        <Card.Title className="mb-1 d-flex align-items-center gap-2"><BsBuildings /> Empresa</Card.Title>
         <small className="text-white-50">Información y configuración de la empresa</small>
       </Card.Header>
       <Card.Body>

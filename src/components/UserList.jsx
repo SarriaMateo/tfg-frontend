@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Spinner, Alert } from 'react-bootstrap';
+import { BsPencilSquare, BsFillTrash3Fill } from 'react-icons/bs';
 import { userService } from '../services/userService';
 import { companyService } from '../services/companyService';
 import { translateError } from '../utils/errorTranslator';
@@ -97,20 +98,22 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser, isAdmin = fa
                         <Button 
                           variant="primary"
                           size="sm"
+                          className="list-action-btn"
                           onClick={() => onEditUser(user)}
-                          style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                          title="Editar"
                         >
-                          Editar
+                          <BsPencilSquare />
                         </Button>
                       )}
                       {user.id !== currentUserId && (
                         <Button 
                           variant="danger"
                           size="sm"
+                          className="list-action-btn"
                           onClick={() => handleDelete(user.id)}
-                          style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                          title="Eliminar"
                         >
-                          Eliminar
+                          <BsFillTrash3Fill />
                         </Button>
                       )}
                     </div>

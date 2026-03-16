@@ -5,15 +5,16 @@ import { UserManagement } from '../components/UserManagement';
 import { BranchManagement } from '../components/BranchManagement';
 import { CompanyManagement } from '../components/CompanyManagement';
 import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
+import { BsBuildingFill, BsBuildingsFill, BsPeopleFill, BsPeople } from 'react-icons/bs';
 
 export const SettingsPage = () => {
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState('empresa');
 
   const sections = [
-    { id: 'empresa', label: 'Empresa', icon: '🏢' },
-    { id: 'sedes', label: 'Sedes', icon: '🏗️' },
-    { id: 'usuarios', label: 'Usuarios', icon: '👥' },
+    { id: 'empresa', label: 'Empresa', icon: <BsBuildingsFill /> },
+    { id: 'sedes', label: 'Sedes', icon: <BsBuildingFill /> },
+    { id: 'usuarios', label: 'Usuarios', icon: <BsPeopleFill /> },
   ];
 
   return (
@@ -72,7 +73,7 @@ export const SettingsPage = () => {
             {activeSection === 'usuarios' && (
               <Card className="shadow-sm border-0">
                 <Card.Header className="bg-primary text-white">
-                  <Card.Title className="mb-0">👥 Usuarios</Card.Title>
+                  <Card.Title className="mb-0 d-flex align-items-center gap-2"><BsPeopleFill /> Usuarios</Card.Title>
                   <small className="text-white-50">Gestión de usuarios y perfiles</small>
                 </Card.Header>
                 <Card.Body>

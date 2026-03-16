@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Spinner, Alert, Button, Form, Row, Col, Pagination } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { BsInfoCircle } from 'react-icons/bs';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { branchService } from '../services/branchService';
@@ -403,10 +404,11 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
                     <Button
                       variant="primary"
                       size="sm"
+                      className="list-action-btn"
                       onClick={() => handleDetailsClick(item.id)}
-                      style={{ width: '80px', height: '32px', padding: '0.25rem 0.5rem' }}
+                      title="Ver detalles"
                     >
-                      Detalles
+                      <BsInfoCircle />
                     </Button>
                   </td>
                 </tr>
