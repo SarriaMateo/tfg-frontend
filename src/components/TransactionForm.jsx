@@ -46,6 +46,8 @@ export const TransactionForm = ({
   const { user } = useAuth();
   const { selectedBranchId } = useBranchSelection();
   const isEditMode = !!transaction;
+  const userRole = String(user?.role || '').toUpperCase();
+  const canCreateAdjustment = userRole === 'ADMIN' || userRole === 'MANAGER';
 
   // If user has a fixed branch, we never show the branch select and always use that value
   const userBranchId = user?.branch_id ? String(user.branch_id) : null;
@@ -217,12 +219,13 @@ export const TransactionForm = ({
 
   const handleQuantityChange = (item, value) => {
     const normalizedValue = value.replace(',', '.');
+    const isAdjustment = formData.operation_type === 'ADJUSTMENT';
 
     if (requiresIntegerQuantity(item.unit)) {
-      if (!/^\d*$/.test(normalizedValue)) {
+      if (!(isAdjustment ? /^-?\d*$/.test(normalizedValue) : /^\d*$/.test(normalizedValue))) {
         return;
       }
-    } else if (!/^\d*(?:\.\d{0,3})?$/.test(normalizedValue)) {
+    } else if (!(isAdjustment ? /^-?\d*(?:\.\d{0,3})?$/.test(normalizedValue) : /^\d*(?:\.\d{0,3})?$/.test(normalizedValue))) {
       return;
     }
 
@@ -253,13 +256,39 @@ export const TransactionForm = ({
         return false;
       }
     }
+    if (formData.operation_type === 'ADJUSTMENT') {
+      if (!canCreateAdjustment) {
+        setInternalError('Solo ADMIN y MANAGER pueden realizar ajustes');
+        return false;
+      }
+
+      if (userBranchId && effectiveBranchId !== userBranchId) {
+        setInternalError('Solo puedes realizar ajustes en tu sede asignada');
+        return false;
+      }
+
+      if (!formData.description || !formData.description.trim()) {
+        setInternalError('La descripción es obligatoria para ajustes');
+        return false;
+      }
+    }
     if (typeaheadSelected.length === 0) {
       setInternalError('Debes añadir al menos un artículo');
       return false;
     }
+    const isAdjustment = formData.operation_type === 'ADJUSTMENT';
     for (const item of typeaheadSelected) {
       const qty = parseFloat(lineQuantities[item.id]);
-      if (!qty || qty < 0.001) {
+      if (Number.isNaN(qty)) {
+        setInternalError(`La cantidad de "${item.name}" no es válida`);
+        return false;
+      }
+      if (isAdjustment) {
+        if (Math.abs(qty) < 0.001) {
+          setInternalError(`La cantidad de "${item.name}" debe ser distinta de 0`);
+          return false;
+        }
+      } else if (qty < 0.001) {
         setInternalError(`La cantidad de "${item.name}" debe ser mayor que 0`);
         return false;
       }
@@ -278,6 +307,10 @@ export const TransactionForm = ({
   const buildSubmitHandler = (autoComplete) => () => {
     if (!validateForm()) return;
 
+    const forceAutoComplete = !isEditMode && formData.operation_type === 'ADJUSTMENT';
+    const resolvedAutoComplete = forceAutoComplete ? true : autoComplete;
+    const normalizedDescription = formData.description.trim();
+
     const lines = typeaheadSelected.map((item) => ({
       item_id: item.id,
       quantity: parseFloat(lineQuantities[item.id]),
@@ -285,8 +318,8 @@ export const TransactionForm = ({
 
     let payload;
     if (isEditMode) {
-      payload = { lines, auto_complete: autoComplete };
-      if (formData.description) payload.description = formData.description;
+      payload = { lines, auto_complete: resolvedAutoComplete };
+      if (normalizedDescription) payload.description = normalizedDescription;
     } else {
       const effectiveBranchId = userBranchId
         ? Number(userBranchId)
@@ -295,9 +328,9 @@ export const TransactionForm = ({
         operation_type: formData.operation_type,
         branch_id: effectiveBranchId,
         lines,
-        auto_complete: autoComplete,
+        auto_complete: resolvedAutoComplete,
       };
-      if (formData.description) payload.description = formData.description;
+      if (normalizedDescription) payload.description = normalizedDescription;
       if (
         formData.operation_type === 'TRANSFER' &&
         formData.destination_branch_id
@@ -310,11 +343,14 @@ export const TransactionForm = ({
   };
 
   const isTransfer = formData.operation_type === 'TRANSFER';
+  const isAdjustment = formData.operation_type === 'ADJUSTMENT';
   const transferSubmitLabel = isEditMode ? 'Actualizar + Enviar' : 'Crear + Enviar';
   const completeSubmitLabel = isEditMode ? 'Actualizar + Completar' : 'Crear + Completar';
-  const operationTypeOptions = canCreateTransfer
-    ? OPERATION_TYPE_OPTIONS
-    : OPERATION_TYPE_OPTIONS.filter((option) => option.value !== 'TRANSFER');
+  const operationTypeOptions = OPERATION_TYPE_OPTIONS.filter((option) => {
+    if (option.value === 'TRANSFER' && !canCreateTransfer) return false;
+    if (option.value === 'ADJUSTMENT' && !canCreateAdjustment) return false;
+    return true;
+  });
   const effectiveBranchId = userBranchId || formData.branch_id;
 
   const destinationBranchOptions = branches.filter(
@@ -456,7 +492,7 @@ export const TransactionForm = ({
           name="description"
           value={formData.description}
           onChange={handleChange}
-          placeholder="Descripción de la operación (opcional)"
+          placeholder={isAdjustment ? 'Descripción del ajuste (obligatoria)' : 'Descripción de la operación (opcional)'}
           maxLength={1000}
           disabled={loading}
         />
@@ -524,7 +560,7 @@ export const TransactionForm = ({
                   value={lineQuantities[item.id] || ''}
                   onChange={(e) => handleQuantityChange(item, e.target.value)}
                   placeholder="0"
-                  min={requiresIntegerQuantity(item.unit) ? '1' : '0'}
+                  min={isAdjustment ? undefined : (requiresIntegerQuantity(item.unit) ? '1' : '0')}
                   step="1"
                   disabled={loading}
                   size="sm"
