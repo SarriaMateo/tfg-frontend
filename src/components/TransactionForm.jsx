@@ -51,6 +51,7 @@ export const TransactionForm = ({
   const userBranchId = user?.branch_id ? String(user.branch_id) : null;
 
   const defaultBranchId = userBranchId || (selectedBranchId ? String(selectedBranchId) : '');
+  const canCreateTransfer = !userBranchId;
 
   const [formData, setFormData] = useState({
     operation_type: 'IN',
@@ -239,6 +240,10 @@ export const TransactionForm = ({
       return false;
     }
     if (!isEditMode && formData.operation_type === 'TRANSFER') {
+      if (!canCreateTransfer) {
+        setInternalError('Solo los usuarios sin sede asociada pueden crear traspasos');
+        return false;
+      }
       if (!formData.destination_branch_id) {
         setInternalError('La sede de destino es obligatoria para traspasos');
         return false;
@@ -305,6 +310,11 @@ export const TransactionForm = ({
   };
 
   const isTransfer = formData.operation_type === 'TRANSFER';
+  const transferSubmitLabel = isEditMode ? 'Actualizar + Enviar' : 'Crear + Enviar';
+  const completeSubmitLabel = isEditMode ? 'Actualizar + Completar' : 'Crear + Completar';
+  const operationTypeOptions = canCreateTransfer
+    ? OPERATION_TYPE_OPTIONS
+    : OPERATION_TYPE_OPTIONS.filter((option) => option.value !== 'TRANSFER');
   const effectiveBranchId = userBranchId || formData.branch_id;
 
   const destinationBranchOptions = branches.filter(
@@ -356,7 +366,7 @@ export const TransactionForm = ({
                 disabled={loading}
                 style={{ height: '46px' }}
               >
-                {OPERATION_TYPE_OPTIONS.map((opt) => (
+                {operationTypeOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -585,9 +595,9 @@ export const TransactionForm = ({
               Guardando...
             </>
           ) : isEditMode ? (
-            'Actualizar + Completar'
+            isTransfer ? transferSubmitLabel : completeSubmitLabel
           ) : (
-            'Crear + Completar'
+            isTransfer ? transferSubmitLabel : completeSubmitLabel
           )}
         </Button>
       </div>
