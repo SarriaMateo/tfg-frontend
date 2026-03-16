@@ -12,6 +12,7 @@ import { userService } from '../services/userService';
 import { itemService } from '../services/itemService';
 import { translateError } from '../utils/errorTranslator';
 import { useAuthorization } from '../hooks/useAuthorization';
+import { useAuth } from '../hooks/useAuth';
 import { formatDecimal, formatUnit } from '../utils/formatters';
 
 const OPERATION_TYPE_LABELS = {
@@ -98,6 +99,7 @@ const resolveDocumentFileName = ({ fileName, documentUrl, transactionId, content
 export const TransactionDetailPage = () => {
   const navigate = useNavigate();
   const { transactionId } = useParams();
+  const { user } = useAuth();
   const { hasAnyRole } = useAuthorization();
   const canCreateEdit = hasAnyRole(['MANAGER', 'ADMIN']);
 
@@ -164,6 +166,30 @@ export const TransactionDetailPage = () => {
   const isImageDocument = documentContentType.startsWith('image/');
   const isPdfDocument = documentContentType === 'application/pdf';
   const isOfficeDocument = OFFICE_DOCUMENT_TYPES.has(documentContentType);
+
+  const createdByUserId = useMemo(() => {
+    const createdEvent = (Array.isArray(transaction?.events) ? transaction.events : [])
+      .find((event) => event?.action_type === 'CREATED');
+
+    const numericUserId = Number(createdEvent?.performed_by);
+    return Number.isInteger(numericUserId) && numericUserId > 0 ? numericUserId : null;
+  }, [transaction?.events]);
+
+  const isEmployee = String(user?.role || '').toUpperCase() === 'EMPLOYEE';
+  const isCreatedByCurrentUser = createdByUserId !== null && Number(user?.id) === createdByUserId;
+
+  const canManageDocument = useMemo(() => {
+    if (canCreateEdit) return true;
+    if (!isEmployee || !transaction) return false;
+
+    if (transaction.status === 'PENDING') return true;
+
+    if (transaction.status === 'COMPLETED' || transaction.status === 'CANCELLED') {
+      return isCreatedByCurrentUser;
+    }
+
+    return false;
+  }, [canCreateEdit, isEmployee, isCreatedByCurrentUser, transaction]);
 
   useEffect(() => {
     const fetchTransactionDetail = async () => {
@@ -760,6 +786,17 @@ export const TransactionDetailPage = () => {
                     </Col>
                   </Row>
 
+                  <Row className="mb-3">
+                    <Col md={6}>
+                      <p className="mb-1 text-muted">Número de líneas</p>
+                      <p className="fw-semibold mb-0">{linesCount}</p>
+                    </Col>
+                    <Col md={6}>
+                      <p className="mb-1 text-muted">Número de eventos</p>
+                      <p className="fw-semibold mb-0">{eventsCount}</p>
+                    </Col>
+                  </Row>
+
                   <div>
                     <p className="mb-1 text-muted">Descripción</p>
                     <p className="fw-semibold mb-0">{transaction.description || 'Sin descripción'}</p>
@@ -769,24 +806,6 @@ export const TransactionDetailPage = () => {
               </Col>
 
               <Col lg={4}>
-              <Card className="shadow-sm border-0 mb-4">
-                <Card.Body className="p-4">
-                  <h5 className="fw-bold mb-3">Resumen</h5>
-                  <div className="mb-3">
-                    <p className="mb-1 text-muted">Número de líneas</p>
-                    <p className="fw-semibold mb-0">{linesCount}</p>
-                  </div>
-                  <div className="mb-3">
-                    <p className="mb-1 text-muted">Número de eventos</p>
-                    <p className="fw-semibold mb-0">{eventsCount}</p>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-muted">Estado actual</p>
-                    <p className="fw-semibold mb-0">{getStatusLabel(transaction.status)}</p>
-                  </div>
-                </Card.Body>
-              </Card>
-
               <Card className="shadow-sm border-0">
                 <Card.Body className="p-4">
                   <input
@@ -805,7 +824,7 @@ export const TransactionDetailPage = () => {
                       </p>
                     </div>
 
-                    {canCreateEdit && (
+                    {canManageDocument && (
                       <div className="d-flex gap-2 flex-wrap justify-content-end">
                         <Button
                           variant={transaction.document_url ? 'primary' : 'success'}
@@ -862,7 +881,7 @@ export const TransactionDetailPage = () => {
 
             <Card className="shadow-sm border-0 mt-4">
               <Card.Body className="p-4">
-                <h5 className="fw-bold mb-3">Líneas de la operación</h5>
+                <h5 className="fw-bold mb-3">Artículos de la operación</h5>
                 <div className="table-responsive">
                   <Table hover className="align-middle mb-0">
                     <thead>
@@ -876,7 +895,7 @@ export const TransactionDetailPage = () => {
                       {linesCount === 0 ? (
                         <tr>
                           <td colSpan={3} className="text-center text-muted py-4">
-                            Sin líneas registradas
+                            Sin artículos registrados
                           </td>
                         </tr>
                       ) : (
