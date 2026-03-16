@@ -24,12 +24,14 @@ const OPERATION_TYPE_LABELS = {
 
 const STATUS_LABELS = {
   PENDING: 'Pendiente',
+  TRANSIT: 'En tránsito',
   COMPLETED: 'Completada',
   CANCELLED: 'Cancelada',
 };
 
 const STATUS_BADGE_CLASSES = {
   PENDING: 'bg-warning text-dark',
+  TRANSIT: 'bg-info text-dark',
   COMPLETED: 'bg-success',
   CANCELLED: 'bg-secondary',
 };
@@ -37,6 +39,7 @@ const STATUS_BADGE_CLASSES = {
 const EVENT_ACTION_LABELS = {
   CREATED: 'Creación',
   EDITED: 'Edición',
+  SENT: 'Envío',
   CANCELLED: 'Cancelación',
   COMPLETED: 'Completado',
 };
@@ -593,6 +596,25 @@ export const TransactionDetailPage = () => {
 
   const linesCount = Array.isArray(transaction?.lines) ? transaction.lines.length : 0;
   const eventsCount = Array.isArray(transaction?.events) ? transaction.events.length : 0;
+  const canCompleteTransaction = transaction?.status === 'PENDING' || transaction?.status === 'TRANSIT';
+  const canCancelTransaction = transaction?.status === 'PENDING' || transaction?.status === 'TRANSIT';
+  const canEditTransaction = canCreateEdit && transaction?.status === 'PENDING';
+  const isTransferPending = transaction?.operation_type === 'TRANSFER' && transaction?.status === 'PENDING';
+  const isTransferTransit = transaction?.operation_type === 'TRANSFER' && transaction?.status === 'TRANSIT';
+
+  const completeButtonLabel = isTransferPending ? 'Enviar' : (isTransferTransit ? 'Recibir' : 'Completar');
+  const completeButtonTitle = completeButtonLabel;
+  const completeButtonIcon = isTransferPending
+    ? <BsUpload className="me-1" />
+    : (isTransferTransit ? <BsDownload className="me-1" /> : <BsCheckSquare className="me-1" />);
+
+  const completeConfirmTitle = isTransferPending ? 'Enviar traspaso' : (isTransferTransit ? 'Recibir traspaso' : 'Completar operación');
+  const completeConfirmText = completeButtonLabel;
+  const completeConfirmMessage = isTransferPending
+    ? `¿Seguro que quieres enviar el traspaso #${transaction?.id}? Esta acción no se puede deshacer.`
+    : (isTransferTransit
+      ? `¿Seguro que quieres recibir el traspaso #${transaction?.id}? Esta acción no se puede deshacer.`
+      : `¿Seguro que quieres completar la operación #${transaction?.id}? Esta acción no se puede deshacer.`);
 
   const renderDocumentPreview = () => {
     if (documentLoading) {
@@ -680,9 +702,9 @@ export const TransactionDetailPage = () => {
             <p className="text-muted mb-0">Información completa de la operación #{transactionId}</p>
           </div>
           <div className="d-flex gap-2 align-items-center">
-            {transaction?.status === 'PENDING' && (
+            {(canCompleteTransaction || canCancelTransaction || canEditTransaction) && (
               <>
-                {canCreateEdit && (
+                {canEditTransaction && (
                   <Button
                     variant="primary"
                     className="detail-page-action-btn"
@@ -693,24 +715,29 @@ export const TransactionDetailPage = () => {
                     Editar
                   </Button>
                 )}
-                <Button
-                  variant="success"
-                  className="detail-page-action-btn"
-                  onClick={() => setShowConfirmComplete(true)}
-                  disabled={actionLoading}
-                >
-                  <BsCheckSquare className="me-1" />
-                  Completar
-                </Button>
-                <Button
-                  variant="danger"
-                  className="detail-page-action-btn"
-                  onClick={() => { setCancelReason(''); setShowConfirmCancel(true); }}
-                  disabled={actionLoading}
-                >
-                  <BsFillTrash3Fill className="me-1" />
-                  Cancelar
-                </Button>
+                {canCompleteTransaction && (
+                  <Button
+                    variant="success"
+                    className="detail-page-action-btn"
+                    onClick={() => setShowConfirmComplete(true)}
+                    disabled={actionLoading}
+                    title={completeButtonTitle}
+                  >
+                    {completeButtonIcon}
+                    {completeButtonLabel}
+                  </Button>
+                )}
+                {canCancelTransaction && (
+                  <Button
+                    variant="danger"
+                    className="detail-page-action-btn"
+                    onClick={() => { setCancelReason(''); setShowConfirmCancel(true); }}
+                    disabled={actionLoading}
+                  >
+                    <BsFillTrash3Fill className="me-1" />
+                    Cancelar
+                  </Button>
+                )}
               </>
             )}
             <Button
@@ -967,9 +994,9 @@ export const TransactionDetailPage = () => {
       {/* Complete confirm dialog */}
       <ConfirmDialog
         isOpen={showConfirmComplete}
-        title="Completar operación"
-        message={`¿Seguro que quieres completar la operación #${transaction?.id}? Esta acción no se puede deshacer.`}
-        confirmText="Completar"
+        title={completeConfirmTitle}
+        message={completeConfirmMessage}
+        confirmText={completeConfirmText}
         cancelText="Cancelar"
         variant="success"
         onConfirm={handleConfirmComplete}

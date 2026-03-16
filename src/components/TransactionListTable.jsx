@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Spinner, Button, Form, Row, Col, Pagination, Modal } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsCheckSquare, BsFillTrash3Fill, BsInfoCircle } from 'react-icons/bs';
+import { BsCheckSquare, BsDownload, BsFillTrash3Fill, BsInfoCircle, BsUpload } from 'react-icons/bs';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
@@ -52,12 +52,14 @@ const OPERATION_TYPE_LABELS = {
 
 const STATUS_LABELS = {
   PENDING: 'Pendiente',
+  TRANSIT: 'En tránsito',
   COMPLETED: 'Completada',
   CANCELLED: 'Cancelada',
 };
 
 const STATUS_BADGE_CLASSES = {
   PENDING: 'bg-warning text-dark',
+  TRANSIT: 'bg-info text-dark',
   COMPLETED: 'bg-success',
   CANCELLED: 'bg-secondary',
 };
@@ -297,6 +299,45 @@ export const TransactionListTable = ({
     const branchId = Number(transaction?.branch_id);
     if (!branchId) return '-';
     return branchesById.get(branchId) || `Sede #${branchId}`;
+  };
+
+  const getTransactionBranchDisplay = (transaction) => {
+    if (transaction?.operation_type !== 'TRANSFER') {
+      return getBranchName(transaction);
+    }
+
+    const originBranchName = getBranchName(transaction);
+    const destinationBranchId = Number(transaction?.destination_branch_id);
+
+    if (!destinationBranchId) {
+      return `${originBranchName} -> -`;
+    }
+
+    const destinationBranchName = branchesById.get(destinationBranchId) || `Sede #${destinationBranchId}`;
+    return `${originBranchName} -> ${destinationBranchName}`;
+  };
+
+  const getCompleteActionConfig = (transaction) => {
+    const isTransfer = transaction?.operation_type === 'TRANSFER';
+
+    if (isTransfer && transaction?.status === 'PENDING') {
+      return {
+        title: 'Enviar',
+        icon: <BsUpload />,
+      };
+    }
+
+    if (isTransfer && transaction?.status === 'TRANSIT') {
+      return {
+        title: 'Recibir',
+        icon: <BsDownload />,
+      };
+    }
+
+    return {
+      title: 'Completar',
+      icon: <BsCheckSquare />,
+    };
   };
 
   const handleDetailsClick = (transactionId) => {
@@ -594,11 +635,14 @@ export const TransactionListTable = ({
             ) : (
               transactions.map((transaction) => {
                 const linesCount = Array.isArray(transaction.lines) ? transaction.lines.length : 0;
+                const canComplete = transaction.status === 'PENDING' || transaction.status === 'TRANSIT';
+                const canCancel = transaction.status === 'PENDING' || transaction.status === 'TRANSIT';
+                const completeAction = getCompleteActionConfig(transaction);
 
                 return (
                   <tr key={transaction.id}>
                     <td>{getOperationTypeLabel(transaction.operation_type)}</td>
-                    <td>{getBranchName(transaction)}</td>
+                    <td>{getTransactionBranchDisplay(transaction)}</td>
                     <td>{formatTransactionDateTime(transaction.created_at)}</td>
                     <td>
                       <span title={transaction.description || ''}>
@@ -628,19 +672,19 @@ export const TransactionListTable = ({
                         >
                           <BsInfoCircle />
                         </Button>
-                        {onCompleteTransaction && transaction.status === 'PENDING' && (
+                        {onCompleteTransaction && canComplete && (
                           <Button
                             variant="success"
                             size="sm"
                             className="list-action-btn"
                             onClick={() => handleOpenComplete(transaction)}
                             disabled={actionLoading}
-                            title="Completar"
+                            title={completeAction.title}
                           >
-                            <BsCheckSquare />
+                            {completeAction.icon}
                           </Button>
                         )}
-                        {onCancelTransaction && transaction.status === 'PENDING' && (
+                        {onCancelTransaction && canCancel && (
                           <Button
                             variant="danger"
                             size="sm"
