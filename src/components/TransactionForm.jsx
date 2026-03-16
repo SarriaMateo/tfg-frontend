@@ -382,7 +382,7 @@ export const TransactionForm = ({
 
       <Row>
         <Col md={userBranchId ? 12 : 6}>
-          {/* Tipo de operación */}
+          {/* Operation type */}
           <Form.Group className="mb-3">
             <Form.Label>
               Tipo de operación{!isEditMode && <span className="text-danger"> *</span>}
@@ -483,7 +483,7 @@ export const TransactionForm = ({
         </Form.Group>
       )}
 
-      {/* Descripción */}
+      {/* Description */}
       <Form.Group className="mb-3">
         <Form.Label>Descripción</Form.Label>
         <Form.Control
@@ -499,7 +499,7 @@ export const TransactionForm = ({
         <Form.Text className="text-muted">{formData.description.length}/1000</Form.Text>
       </Form.Group>
 
-      {/* Selector de artículos con Typeahead */}
+      {/* Items selector with Typeahead */}
       <Form.Group className="mb-2">
         <Form.Label>
           Artículos <span className="text-danger">*</span>
@@ -525,7 +525,7 @@ export const TransactionForm = ({
         />
       </Form.Group>
 
-      {/* Lista de artículos con cantidades */}
+      {/* Items list with quantities */}
       {typeaheadSelected.length > 0 && (
         <div
           className="mb-4 p-3"
@@ -575,7 +575,7 @@ export const TransactionForm = ({
         </div>
       )}
 
-      {/* Botones */}
+      {/* Buttons */}
       {isAdjustment && !isEditMode ? (
         <div
           className="mt-3"
