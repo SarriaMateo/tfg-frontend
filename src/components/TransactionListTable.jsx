@@ -310,11 +310,11 @@ export const TransactionListTable = ({
     const destinationBranchId = Number(transaction?.destination_branch_id);
 
     if (!destinationBranchId) {
-      return `${originBranchName} -> -`;
+      return `${originBranchName} → -`;
     }
 
     const destinationBranchName = branchesById.get(destinationBranchId) || `Sede #${destinationBranchId}`;
-    return `${originBranchName} -> ${destinationBranchName}`;
+    return `${originBranchName} → ${destinationBranchName}`;
   };
 
   const getCompleteActionConfig = (transaction) => {
@@ -337,6 +337,32 @@ export const TransactionListTable = ({
     return {
       title: 'Completar',
       icon: <BsCheckSquare />,
+    };
+  };
+
+  const getCompleteDialogConfig = (transaction) => {
+    const completeAction = getCompleteActionConfig(transaction);
+
+    if (transaction?.operation_type === 'TRANSFER' && transaction?.status === 'PENDING') {
+      return {
+        title: 'Enviar traspaso',
+        message: `¿Seguro que quieres enviar el traspaso #${transaction?.id}? Esta acción no se puede deshacer.`,
+        confirmText: completeAction.title,
+      };
+    }
+
+    if (transaction?.operation_type === 'TRANSFER' && transaction?.status === 'TRANSIT') {
+      return {
+        title: 'Recibir traspaso',
+        message: `¿Seguro que quieres recibir el traspaso #${transaction?.id}? Esta acción no se puede deshacer.`,
+        confirmText: completeAction.title,
+      };
+    }
+
+    return {
+      title: 'Completar operación',
+      message: `¿Seguro que quieres completar la operación #${transaction?.id}? Esta acción no se puede deshacer.`,
+      confirmText: completeAction.title,
     };
   };
 
@@ -371,6 +397,8 @@ export const TransactionListTable = ({
       </Tooltip>
     );
   };
+
+  const completeDialogConfig = getCompleteDialogConfig(confirmComplete);
 
   useEffect(() => {
     const loadFilterCatalogs = async () => {
@@ -635,8 +663,24 @@ export const TransactionListTable = ({
             ) : (
               transactions.map((transaction) => {
                 const linesCount = Array.isArray(transaction.lines) ? transaction.lines.length : 0;
-                const canComplete = transaction.status === 'PENDING' || transaction.status === 'TRANSIT';
-                const canCancel = transaction.status === 'PENDING' || transaction.status === 'TRANSIT';
+                const isTransfer = transaction.operation_type === 'TRANSFER';
+                const isActionableStatus = transaction.status === 'PENDING' || transaction.status === 'TRANSIT';
+                const hasNoAssignedBranch = user?.branch_id === null || user?.branch_id === undefined;
+                const userBranchId = Number(user?.branch_id);
+                const originBranchId = Number(transaction?.branch_id);
+                const destinationBranchId = Number(transaction?.destination_branch_id);
+
+                const canManageTransferByBranch = hasNoAssignedBranch || (
+                  (transaction.status === 'PENDING' && userBranchId > 0 && userBranchId === originBranchId)
+                  || (transaction.status === 'TRANSIT' && userBranchId > 0 && userBranchId === destinationBranchId)
+                );
+
+                const canComplete = isTransfer
+                  ? (isActionableStatus && canManageTransferByBranch)
+                  : isActionableStatus;
+                const canCancel = isTransfer
+                  ? (isActionableStatus && canManageTransferByBranch)
+                  : isActionableStatus;
                 const completeAction = getCompleteActionConfig(transaction);
 
                 return (
@@ -763,9 +807,9 @@ export const TransactionListTable = ({
       {/* Confirm complete dialog */}
       <ConfirmDialog
         isOpen={!!confirmComplete}
-        title="Completar operación"
-        message={`¿Seguro que quieres completar la operación #${confirmComplete?.id}? Esta acción no se puede deshacer.`}
-        confirmText="Completar"
+        title={completeDialogConfig.title}
+        message={completeDialogConfig.message}
+        confirmText={completeDialogConfig.confirmText}
         cancelText="Cancelar"
         variant="success"
         onConfirm={handleConfirmComplete}
