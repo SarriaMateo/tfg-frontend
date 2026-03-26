@@ -6,6 +6,7 @@ import { BsCheckSquare, BsDownload, BsFillTrash3Fill, BsInfoCircle, BsUpload } f
 import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
+import { getTransactionPermissions } from '../hooks/useTransactionPermissions';
 import { branchService } from '../services/branchService';
 import { userService } from '../services/userService';
 import { itemService } from '../services/itemService';
@@ -663,24 +664,7 @@ export const TransactionListTable = ({
             ) : (
               transactions.map((transaction) => {
                 const linesCount = Array.isArray(transaction.lines) ? transaction.lines.length : 0;
-                const isTransfer = transaction.operation_type === 'TRANSFER';
-                const isActionableStatus = transaction.status === 'PENDING' || transaction.status === 'TRANSIT';
-                const hasNoAssignedBranch = user?.branch_id === null || user?.branch_id === undefined;
-                const userBranchId = Number(user?.branch_id);
-                const originBranchId = Number(transaction?.branch_id);
-                const destinationBranchId = Number(transaction?.destination_branch_id);
-
-                const canManageTransferByBranch = hasNoAssignedBranch || (
-                  (transaction.status === 'PENDING' && userBranchId > 0 && userBranchId === originBranchId)
-                  || (transaction.status === 'TRANSIT' && userBranchId > 0 && userBranchId === destinationBranchId)
-                );
-
-                const canComplete = isTransfer
-                  ? (isActionableStatus && canManageTransferByBranch)
-                  : isActionableStatus;
-                const canCancel = isTransfer
-                  ? (isActionableStatus && canManageTransferByBranch)
-                  : isActionableStatus;
+                const { canComplete, canCancel } = getTransactionPermissions(user, transaction);
                 const completeAction = getCompleteActionConfig(transaction);
 
                 return (

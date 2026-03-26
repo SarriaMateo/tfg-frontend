@@ -13,6 +13,7 @@ import { itemService } from '../services/itemService';
 import { translateError } from '../utils/errorTranslator';
 import { useAuthorization } from '../hooks/useAuthorization';
 import { useAuth } from '../hooks/useAuth';
+import { useTransactionPermissions } from '../hooks/useTransactionPermissions';
 import { formatDecimal, formatUnit } from '../utils/formatters';
 
 const OPERATION_TYPE_LABELS = {
@@ -177,22 +178,6 @@ export const TransactionDetailPage = () => {
     const numericUserId = Number(createdEvent?.performed_by);
     return Number.isInteger(numericUserId) && numericUserId > 0 ? numericUserId : null;
   }, [transaction?.events]);
-
-  const isEmployee = String(user?.role || '').toUpperCase() === 'EMPLOYEE';
-  const isCreatedByCurrentUser = createdByUserId !== null && Number(user?.id) === createdByUserId;
-
-  const canManageDocument = useMemo(() => {
-    if (canCreateEdit) return true;
-    if (!isEmployee || !transaction) return false;
-
-    if (transaction.status === 'PENDING') return true;
-
-    if (transaction.status === 'COMPLETED' || transaction.status === 'CANCELLED') {
-      return isCreatedByCurrentUser;
-    }
-
-    return false;
-  }, [canCreateEdit, isEmployee, isCreatedByCurrentUser, transaction]);
 
   useEffect(() => {
     const fetchTransactionDetail = async () => {
@@ -594,11 +579,18 @@ export const TransactionDetailPage = () => {
     return '-';
   };
 
+  // Get transaction permissions based on current user and transaction state
+  const {
+    canComplete,
+    canCancel,
+    canEdit,
+    canUploadDocument,
+    canDeleteDocument,
+    canDownloadDocument,
+  } = useTransactionPermissions(transaction);
+
   const linesCount = Array.isArray(transaction?.lines) ? transaction.lines.length : 0;
   const eventsCount = Array.isArray(transaction?.events) ? transaction.events.length : 0;
-  const canCompleteTransaction = transaction?.status === 'PENDING' || transaction?.status === 'TRANSIT';
-  const canCancelTransaction = transaction?.status === 'PENDING' || transaction?.status === 'TRANSIT';
-  const canEditTransaction = canCreateEdit && transaction?.status === 'PENDING';
   const isTransferPending = transaction?.operation_type === 'TRANSFER' && transaction?.status === 'PENDING';
   const isTransferTransit = transaction?.operation_type === 'TRANSFER' && transaction?.status === 'TRANSIT';
 
@@ -702,9 +694,9 @@ export const TransactionDetailPage = () => {
             <p className="text-muted mb-0">Información completa de la operación #{transactionId}</p>
           </div>
           <div className="d-flex gap-2 align-items-center">
-            {(canCompleteTransaction || canCancelTransaction || canEditTransaction) && (
+            {(canComplete || canCancel || canEdit) && (
               <>
-                {canEditTransaction && (
+                {canEdit && (
                   <Button
                     variant="primary"
                     className="detail-page-action-btn"
@@ -715,7 +707,7 @@ export const TransactionDetailPage = () => {
                     Editar
                   </Button>
                 )}
-                {canCompleteTransaction && (
+                {canComplete && (
                   <Button
                     variant="success"
                     className="detail-page-action-btn"
@@ -727,7 +719,7 @@ export const TransactionDetailPage = () => {
                     {completeButtonLabel}
                   </Button>
                 )}
-                {canCancelTransaction && (
+                {canCancel && (
                   <Button
                     variant="danger"
                     className="detail-page-action-btn"
@@ -851,7 +843,7 @@ export const TransactionDetailPage = () => {
                       </p>
                     </div>
 
-                    {canManageDocument && (
+                    {canUploadDocument && (
                       <div className="d-flex gap-2 flex-wrap justify-content-end">
                         <Button
                           variant={transaction.document_url ? 'primary' : 'success'}
@@ -862,7 +854,7 @@ export const TransactionDetailPage = () => {
                           {transaction.document_url ? <BsPencilSquare className="me-1" /> : <BsUpload className="me-1" />}
                           {transaction.document_url ? 'Editar' : 'Añadir'}
                         </Button>
-                        {transaction.document_url && (
+                        {transaction.document_url && canDeleteDocument && (
                           <Button
                             variant="danger"
                             className="detail-page-action-btn"
@@ -879,7 +871,7 @@ export const TransactionDetailPage = () => {
 
                   {renderDocumentPreview()}
 
-                  {transaction.document_url && documentPreviewUrl && (
+                  {transaction.document_url && documentPreviewUrl && canDownloadDocument && (
                     <div className="d-flex gap-2 flex-wrap mt-3">
                       <Button
                         variant="outline-primary"
