@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Alert, Spinner } from 'react-bootstrap';
-import { BsFillTrash3Fill, BsPencilSquare } from 'react-icons/bs';
+import { BsBoxArrowUpRight, BsDownload, BsFillTrash3Fill, BsPencilSquare, BsUpload } from 'react-icons/bs';
 import { Navbar } from '../components/Navbar';
 import { ItemModal } from '../components/ItemModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -22,14 +22,23 @@ export const ItemDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [imageName, setImageName] = useState('');
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageError, setImageError] = useState(null);
+  const [imageActionLoading, setImageActionLoading] = useState(false);
   const [imageRefresh, setImageRefresh] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showConfirmDeleteImage, setShowConfirmDeleteImage] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
   const [success, setSuccess] = useState(false);
+  const imageInputRef = useRef(null);
+  const dataCardRef = useRef(null);
+  const [dataCardHeight, setDataCardHeight] = useState(null);
 
   const canEdit = hasAnyRole(['MANAGER', 'ADMIN']);
   const canDelete = hasRole('ADMIN');
+  const canManageImage = hasAnyRole(['MANAGER', 'ADMIN']);
 
   const parsedItemId = useMemo(() => parseInt(itemId, 10), [itemId]);
 
@@ -60,14 +69,29 @@ export const ItemDetailPage = () => {
 
   useEffect(() => {
     let objectUrl = null;
+
     const fetchImage = async () => {
-      if (!item?.id || !item?.image_url) return;
+      if (!item?.id || !item?.has_image) {
+        setImageUrl(null);
+        setImageName('');
+        setImageError(null);
+        return;
+      }
+
+      setImageLoading(true);
+      setImageError(null);
+
       try {
-        const blob = await itemService.getItemImage(item.id, Date.now());
-        objectUrl = URL.createObjectURL(blob);
+        const imageResponse = await itemService.getItemImage(item.id, Date.now());
+        objectUrl = URL.createObjectURL(imageResponse.blob);
         setImageUrl(objectUrl);
-      } catch (err) {
-        // Ignore missing images and other fetch errors
+        setImageName(imageResponse.fileName || 'unknown');
+      } catch {
+        setImageUrl(null);
+        setImageName('');
+        setImageError('No se pudo cargar la imagen del artículo.');
+      } finally {
+        setImageLoading(false);
       }
     };
 
@@ -78,7 +102,87 @@ export const ItemDetailPage = () => {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [item?.id, item?.image_url, imageRefresh]);
+  }, [item?.id, item?.has_image, imageRefresh]);
+
+  useEffect(() => {
+    const element = dataCardRef.current;
+    if (!element) return undefined;
+
+    const updateHeight = () => {
+      setDataCardHeight(element.offsetHeight);
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [item, categories.length, imageLoading, imageError, success, error]);
+
+  const triggerImagePicker = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleImageSelected = async (event) => {
+    const selectedFile = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!selectedFile || !item?.id) return;
+
+    setImageActionLoading(true);
+    setError(null);
+
+    try {
+      const updatedItem = await itemService.uploadItemImage(item.id, selectedFile);
+      setItem(updatedItem);
+      setImageRefresh((current) => current + 1);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(translateError(err));
+    } finally {
+      setImageActionLoading(false);
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (!item?.id) return;
+
+    setShowConfirmDeleteImage(false);
+    setImageActionLoading(true);
+    setError(null);
+
+    try {
+      const updatedItem = await itemService.deleteItemImage(item.id);
+      setItem(updatedItem);
+      setImageRefresh((current) => current + 1);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(translateError(err));
+    } finally {
+      setImageActionLoading(false);
+    }
+  };
+
+  const handleOpenImage = () => {
+    if (!imageUrl) return;
+    window.open(imageUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDownloadImage = () => {
+    if (!imageUrl) return;
+
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = imageName || `imagen-articulo-${item?.id}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleSave = async (formData, categoryIds) => {
     if (!item) return;
@@ -95,7 +199,6 @@ export const ItemDetailPage = () => {
         setCategories(updatedCategories || []);
       }
 
-      setImageRefresh(r => r + 1);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -138,7 +241,7 @@ export const ItemDetailPage = () => {
                 variant="primary"
                 className="detail-page-action-btn"
                 onClick={() => setShowModal(true)}
-                disabled={loadingAction}
+                disabled={loadingAction || imageActionLoading}
               >
                 <BsPencilSquare className="me-1" />
                 Editar
@@ -149,7 +252,7 @@ export const ItemDetailPage = () => {
                 variant="danger"
                 className="detail-page-action-btn"
                 onClick={() => setShowConfirm(true)}
-                disabled={loadingAction}
+                disabled={loadingAction || imageActionLoading}
               >
                 <BsFillTrash3Fill className="me-1" />
                 Eliminar
@@ -159,7 +262,7 @@ export const ItemDetailPage = () => {
               variant="outline-secondary"
               className="detail-page-action-btn"
               onClick={() => navigate('/inventory')}
-              disabled={loadingAction}
+              disabled={loadingAction || imageActionLoading}
             >
               Volver
             </Button>
@@ -183,9 +286,9 @@ export const ItemDetailPage = () => {
             <Spinner animation="border" />
           </div>
         ) : item ? (
-          <Row className="g-4">
-            <Col lg={7}>
-              <Card className="shadow-sm border-0">
+          <Row className="g-4 align-items-stretch">
+            <Col lg={7} className="d-flex">
+              <Card ref={dataCardRef} className="shadow-sm border-0 w-100 item-detail-equal-card">
                 <Card.Body className="p-4">
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <div>
@@ -244,31 +347,97 @@ export const ItemDetailPage = () => {
               </Card>
             </Col>
 
-            {item?.image_url && (
-              <Col lg={5}>
-                <Card className="shadow-sm border-0">
-                  <Card.Body className="p-4">
-                    <h5 className="fw-bold mb-3">Imagen del artículo</h5>
-                    {imageUrl ? (
-                      <div className="text-center">
-                        <img
-                          src={imageUrl}
-                          alt={item.name}
-                          style={{
-                            maxWidth: '100%',
-                            maxHeight: '280px',
-                            borderRadius: '6px',
-                            border: '1px solid #e6e6e6',
-                          }}
-                        />
+            <Col lg={5} className="d-flex">
+              <Card
+                className="shadow-sm border-0 w-100 item-detail-equal-card item-detail-image-card"
+                style={dataCardHeight ? { height: `${dataCardHeight}px`, maxHeight: `${dataCardHeight}px` } : undefined}
+              >
+                <Card.Body className="p-4 d-flex flex-column item-detail-image-body">
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelected}
+                    className="d-none"
+                  />
+
+                  <div className="d-flex justify-content-between align-items-start mb-3 gap-3">
+                    <div>
+                      <h5 className="fw-bold mb-1">Imagen del artículo</h5>
+                    </div>
+
+                    {canManageImage && (
+                      <div className="d-flex gap-2 flex-wrap justify-content-end">
+                        <Button
+                          variant={item.has_image ? 'primary' : 'success'}
+                          className="detail-page-action-btn"
+                          onClick={triggerImagePicker}
+                          disabled={imageActionLoading || loadingAction}
+                        >
+                          {item.has_image ? <BsPencilSquare className="me-1" /> : <BsUpload className="me-1" />}
+                          {item.has_image ? 'Editar' : 'Añadir'}
+                        </Button>
+                        {item.has_image && (
+                          <Button
+                            variant="danger"
+                            className="detail-page-action-btn"
+                            onClick={() => setShowConfirmDeleteImage(true)}
+                            disabled={imageActionLoading || loadingAction}
+                          >
+                            <BsFillTrash3Fill className="me-1" />
+                            Eliminar
+                          </Button>
+                        )}
                       </div>
-                    ) : (
-                      <p className="text-muted mb-0">Cargando imagen...</p>
                     )}
-                  </Card.Body>
-                </Card>
-              </Col>
-            )}
+                  </div>
+
+                  {imageLoading ? (
+                    <div className="text-center py-4">
+                      <Spinner animation="border" />
+                      <div className="text-muted mt-2">Cargando imagen...</div>
+                    </div>
+                  ) : imageError ? (
+                    <Alert variant="warning" className="mb-0">{imageError}</Alert>
+                  ) : imageUrl ? (
+                    <div className="item-detail-image-stage text-center">
+                      <img
+                        src={imageUrl}
+                        alt={item.name}
+                        className="item-detail-image"
+                      />
+                    </div>
+                  ) : (
+                    <div className="item-detail-no-image-state border rounded p-4 bg-light text-center">
+                      <p className="text-muted mb-0">No hay imagen asociada a este artículo.</p>
+                    </div>
+                  )}
+
+                  {item.has_image && imageUrl && (
+                    <div className="d-flex gap-2 flex-wrap mt-3">
+                      <Button
+                        variant="outline-primary"
+                        className="detail-page-action-btn"
+                        onClick={handleOpenImage}
+                        disabled={imageActionLoading || loadingAction}
+                      >
+                        <BsBoxArrowUpRight className="me-1" />
+                        Abrir
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        className="detail-page-action-btn"
+                        onClick={handleDownloadImage}
+                        disabled={imageActionLoading || loadingAction}
+                      >
+                        <BsDownload className="me-1" />
+                        Descargar
+                      </Button>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
           </Row>
         ) : (
           <Alert variant="warning">Artículo no encontrado</Alert>
@@ -291,6 +460,17 @@ export const ItemDetailPage = () => {
         message="¿Estás seguro de que deseas eliminar este artículo? Esta acción no se puede deshacer."
         onConfirm={handleDelete}
         onCancel={() => setShowConfirm(false)}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={showConfirmDeleteImage}
+        title="Eliminar Imagen"
+        message="¿Seguro que quieres eliminar la imagen de este artículo?"
+        onConfirm={handleDeleteImage}
+        onCancel={() => setShowConfirmDeleteImage(false)}
         confirmText="Eliminar"
         cancelText="Cancelar"
         variant="danger"

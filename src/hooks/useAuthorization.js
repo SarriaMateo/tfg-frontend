@@ -6,7 +6,6 @@ export const useAuthorization = () => {
 
   const hasRole = (role) => {
     const result = checkRole(user, role);
-    console.log(`[Authorization] hasRole('${role}') with user.role='${user?.role}' => ${result}`);
     return result;
   };
 

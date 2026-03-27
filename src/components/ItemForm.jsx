@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
 import { categoryService } from '../services/categoryService';
-import { itemService } from '../services/itemService';
 import { CategoryBadge } from './CategoryBadge';
 import { CategoryModal } from './CategoryModal';
 import { translateError } from '../utils/errorTranslator';
@@ -41,17 +40,12 @@ export const ItemForm = ({
     description: '',
     price: '',
     brand: '',
-    image_url_form: '',
     is_active: true,
   });
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
-  const [deleteImage, setDeleteImage] = useState(false);
   const [error, setError] = useState(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
-  const [loadingImage, setLoadingImage] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [savingCategory, setSavingCategory] = useState(false);
   const selectControlStyle = { minHeight: '50px' };
@@ -68,7 +62,6 @@ export const ItemForm = ({
         description: item.description || '',
         price: item.price || '',
         brand: item.brand || '',
-        image_url_form: item.image_url || '',
         is_active: item.is_active !== undefined ? item.is_active : true,
       });
     }
@@ -100,33 +93,6 @@ export const ItemForm = ({
     fetchCategories();
   }, []);
 
-  // Load image when in edit mode
-  useEffect(() => {
-    let objectUrl = null;
-    const fetchImage = async () => {
-      if (!item?.id || !item?.image_url) return;
-      setLoadingImage(true);
-      try {
-        const blob = await itemService.getItemImage(item.id, Date.now());
-        objectUrl = URL.createObjectURL(blob);
-        setImageUrl(objectUrl);
-      } catch (err) {
-        // Ignore missing images and other fetch errors
-        console.error('Error loading image:', err);
-      } finally {
-        setLoadingImage(false);
-      }
-    };
-
-    fetchImage();
-
-    return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [item?.id, item?.image_url]);
-
   // When a new category is added, fetch updated list
   const handleCategoryAdded = () => {
     setShowCategoryModal(false);
@@ -152,23 +118,6 @@ export const ItemForm = ({
     if (onErrorChange) {
       onErrorChange(null);
     }
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setDeleteImage(false);
-    }
-  };
-
-  const handleDeleteImage = () => {
-    setDeleteImage(true);
-    setImageFile(null);
-  };
-
-  const handleCancelDeleteImage = () => {
-    setDeleteImage(false);
   };
 
   const handleCategoryToggle = (categoryId) => {
@@ -237,28 +186,23 @@ export const ItemForm = ({
     e.preventDefault();
     if (!validateForm()) return;
 
-    // Build FormData for multipart/form-data request
-    const data = new FormData();
-    data.append('name', formData.name);
-    data.append('sku', formData.sku);
-    data.append('unit', formData.unit);
-    if (formData.description) data.append('description', formData.description);
-    if (formData.price) data.append('price', parseFloat(formData.price));
-    if (formData.brand) data.append('brand', formData.brand);
-    
-    // Handle image: upload new, delete existing, or keep current
-    if (deleteImage) {
-      data.append('delete_image', 'true');
-    } else if (formData.image_url_form && !imageFile) {
-      data.append('image_url_form', formData.image_url_form);
-    } else if (imageFile) {
-      data.append('image', imageFile);
-    }
-    
-    if (item) data.append('is_active', formData.is_active);
+    const normalizedDescription = formData.description.trim();
+    const normalizedBrand = formData.brand.trim();
 
-    // Pass the FormData and selected categories to parent
-    onSubmit(data, selectedCategories);
+    const payload = {
+      name: formData.name.trim(),
+      sku: formData.sku.trim(),
+      unit: formData.unit,
+      description: normalizedDescription || null,
+      price: formData.price === '' ? null : parseFloat(formData.price),
+      brand: normalizedBrand || null,
+    };
+
+    if (item) {
+      payload.is_active = formData.is_active;
+    }
+
+    onSubmit(payload, selectedCategories);
   };
 
   const isEditMode = !!item;
@@ -346,9 +290,9 @@ export const ItemForm = ({
         </Col>
       </Row>
 
-      {/* Price, Image and Active Status */}
+      {/* Price and Active Status */}
       <Row>
-        <Col md={3}>
+        <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Precio</Form.Label>
             <Form.Control
@@ -363,76 +307,8 @@ export const ItemForm = ({
             />
           </Form.Group>
         </Col>
-        <Col md={6}>
-          <Form.Group className="mb-3">
-            <Form.Label>Imagen</Form.Label>
-            {isEditMode && loadingImage ? (
-              <div className="d-flex align-items-center gap-2">
-                <Spinner animation="border" size="sm" />
-                <span className="text-muted">Cargando...</span>
-              </div>
-            ) : (
-              <>
-                <Form.Control
-                  type="file"
-                  name="image"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  disabled={loading || deleteImage}
-                />
-                <Form.Text className="text-muted" style={{ fontSize: '0.75rem' }}>
-                  JPG, PNG, WEBP. Máx 5MB
-                </Form.Text>
-              </>
-            )}
-          </Form.Group>
-
-          {/* Current Image Display (Edit Mode) */}
-          {isEditMode && imageUrl && !deleteImage && !imageFile && (
-            <div className="mt-2 p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '0.4rem', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-              <img
-                src={imageUrl}
-                alt="Imagen actual"
-                style={{
-                  maxWidth: '80px',
-                  maxHeight: '80px',
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '0.3rem',
-                  border: '1px solid #dee2e6',
-                  objectFit: 'cover',
-                  flexShrink: 0,
-                }}
-              />
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={handleDeleteImage}
-                disabled={loading}
-                style={{ alignSelf: 'center' }}
-              >
-                Eliminar
-              </Button>
-            </div>
-          )}
-
-          {/* Delete Confirmation */}
-          {isEditMode && deleteImage && (
-            <Alert variant="warning" className="mt-2 mb-0" style={{ padding: '0.5rem 0.75rem', fontSize: '0.875rem' }}>
-              <p className="mb-2">Imagen marcada para eliminar</p>
-              <Button
-                variant="outline-warning"
-                size="sm"
-                onClick={handleCancelDeleteImage}
-                disabled={loading}
-              >
-                Cancelar
-              </Button>
-            </Alert>
-          )}
-        </Col>
         {isEditMode && (
-          <Col md={3} className="d-flex align-items-start">
+          <Col md={6} className="d-flex align-items-start">
             <Form.Group className="mt-5 w-100">
               <Form.Check
                 type="checkbox"

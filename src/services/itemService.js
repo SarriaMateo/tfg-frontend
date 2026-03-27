@@ -1,5 +1,35 @@
 import api from '../api/api';
 
+const parseContentDispositionFileName = (contentDisposition) => {
+  if (!contentDisposition || typeof contentDisposition !== 'string') return null;
+
+  // RFC 5987 takes precedence when both filename and filename* are present.
+  const encodedMatch = contentDisposition.match(/filename\*=([^;]+)/i);
+  if (encodedMatch?.[1]) {
+    const encodedValue = encodedMatch[1].trim();
+    const withoutCharset = encodedValue.replace(/^UTF-8''/i, '').replace(/^"|"$/g, '');
+
+    try {
+      return decodeURIComponent(withoutCharset);
+    } catch {
+      return withoutCharset;
+    }
+  }
+
+  const plainMatch = contentDisposition.match(/filename=([^;]+)/i);
+  if (plainMatch?.[1]) {
+    const plainValue = plainMatch[1].trim().replace(/^"|"$/g, '').replace(/\\"/g, '"');
+
+    try {
+      return decodeURIComponent(plainValue);
+    } catch {
+      return plainValue;
+    }
+  }
+
+  return null;
+};
+
 export const itemService = {
   // Get item by ID
   getItemById: async (itemId) => {
@@ -11,30 +41,20 @@ export const itemService = {
     }
   },
 
-  // Create new item with image support
+  // Create new item
   createItem: async (itemData) => {
     try {
-      // itemData should be FormData object for multipart/form-data support
-      const response = await api.post(`/items`, itemData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await api.post(`/items`, itemData);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Update item with image support
+  // Update item
   updateItem: async (itemId, itemData) => {
     try {
-      // itemData should be FormData object for multipart/form-data support
-      const response = await api.put(`/items/${itemId}`, itemData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await api.put(`/items/${itemId}`, itemData);
       return response.data;
     } catch (error) {
       throw error;
@@ -51,7 +71,35 @@ export const itemService = {
     }
   },
 
-  // Get item image
+  // Upload or replace item image
+  uploadItemImage: async (itemId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await api.post(`/items/${itemId}/image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Delete item image
+  deleteItemImage: async (itemId) => {
+    try {
+      const response = await api.delete(`/items/${itemId}/image`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get item image binary
   getItemImage: async (itemId, cacheBuster) => {
     try {
       const params = cacheBuster ? { t: cacheBuster } : {};
@@ -59,7 +107,16 @@ export const itemService = {
         responseType: 'blob',
         params,
       });
-      return response.data;
+
+      const contentType = response.headers['content-type'] || response.data?.type || 'application/octet-stream';
+      const contentDisposition = response.headers['content-disposition'] || '';
+      const fileName = parseContentDispositionFileName(contentDisposition);
+
+      return {
+        blob: response.data,
+        contentType,
+        fileName,
+      };
     } catch (error) {
       throw error;
     }

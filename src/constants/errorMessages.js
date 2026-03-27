@@ -69,6 +69,7 @@ export const ERROR_MESSAGES = {
     INSUFFICIENT_ROLE: "El usuario no tiene permisos suficientes para esta acción",
     USER_INACTIVE: "El usuario está inactivo y no puede acceder a recursos protegidos",
     TRANSFER_CREATION_REQUIRES_CENTRAL_USER: "Solo los usuarios sin sede asociada pueden crear traspasos",
+    TRANSACTION_UPDATE_FORBIDDEN: "No se puede editar esta operación en su estado actual",
     BRANCH_ACCESS_DENIED: "Acceso a la sede denegado",
     COMPANY_ACCESS_DENIED: "Acceso denegado a la empresa solicitada",
     BRANCH_FROM_DIFFERENT_COMPANY: "La sede pertenece a una empresa diferente",
