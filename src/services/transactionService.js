@@ -1,5 +1,35 @@
 import api from '../api/api';
 
+const parseContentDispositionFileName = (contentDisposition) => {
+  if (!contentDisposition || typeof contentDisposition !== 'string') return null;
+
+  // RFC 5987 takes precedence when both filename and filename* are present.
+  const encodedMatch = contentDisposition.match(/filename\*=([^;]+)/i);
+  if (encodedMatch?.[1]) {
+    const encodedValue = encodedMatch[1].trim();
+    const withoutCharset = encodedValue.replace(/^UTF-8''/i, '').replace(/^"|"$/g, '');
+
+    try {
+      return decodeURIComponent(withoutCharset);
+    } catch {
+      return withoutCharset;
+    }
+  }
+
+  const plainMatch = contentDisposition.match(/filename=([^;]+)/i);
+  if (plainMatch?.[1]) {
+    const plainValue = plainMatch[1].trim().replace(/^"|"$/g, '').replace(/\\"/g, '"');
+
+    try {
+      return decodeURIComponent(plainValue);
+    } catch {
+      return plainValue;
+    }
+  }
+
+  return null;
+};
+
 export const transactionService = {
   // Get transaction by ID
   getTransactionById: async (transactionId) => {
@@ -84,16 +114,17 @@ export const transactionService = {
   },
 
   // Get transaction document binary
-  getTransactionDocument: async (transactionId) => {
+  getTransactionDocument: async (transactionId, cacheBuster) => {
     try {
+      const params = cacheBuster ? { t: cacheBuster } : {};
       const response = await api.get(`/transactions/${transactionId}/document`, {
         responseType: 'blob',
+        params,
       });
 
       const contentType = response.headers['content-type'] || response.data?.type || 'application/octet-stream';
       const contentDisposition = response.headers['content-disposition'] || '';
-      const fileNameMatch = contentDisposition.match(/filename\*?=(?:UTF-8''|\")?([^\";]+)/i);
-      const fileName = fileNameMatch ? decodeURIComponent(fileNameMatch[1].replace(/\"/g, '').trim()) : null;
+      const fileName = parseContentDispositionFileName(contentDisposition);
 
       return {
         blob: response.data,

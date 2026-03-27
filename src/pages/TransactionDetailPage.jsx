@@ -78,27 +78,19 @@ const isUnknownFileName = (fileName) => {
   return !normalized || normalized === 'unknown' || normalized === 'undefined' || normalized === 'null';
 };
 
-const getFileNameFromDocumentUrl = (documentUrl) => {
-  if (!documentUrl || typeof documentUrl !== 'string') return '';
-
-  try {
-    const rawPath = documentUrl.split('?')[0].split('#')[0];
-    const candidate = rawPath.split('/').pop() || '';
-    return decodeURIComponent(candidate);
-  } catch {
-    return '';
-  }
-};
-
-const resolveDocumentFileName = ({ fileName, documentUrl, transactionId, contentType }) => {
+const resolveDocumentFileName = ({ fileName, transactionId, contentType }) => {
   if (!isUnknownFileName(fileName)) return fileName;
-
-  const fromUrl = getFileNameFromDocumentUrl(documentUrl);
-  if (!isUnknownFileName(fromUrl)) return fromUrl;
 
   const extension = CONTENT_TYPE_EXTENSION[contentType] || 'bin';
   return `documento-operacion-${transactionId}.${extension}`;
 };
+
+const escapeHtml = (value) => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
 
 export const TransactionDetailPage = () => {
   const navigate = useNavigate();
@@ -139,6 +131,7 @@ export const TransactionDetailPage = () => {
   const [documentLoading, setDocumentLoading] = useState(false);
   const [documentError, setDocumentError] = useState(null);
   const [documentActionLoading, setDocumentActionLoading] = useState(false);
+  const [documentRefresh, setDocumentRefresh] = useState(0);
   const fileInputRef = useRef(null);
 
   const parsedTransactionId = useMemo(() => parseInt(transactionId, 10), [transactionId]);
@@ -170,6 +163,7 @@ export const TransactionDetailPage = () => {
   const isImageDocument = documentContentType.startsWith('image/');
   const isPdfDocument = documentContentType === 'application/pdf';
   const isOfficeDocument = OFFICE_DOCUMENT_TYPES.has(documentContentType);
+  const hasDocument = Boolean(transaction?.has_document);
 
   const createdByUserId = useMemo(() => {
     const createdEvent = (Array.isArray(transaction?.events) ? transaction.events : [])
@@ -241,7 +235,7 @@ export const TransactionDetailPage = () => {
     let objectUrl = null;
 
     const fetchDocument = async () => {
-      if (!transaction?.id || !transaction?.document_url) {
+      if (!transaction?.id || !hasDocument) {
         setDocumentPreviewUrl(null);
         setDocumentContentType('');
         setDocumentFileName('');
@@ -253,15 +247,18 @@ export const TransactionDetailPage = () => {
       setDocumentError(null);
 
       try {
-        const documentResponse = await transactionService.getTransactionDocument(transaction.id);
-        objectUrl = URL.createObjectURL(documentResponse.blob);
+        const documentResponse = await transactionService.getTransactionDocument(transaction.id, Date.now());
         const resolvedContentType = documentResponse.contentType || documentResponse.blob?.type || 'application/octet-stream';
         const resolvedFileName = resolveDocumentFileName({
           fileName: documentResponse.fileName,
-          documentUrl: transaction.document_url,
           transactionId: transaction.id,
           contentType: resolvedContentType,
         });
+        const fileBlob = isUnknownFileName(resolvedFileName)
+          ? documentResponse.blob
+          : new File([documentResponse.blob], resolvedFileName, { type: resolvedContentType });
+
+        objectUrl = URL.createObjectURL(fileBlob);
 
         setDocumentPreviewUrl(objectUrl);
         setDocumentContentType(resolvedContentType);
@@ -283,7 +280,7 @@ export const TransactionDetailPage = () => {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [transaction?.id, transaction?.document_url]);
+  }, [transaction?.id, hasDocument, documentRefresh]);
 
   const showSuccessMessage = (message) => {
     setActionSuccess(message);
@@ -317,9 +314,11 @@ export const TransactionDetailPage = () => {
     setActionError(null);
 
     try {
+      const hadDocument = Boolean(transaction?.has_document);
       await transactionService.uploadTransactionDocument(transaction.id, selectedFile);
+      setDocumentRefresh((current) => current + 1);
       reloadTransaction();
-      showSuccessMessage(transaction.document_url ? 'Documento actualizado correctamente' : 'Documento añadido correctamente');
+      showSuccessMessage(hadDocument ? 'Documento actualizado correctamente' : 'Documento añadido correctamente');
     } catch (err) {
       setActionError(translateError(err));
     } finally {
@@ -336,6 +335,7 @@ export const TransactionDetailPage = () => {
 
     try {
       await transactionService.deleteTransactionDocument(transaction.id);
+      setDocumentRefresh((current) => current + 1);
       reloadTransaction();
       showSuccessMessage('Documento eliminado correctamente');
     } catch (err) {
@@ -347,7 +347,38 @@ export const TransactionDetailPage = () => {
 
   const handleOpenDocument = () => {
     if (!documentPreviewUrl) return;
-    window.open(documentPreviewUrl, '_blank', 'noopener,noreferrer');
+
+    const resolvedName = documentFileName || `documento-operacion-${transaction?.id}`;
+    const openWindow = window.open('', '_blank');
+
+    if (!openWindow) {
+      window.open(documentPreviewUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const safeTitle = escapeHtml(resolvedName);
+    const encodedUrl = encodeURI(documentPreviewUrl);
+    const previewTag = isImageDocument
+      ? `<img src="${encodedUrl}" alt="${safeTitle}" style="max-width:100%; max-height:100vh; object-fit:contain; display:block; margin:auto;" />`
+      : `<iframe src="${encodedUrl}" title="${safeTitle}" style="width:100%; height:100%; border:0;"></iframe>`;
+
+    openWindow.document.open();
+    openWindow.document.write(`<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${safeTitle}</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #f5f7fa; }
+    .viewer { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div class="viewer">${previewTag}</div>
+</body>
+</html>`);
+    openWindow.document.close();
   };
 
   const handleDownloadDocument = () => {
@@ -788,7 +819,7 @@ export const TransactionDetailPage = () => {
                     </Col>
                     <Col md={6}>
                       <p className="mb-1 text-muted">Documento adjunto</p>
-                      <p className="fw-semibold mb-0">{transaction.document_url ? 'Disponible' : 'Sin documento'}</p>
+                      <p className="fw-semibold mb-0">{hasDocument ? 'Disponible' : 'Sin documento'}</p>
                     </Col>
                   </Row>
 
@@ -839,22 +870,22 @@ export const TransactionDetailPage = () => {
                     <div>
                       <h5 className="fw-bold mb-1">Documento adjunto</h5>
                       <p className="text-muted mb-0">
-                        {transaction.document_url ? 'Documento disponible para consulta' : 'Sin documento adjunto'}
+                        {hasDocument ? 'Documento disponible para consulta' : 'Sin documento adjunto'}
                       </p>
                     </div>
 
                     {canUploadDocument && (
                       <div className="d-flex gap-2 flex-wrap justify-content-end">
                         <Button
-                          variant={transaction.document_url ? 'primary' : 'success'}
+                          variant={hasDocument ? 'primary' : 'success'}
                           className="detail-page-action-btn"
                           onClick={triggerDocumentPicker}
                           disabled={documentActionLoading}
                         >
-                          {transaction.document_url ? <BsPencilSquare className="me-1" /> : <BsUpload className="me-1" />}
-                          {transaction.document_url ? 'Editar' : 'Añadir'}
+                          {hasDocument ? <BsPencilSquare className="me-1" /> : <BsUpload className="me-1" />}
+                          {hasDocument ? 'Editar' : 'Añadir'}
                         </Button>
-                        {transaction.document_url && canDeleteDocument && (
+                        {hasDocument && canDeleteDocument && (
                           <Button
                             variant="danger"
                             className="detail-page-action-btn"
@@ -871,7 +902,7 @@ export const TransactionDetailPage = () => {
 
                   {renderDocumentPreview()}
 
-                  {transaction.document_url && documentPreviewUrl && canDownloadDocument && (
+                  {hasDocument && documentPreviewUrl && canDownloadDocument && (
                     <div className="d-flex gap-2 flex-wrap mt-3">
                       <Button
                         variant="outline-primary"
