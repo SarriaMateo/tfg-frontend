@@ -7,39 +7,34 @@ import { ERROR_MESSAGES, DEFAULT_ERROR_MESSAGE } from "../constants/errorMessage
  */
 export const translateError = (error) => {
   try {
+    const findCodeMessage = (code) => {
+      if (!code) return null;
+      for (const category of Object.values(ERROR_MESSAGES)) {
+        if (category[code]) return category[code];
+      }
+      return null;
+    };
+
     // Check if it's an error with response from the backend
     if (error.response?.data) {
       const errorData = error.response.data;
 
       // If the backend returns a code in the 'code' field
       if (errorData.code) {
-        // Search in all error categories
-        for (const category of Object.values(ERROR_MESSAGES)) {
-          if (category[errorData.code]) {
-            return category[errorData.code];
-          }
-        }
+        const translatedCode = findCodeMessage(errorData.code);
+        if (translatedCode) return translatedCode;
       }
 
       // If the backend returns a detail
       if (typeof errorData.detail === "string") {
-        // First, try to find the complete detail as code in all categories
-        for (const category of Object.values(ERROR_MESSAGES)) {
-          if (category[errorData.detail]) {
-            return category[errorData.detail];
-          }
-        }
+        const translatedDetail = findCodeMessage(errorData.detail);
+        if (translatedDetail) return translatedDetail;
 
         // If it doesn't match directly, try to extract code from format "CODE: message"
         const codeMatch = errorData.detail.match(/^([A-Z_]+):/);
         if (codeMatch) {
-          const code = codeMatch[1];
-          // Search in all error categories
-          for (const category of Object.values(ERROR_MESSAGES)) {
-            if (category[code]) {
-              return category[code];
-            }
-          }
+          const translatedDetailCode = findCodeMessage(codeMatch[1]);
+          if (translatedDetailCode) return translatedDetailCode;
         }
 
         // If no matching code, return the complete detail
@@ -50,6 +45,13 @@ export const translateError = (error) => {
       if (errorData.message) {
         return errorData.message;
       }
+    }
+
+    // Try HTTP status-based mappings if they exist in error messages
+    if (error.response?.status) {
+      const httpCode = `HTTP_${error.response.status}`;
+      const translatedHttpCode = findCodeMessage(httpCode) || findCodeMessage(String(error.response.status));
+      if (translatedHttpCode) return translatedHttpCode;
     }
 
     // If there's no known error structure, return the general message

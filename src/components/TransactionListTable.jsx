@@ -100,6 +100,7 @@ export const TransactionListTable = ({
 
   const canExportTransactions = ['ADMIN', 'MANAGER'].includes(String(user?.role || '').toUpperCase());
   const isExporting = exportingFormat !== null;
+  const canSubmitExport = !loadingExportCount && !isExporting && exportCount > 0;
 
   const handleOpenComplete = (transaction) => setConfirmComplete(transaction);
   const handleConfirmComplete = () => {
@@ -161,7 +162,7 @@ export const TransactionListTable = ({
   };
 
   const handleExportByFormat = async (format) => {
-    if (loadingExportCount || isExporting) return;
+    if (!canSubmitExport) return;
 
     setExportModalError(null);
     setExportingFormat(format);
@@ -920,6 +921,7 @@ export const TransactionListTable = ({
         show={showExportModal}
         onHide={handleCloseExportModal}
         centered
+        size="md"
       >
         <Modal.Header closeButton={!isExporting}>
           <Modal.Title>Confirmar exportación</Modal.Title>
@@ -939,34 +941,70 @@ export const TransactionListTable = ({
               {exportModalError}
             </Alert>
           )}
+
+          {!loadingExportCount && !exportModalError && exportCount === 0 && (
+            <Alert variant="warning" className="mt-3 mb-0">
+              No hay operaciones que coincidan con el filtrado actual para exportar.
+            </Alert>
+          )}
         </Modal.Body>
-        <Modal.Footer className="d-flex w-100 gap-2">
-          <Button
-            variant="secondary"
-            className="flex-fill"
-            onClick={handleCloseExportModal}
-            disabled={isExporting}
+        <Modal.Footer 
+          className="d-flex flex-column"
+          style={{
+            padding: '1rem',
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '8px',
+              width: '100%',
+              height: '50px',
+            }}
           >
-            Cancelar
-          </Button>
-          <Button
-            variant="info"
-            className="flex-fill d-inline-flex align-items-center justify-content-center gap-2"
-            onClick={() => handleExportByFormat('csv')}
-            disabled={loadingExportCount || isExporting}
-          >
-            <BsFiletypeCsv />
-            {exportingFormat === 'csv' ? 'Exportando...' : 'Exportar en CSV'}
-          </Button>
-          <Button
-            variant="danger"
-            className="flex-fill d-inline-flex align-items-center justify-content-center gap-2"
-            onClick={() => handleExportByFormat('pdf')}
-            disabled={loadingExportCount || isExporting}
-          >
-            <BsFiletypePdf />
-            {exportingFormat === 'pdf' ? 'Exportando...' : 'Exportar en PDF'}
-          </Button>
+            <Button
+              variant="secondary"
+              onClick={handleCloseExportModal}
+              disabled={isExporting}
+              style={{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="info"
+              onClick={() => handleExportByFormat('csv')}
+              disabled={!canSubmitExport}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <BsFiletypeCsv />
+              {exportingFormat === 'csv' ? 'Exportando...' : 'Exportar CSV'}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => handleExportByFormat('pdf')}
+              disabled={!canSubmitExport}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <BsFiletypePdf />
+              {exportingFormat === 'pdf' ? 'Exportando...' : 'Exportar PDF'}
+            </Button>
+          </div>
         </Modal.Footer>
       </Modal>
     </div>

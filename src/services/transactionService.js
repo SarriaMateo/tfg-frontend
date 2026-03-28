@@ -97,6 +97,32 @@ const triggerBrowserDownload = (blob, fileName) => {
   window.URL.revokeObjectURL(objectUrl);
 };
 
+const tryParseJsonBlob = async (value) => {
+  if (!(value instanceof Blob)) return null;
+
+  const contentType = String(value.type || '').toLowerCase();
+  const looksLikeJson = contentType.includes('application/json') || contentType.includes('application/problem+json');
+  if (!looksLikeJson) return null;
+
+  try {
+    const rawContent = await value.text();
+    return JSON.parse(rawContent);
+  } catch {
+    return null;
+  }
+};
+
+const normalizeBlobErrorResponse = async (error) => {
+  if (!error?.response?.data) return error;
+
+  const parsedData = await tryParseJsonBlob(error.response.data);
+  if (parsedData) {
+    error.response.data = parsedData;
+  }
+
+  return error;
+};
+
 export const transactionService = {
   // Get transaction by ID
   getTransactionById: async (transactionId) => {
@@ -138,7 +164,7 @@ export const transactionService = {
         fileName,
       };
     } catch (error) {
-      throw error;
+      throw await normalizeBlobErrorResponse(error);
     }
   },
 
