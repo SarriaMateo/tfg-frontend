@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Spinner, Button, Form, Row, Col, Pagination, Modal } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsCheckSquare, BsDownload, BsFillTrash3Fill, BsInfoCircle, BsUpload } from 'react-icons/bs';
+import { BsCheckSquare, BsDownload, BsFiletypeCsv, BsFiletypePdf, BsFillTrash3Fill, BsInfoCircle, BsUpload } from 'react-icons/bs';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
@@ -10,6 +10,8 @@ import { getTransactionPermissions } from '../hooks/useTransactionPermissions';
 import { branchService } from '../services/branchService';
 import { userService } from '../services/userService';
 import { itemService } from '../services/itemService';
+import { transactionService } from '../services/transactionService';
+import { translateError } from '../utils/errorTranslator';
 import { formatDecimal, formatUnit } from '../utils/formatters';
 
 const DEFAULT_FILTERS = {
@@ -90,6 +92,12 @@ export const TransactionListTable = ({
   const [confirmComplete, setConfirmComplete] = useState(null); // transaction object
   const [confirmCancel, setConfirmCancel] = useState(null);     // transaction object
   const [cancelReason, setCancelReason] = useState('');
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportCount, setExportCount] = useState(0);
+  const [loadingExportCount, setLoadingExportCount] = useState(false);
+  const [exportModalError, setExportModalError] = useState(null);
+
+  const canExportTransactions = ['ADMIN', 'MANAGER'].includes(String(user?.role || '').toUpperCase());
 
   const handleOpenComplete = (transaction) => setConfirmComplete(transaction);
   const handleConfirmComplete = () => {
@@ -101,6 +109,64 @@ export const TransactionListTable = ({
     setCancelReason('');
     setConfirmCancel(transaction);
   };
+
+  const buildListRequestParams = (sourcePayload = {}) => {
+    const { pageSize, ...rest } = sourcePayload;
+    return {
+      ...rest,
+      page_size: Number(pageSize) || 1,
+    };
+  };
+
+  const buildExportPayload = (format) => {
+    const fetchPayload = buildFetchPayload({
+      page: 1,
+      nextPageSize: 1,
+    });
+
+    const filtersPayload = { ...fetchPayload };
+    delete filtersPayload.page;
+    delete filtersPayload.pageSize;
+
+    return {
+      ...filtersPayload,
+      format,
+    };
+  };
+
+  const handleExportClick = async () => {
+    setShowExportModal(true);
+    setExportModalError(null);
+    setLoadingExportCount(true);
+
+    try {
+      const countPayload = buildFetchPayload({
+        page: 1,
+        nextPageSize: 1,
+      });
+
+      const response = await transactionService.listTransactions(buildListRequestParams(countPayload));
+      const resolvedCount = Number(response?.total ?? 0);
+      setExportCount(Number.isNaN(resolvedCount) ? 0 : resolvedCount);
+    } catch (err) {
+      setExportCount(0);
+      setExportModalError(translateError(err));
+    } finally {
+      setLoadingExportCount(false);
+    }
+  };
+
+  const handleExportByFormat = async (format) => {
+    setExportModalError(null);
+
+    try {
+      await transactionService.downloadTransactionsExport(buildExportPayload(format));
+      setShowExportModal(false);
+    } catch (err) {
+      setExportModalError(translateError(err));
+    }
+  };
+
   const handleConfirmCancel = () => {
     if (onCancelTransaction) onCancelTransaction(confirmCancel.id, cancelReason || undefined);
     setConfirmCancel(null);
@@ -630,6 +696,11 @@ export const TransactionListTable = ({
             <Button variant="primary" onClick={handleApplyFilters} style={filterButtonStyle}>
               Aplicar
             </Button>
+            {canExportTransactions && (
+              <Button variant="warning" onClick={handleExportClick} style={filterButtonStyle}>
+                Exportar
+              </Button>
+            )}
             <Button variant="outline-secondary" onClick={handleResetFilters} style={filterButtonStyle}>
               Limpiar
             </Button>
@@ -822,6 +893,57 @@ export const TransactionListTable = ({
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setConfirmCancel(null)}>Volver</Button>
           <Button variant="danger" onClick={handleConfirmCancel}>Cancelar operación</Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal
+        show={showExportModal}
+        onHide={() => setShowExportModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar exportación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loadingExportCount ? (
+            <div className="d-flex align-items-center gap-2">
+              <Spinner animation="border" size="sm" role="status" />
+              <span>Calculando operaciones a exportar...</span>
+            </div>
+          ) : (
+            <p className="mb-0">¿Quieres exportar <strong>{exportCount}</strong> operaciones?</p>
+          )}
+
+          {exportModalError && (
+            <Alert variant="danger" className="mt-3 mb-0">
+              {exportModalError}
+            </Alert>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="d-flex w-100 gap-2">
+          <Button
+            variant="secondary"
+            className="flex-fill"
+            onClick={() => setShowExportModal(false)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="info"
+            className="flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+            onClick={() => handleExportByFormat('csv')}
+          >
+            <BsFiletypeCsv />
+            Exportar en CSV
+          </Button>
+          <Button
+            variant="danger"
+            className="flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+            onClick={() => handleExportByFormat('pdf')}
+          >
+            <BsFiletypePdf />
+            Exportar en PDF
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>
