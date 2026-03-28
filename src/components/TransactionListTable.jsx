@@ -96,8 +96,10 @@ export const TransactionListTable = ({
   const [exportCount, setExportCount] = useState(0);
   const [loadingExportCount, setLoadingExportCount] = useState(false);
   const [exportModalError, setExportModalError] = useState(null);
+  const [exportingFormat, setExportingFormat] = useState(null);
 
   const canExportTransactions = ['ADMIN', 'MANAGER'].includes(String(user?.role || '').toUpperCase());
+  const isExporting = exportingFormat !== null;
 
   const handleOpenComplete = (transaction) => setConfirmComplete(transaction);
   const handleConfirmComplete = () => {
@@ -135,6 +137,8 @@ export const TransactionListTable = ({
   };
 
   const handleExportClick = async () => {
+    if (loadingExportCount || isExporting) return;
+
     setShowExportModal(true);
     setExportModalError(null);
     setLoadingExportCount(true);
@@ -157,14 +161,25 @@ export const TransactionListTable = ({
   };
 
   const handleExportByFormat = async (format) => {
+    if (loadingExportCount || isExporting) return;
+
     setExportModalError(null);
+    setExportingFormat(format);
 
     try {
       await transactionService.downloadTransactionsExport(buildExportPayload(format));
       setShowExportModal(false);
     } catch (err) {
       setExportModalError(translateError(err));
+    } finally {
+      setExportingFormat(null);
     }
+  };
+
+  const handleCloseExportModal = () => {
+    if (isExporting) return;
+    setShowExportModal(false);
+    setExportModalError(null);
   };
 
   const handleConfirmCancel = () => {
@@ -697,7 +712,12 @@ export const TransactionListTable = ({
               Aplicar
             </Button>
             {canExportTransactions && (
-              <Button variant="warning" onClick={handleExportClick} style={filterButtonStyle}>
+              <Button
+                variant="warning"
+                onClick={handleExportClick}
+                style={filterButtonStyle}
+                disabled={loadingExportCount || isExporting}
+              >
                 Exportar
               </Button>
             )}
@@ -898,10 +918,10 @@ export const TransactionListTable = ({
 
       <Modal
         show={showExportModal}
-        onHide={() => setShowExportModal(false)}
+        onHide={handleCloseExportModal}
         centered
       >
-        <Modal.Header closeButton>
+        <Modal.Header closeButton={!isExporting}>
           <Modal.Title>Confirmar exportación</Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -924,7 +944,8 @@ export const TransactionListTable = ({
           <Button
             variant="secondary"
             className="flex-fill"
-            onClick={() => setShowExportModal(false)}
+            onClick={handleCloseExportModal}
+            disabled={isExporting}
           >
             Cancelar
           </Button>
@@ -932,17 +953,19 @@ export const TransactionListTable = ({
             variant="info"
             className="flex-fill d-inline-flex align-items-center justify-content-center gap-2"
             onClick={() => handleExportByFormat('csv')}
+            disabled={loadingExportCount || isExporting}
           >
             <BsFiletypeCsv />
-            Exportar en CSV
+            {exportingFormat === 'csv' ? 'Exportando...' : 'Exportar en CSV'}
           </Button>
           <Button
             variant="danger"
             className="flex-fill d-inline-flex align-items-center justify-content-center gap-2"
             onClick={() => handleExportByFormat('pdf')}
+            disabled={loadingExportCount || isExporting}
           >
             <BsFiletypePdf />
-            Exportar en PDF
+            {exportingFormat === 'pdf' ? 'Exportando...' : 'Exportar en PDF'}
           </Button>
         </Modal.Footer>
       </Modal>
