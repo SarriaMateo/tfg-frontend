@@ -30,6 +30,73 @@ const parseContentDispositionFileName = (contentDisposition) => {
   return null;
 };
 
+const EXPORT_ALLOWED_FORMATS = new Set(['csv', 'pdf']);
+
+const normalizeExportFormat = (format) => {
+  const normalizedFormat = String(format || 'csv').toLowerCase();
+  return EXPORT_ALLOWED_FORMATS.has(normalizedFormat) ? normalizedFormat : 'csv';
+};
+
+const buildTransactionExportParams = (params = {}) => {
+  const {
+    format,
+    page,
+    pageSize,
+    page_size,
+    ...rest
+  } = params;
+
+  const normalizedParams = {
+    format: normalizeExportFormat(format),
+  };
+
+  Object.entries(rest).forEach(([key, value]) => {
+    if (value === '' || value === null || value === undefined) return;
+
+    if (key === 'order_desc') {
+      if (typeof value === 'string') {
+        normalizedParams.order_desc = value.toLowerCase() === 'true';
+        return;
+      }
+      normalizedParams.order_desc = Boolean(value);
+      return;
+    }
+
+    normalizedParams[key] = value;
+  });
+
+  return normalizedParams;
+};
+
+const buildExportFallbackFileName = (format) => {
+  const now = new Date();
+  const twoDigits = (value) => String(value).padStart(2, '0');
+
+  const fileDate = [
+    now.getFullYear(),
+    twoDigits(now.getMonth() + 1),
+    twoDigits(now.getDate()),
+  ].join('');
+
+  const fileTime = [
+    twoDigits(now.getHours()),
+    twoDigits(now.getMinutes()),
+  ].join('');
+
+  return `operaciones_${fileDate}_${fileTime}.${format}`;
+};
+
+const triggerBrowserDownload = (blob, fileName) => {
+  const objectUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(objectUrl);
+};
+
 export const transactionService = {
   // Get transaction by ID
   getTransactionById: async (transactionId) => {
@@ -46,6 +113,41 @@ export const transactionService = {
     try {
       const response = await api.get('/transactions', { params });
       return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Export transactions as csv or pdf using current filters (no pagination)
+  exportTransactions: async (params = {}) => {
+    try {
+      const exportParams = buildTransactionExportParams(params);
+      const response = await api.get('/transactions/export', {
+        params: exportParams,
+        responseType: 'blob',
+      });
+
+      const requestedFormat = exportParams.format || 'csv';
+      const contentType = response.headers['content-type'] || response.data?.type || 'application/octet-stream';
+      const contentDisposition = response.headers['content-disposition'] || '';
+      const fileName = parseContentDispositionFileName(contentDisposition) || buildExportFallbackFileName(requestedFormat);
+
+      return {
+        blob: response.data,
+        contentType,
+        fileName,
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Export transactions and trigger browser file download
+  downloadTransactionsExport: async (params = {}) => {
+    try {
+      const { blob, fileName } = await transactionService.exportTransactions(params);
+      triggerBrowserDownload(blob, fileName);
+      return { fileName };
     } catch (error) {
       throw error;
     }

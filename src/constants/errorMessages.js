@@ -88,6 +88,10 @@ export const ERROR_MESSAGES = {
     TRANSACTION_NOT_FOUND: "Operación no encontrada",
     DOCUMENT_NOT_FOUND: "Documento no encontrado",
   },
+  export_errors: {
+    EXPORT_FORMAT_NOT_SUPPORTED: "El formato de exportación no es soportado. Solo se permite CSV por ahora",
+    EXPORT_EXCEEDS_LIMIT_50000: "La exportación excede el límite máximo de 50.000 líneas. Por favor, aplica más filtros y vuelve a intentarlo",
+  },
 };
 
 export const DEFAULT_ERROR_MESSAGE = "Ha ocurrido un error inesperado. Por favor, intenta de nuevo.";
