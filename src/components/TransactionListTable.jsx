@@ -643,6 +643,7 @@ export const TransactionListTable = ({
               >
                 <option value="">Todos</option>
                 <option value="PENDING">Pendiente</option>
+                <option value="TRANSIT">En tránsito</option>
                 <option value="COMPLETED">Completada</option>
                 <option value="CANCELLED">Cancelada</option>
               </Form.Select>

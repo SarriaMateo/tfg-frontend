@@ -18,6 +18,9 @@ export const getTransactionPermissions = (user, transaction) => {
   }
 
   const userRole = String(user.role || '').toUpperCase();
+  const isAdmin = userRole === 'ADMIN';
+  const isManager = userRole === 'MANAGER';
+  const isEmployee = userRole === 'EMPLOYEE';
   const userBranchId = user.branch_id ? Number(user.branch_id) : null;
   const isCentralUser = userBranchId === null;
 
@@ -27,13 +30,10 @@ export const getTransactionPermissions = (user, transaction) => {
   const destinationBranchId = Number(transaction.destination_branch_id);
 
   const events = Array.isArray(transaction.events) ? transaction.events : [];
-  const hasCurrentUserEvent = (allowedActionTypes) => {
-    const allowedSet = new Set(allowedActionTypes);
-
+  const hasCurrentUserEvent = () => {
     return events.some((event) => {
-      const actionType = String(event?.action_type || '').toUpperCase();
       const performedBy = Number(event?.performed_by);
-      return allowedSet.has(actionType) && performedBy > 0 && performedBy === Number(user.id);
+      return performedBy > 0 && performedBy === Number(user.id);
     });
   };
 
@@ -95,42 +95,20 @@ export const getTransactionPermissions = (user, transaction) => {
 
   // ========== DOCUMENT ACTIONS ==========
   const canUploadDocument = (() => {
-    // PENDING: sede origen o central
-    if (transactionStatus === 'PENDING') {
-      return isCentralUser || belongsToOriginBranch;
+    const canAccessByScope = isCentralUser || belongsToOriginBranch || belongsToDestinationBranch;
+
+    // ADMIN siempre puede gestionar documentos.
+    if (isAdmin) return true;
+
+    if (transactionStatus === 'PENDING' || transactionStatus === 'TRANSIT') {
+      if (isManager || isEmployee) return canAccessByScope;
+      return false;
     }
 
-    // TRANSIT: sede origen, destino o central
-    if (transactionStatus === 'TRANSIT') {
-      return isCentralUser || belongsToOriginBranch || belongsToDestinationBranch;
-    }
-
-    // COMPLETED/CANCELLED: reglas especiales por rol
     if (transactionStatus === 'COMPLETED' || transactionStatus === 'CANCELLED') {
-      // ADMIN: solo si es central
-      if (userRole === 'ADMIN') {
-        return isCentralUser;
-      }
-
-      // MANAGER: si es central O si pertenece a sede origen/destino
-      if (userRole === 'MANAGER') {
-        return isCentralUser || belongsToOriginBranch || belongsToDestinationBranch;
-      }
-
-      // EMPLOYEE:
-      // - sede origen: debe estar asociado a CREATED/SENT/COMPLETED/CANCELLED
-      // - sede destino: debe estar asociado a COMPLETED/CANCELLED
-      if (userRole === 'EMPLOYEE') {
-        if (belongsToOriginBranch) {
-          return hasCurrentUserEvent(['CREATED', 'SENT', 'COMPLETED', 'CANCELLED']);
-        }
-
-        if (belongsToDestinationBranch) {
-          return hasCurrentUserEvent(['COMPLETED', 'CANCELLED']);
-        }
-
-        return false;
-      }
+      if (isManager) return canAccessByScope;
+      if (isEmployee) return canAccessByScope && hasCurrentUserEvent();
+      return false;
     }
 
     return false;
@@ -139,8 +117,10 @@ export const getTransactionPermissions = (user, transaction) => {
   const canDeleteDocument = canUploadDocument; // Mismas reglas que upload
 
   const canDownloadDocument = (() => {
-    // GET /transactions/{transaction_id}/document - sin restricción por estado
-    // Branch rules: sede origen, destino (si TRANSFER), o central
+    if (isAdmin) return true;
+
+    // GET /transactions/{transaction_id}/document - sin restricción por estado.
+    // MANAGER/EMPLOYEE: central, sede origen o sede destino (si TRANSFER).
     return isCentralUser || belongsToOriginBranch || belongsToDestinationBranch;
   })();
 
