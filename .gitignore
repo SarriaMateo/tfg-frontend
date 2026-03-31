@@ -31,3 +31,4 @@ dist-ssr
 # Misc
 C4_ARCHITECTURE_SIMPLE.md
 C4_COMPONENT_ARCHITECTURE.md
+package-lock.json

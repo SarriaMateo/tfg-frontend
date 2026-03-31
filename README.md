@@ -40,6 +40,10 @@ El proyecto sigue una estructura modular, separando responsabilidades de forma c
 4. Lanzar el servidor de desarrollo
 
 ```bash
+yarn install
+```
+
+```bash
 yarn dev
 ```
 
@@ -64,6 +68,14 @@ Ejecutar únicamente los tests de integración:
 ```bash
 yarn test:integration
 ```
+
+---
+
+## Gestión de dependencias
+
+- El proyecto usa **Yarn** como gestor de paquetes principal.
+- `yarn.lock` es el lockfile de referencia y debe versionarse.
+- No se debe usar `npm install` para evitar desalineación de lockfiles.
 
 ---
 
