@@ -14,6 +14,15 @@ import { transactionService } from '../services/transactionService';
 import { translateError } from '../utils/errorTranslator';
 import { formatDecimal, formatUnit } from '../utils/formatters';
 
+const DEFAULT_ORDER_BY = 'last_event_at';
+
+const normalizeOrderBy = (orderByValue) => {
+  if (orderByValue === 'total_items') return 'total_items';
+  if (orderByValue === 'created_at') return DEFAULT_ORDER_BY;
+  if (orderByValue === DEFAULT_ORDER_BY) return DEFAULT_ORDER_BY;
+  return DEFAULT_ORDER_BY;
+};
+
 const DEFAULT_FILTERS = {
   search: '',
   branch_id: '',
@@ -23,7 +32,7 @@ const DEFAULT_FILTERS = {
   status: '',
   start_date: '',
   end_date: '',
-  order_by: 'created_at',
+  order_by: DEFAULT_ORDER_BY,
   order_desc: 'true',
 };
 
@@ -42,7 +51,7 @@ const normalizeFiltersFromQuery = (query = {}, fallbackBranchId = '') => ({
   status: query.status || '',
   start_date: query.start_date || '',
   end_date: query.end_date || '',
-  order_by: query.order_by || 'created_at',
+  order_by: normalizeOrderBy(query.order_by),
   order_desc: String(query.order_desc ?? true),
 });
 
@@ -289,7 +298,7 @@ export const TransactionListTable = ({
     onFetchTransactions({
       page: 1,
       pageSize: 20,
-      order_by: 'created_at',
+      order_by: DEFAULT_ORDER_BY,
       order_desc: true,
       ...(defaultFilters.branch_id ? { branch_id: Number(defaultFilters.branch_id) } : {}),
     });
@@ -690,7 +699,7 @@ export const TransactionListTable = ({
                 onChange={handleFilterChange}
                 style={selectControlStyle}
               >
-                <option value="created_at">Fecha creación</option>
+                <option value="last_event_at">Último evento</option>
                 <option value="total_items">Número de líneas</option>
               </Form.Select>
             </Form.Group>
@@ -764,7 +773,7 @@ export const TransactionListTable = ({
                   <tr key={transaction.id}>
                     <td>{getOperationTypeLabel(transaction.operation_type)}</td>
                     <td>{getTransactionBranchDisplay(transaction)}</td>
-                    <td>{formatTransactionDateTime(transaction.created_at)}</td>
+                    <td>{formatTransactionDateTime(transaction.last_event_at || transaction.created_at)}</td>
                     <td>
                       <span title={transaction.description || ''}>
                         {cropDescription(transaction.description)}

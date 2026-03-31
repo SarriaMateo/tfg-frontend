@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Alert, Button, Card, Col, Container, Form, Modal, Row, Spinner, Table } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsBoxArrowUpRight, BsCheckSquare, BsDownload, BsFillTrash3Fill, BsPencilSquare, BsUpload } from 'react-icons/bs';
+import { BsBoxArrowUpRight, BsCheckSquare, BsDownload, BsFillTrash3Fill, BsInfoCircle, BsPencilSquare, BsUpload } from 'react-icons/bs';
 import { Navbar } from '../components/Navbar';
 import { TransactionModal } from '../components/TransactionModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -806,6 +806,7 @@ export const TransactionDetailPage = () => {
                     <div>
                       <h3 className="fw-bold mb-1">Operación #{transaction.id}</h3>
                       <p className="text-muted mb-0">Creada el {formatTransactionDateTime(transaction.created_at)}</p>
+                      <p className="text-muted mb-0">Último evento el {formatTransactionDateTime(transaction.last_event_at)}</p>
                     </div>
                     <span className={`badge ${getStatusBadgeClassName(transaction.status)}`}>
                       {getStatusLabel(transaction.status)}
@@ -929,75 +930,93 @@ export const TransactionDetailPage = () => {
               </Col>
             </Row>
 
-            <Card className="shadow-sm border-0 mt-4">
-              <Card.Body className="p-4">
-                <h5 className="fw-bold mb-3">Artículos de la operación</h5>
-                <div className="table-responsive">
-                  <Table hover className="align-middle mb-0">
-                    <thead>
-                      <tr>
-                        <th>Artículo</th>
-                        <th className="text-end">Cantidad</th>
-                        <th>Unidad</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {linesCount === 0 ? (
-                        <tr>
-                          <td colSpan={3} className="text-center text-muted py-4">
-                            Sin artículos registrados
-                          </td>
-                        </tr>
-                      ) : (
-                        transaction.lines.map((line) => (
-                          <tr key={line.id}>
-                            <td>{getItemName(line.item_id)}</td>
-                            <td className="text-end">{formatDecimal(line.quantity)}</td>
-                            <td>{getItemUnit(line.item_id) || '-'}</td>
+            <Row className="g-4 mt-2">
+              <Col lg={4}>
+                <Card className="shadow-sm border-0">
+                  <Card.Body className="p-4">
+                    <h5 className="fw-bold mb-3">Artículos de la operación</h5>
+                    <div className="table-responsive">
+                      <Table hover className="align-middle mb-0">
+                        <thead>
+                          <tr>
+                            <th>Artículo</th>
+                            <th className="text-end">Cantidad</th>
+                            <th>Unidad</th>
+                            <th className="text-center">Acciones</th>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
-              </Card.Body>
-            </Card>
+                        </thead>
+                        <tbody>
+                          {linesCount === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="text-center text-muted py-4">
+                                Sin artículos registrados
+                              </td>
+                            </tr>
+                          ) : (
+                            transaction.lines.map((line) => (
+                              <tr key={line.id}>
+                                <td>{getItemName(line.item_id)}</td>
+                                <td className="text-end">{formatDecimal(line.quantity)}</td>
+                                <td>{getItemUnit(line.item_id) || '-'}</td>
+                                <td className="text-center">
+                                  <Button
+                                    variant="primary"
+                                    size="sm"
+                                    className="list-action-btn"
+                                    onClick={() => navigate(`/inventory/items/${line.item_id}`, { state: { fromTransactionId: transaction.id } })}
+                                    title="Ver detalles del artículo"
+                                  >
+                                    <BsInfoCircle />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
 
-            <Card className="shadow-sm border-0 mt-4">
-              <Card.Body className="p-4">
-                <h5 className="fw-bold mb-3">Eventos de la operación</h5>
-                <div className="table-responsive">
-                  <Table hover className="align-middle mb-0">
-                    <thead>
-                      <tr>
-                        <th>Acción</th>
-                        <th>Metadata</th>
-                        <th>Usuario</th>
-                        <th>Fecha y hora</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {eventsCount === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="text-center text-muted py-4">
-                            Sin eventos registrados
-                          </td>
-                        </tr>
-                      ) : (
-                        transaction.events.map((event) => (
-                          <tr key={event.id}>
-                            <td>{getEventActionLabel(event.action_type)}</td>
-                            <td>{renderEventMetadata(event)}</td>
-                            <td>{getUserName(event.performed_by)}</td>
-                            <td>{formatTransactionDateTime(event.timestamp)}</td>
+              <Col lg={8}>
+                <Card className="shadow-sm border-0">
+                  <Card.Body className="p-4">
+                    <h5 className="fw-bold mb-3">Eventos de la operación</h5>
+                    <div className="table-responsive">
+                      <Table hover className="align-middle mb-0">
+                        <thead>
+                          <tr>
+                            <th>Acción</th>
+                            <th>Metadata</th>
+                            <th>Usuario</th>
+                            <th>Fecha y hora</th>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
-              </Card.Body>
-            </Card>
+                        </thead>
+                        <tbody>
+                          {eventsCount === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="text-center text-muted py-4">
+                                Sin eventos registrados
+                              </td>
+                            </tr>
+                          ) : (
+                            transaction.events.map((event) => (
+                              <tr key={event.id}>
+                                <td>{getEventActionLabel(event.action_type)}</td>
+                                <td>{renderEventMetadata(event)}</td>
+                                <td>{getUserName(event.performed_by)}</td>
+                                <td>{formatTransactionDateTime(event.timestamp)}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
           </>
         ) : (
           <Alert variant="warning">Operación no encontrada</Alert>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Alert, Spinner } from 'react-bootstrap';
 import { BsBoxArrowUpRight, BsDownload, BsFillTrash3Fill, BsPencilSquare, BsUpload } from 'react-icons/bs';
 import { Navbar } from '../components/Navbar';
@@ -15,7 +15,10 @@ import { formatUnitExtended } from '../utils/formatters';
 export const ItemDetailPage = () => {
   const { itemId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { hasAnyRole, hasRole } = useAuthorization();
+  
+  const fromTransactionId = location.state?.fromTransactionId;
 
   const [item, setItem] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -261,7 +264,13 @@ export const ItemDetailPage = () => {
             <Button
               variant="outline-secondary"
               className="detail-page-action-btn"
-              onClick={() => navigate('/inventory')}
+              onClick={() => {
+                if (fromTransactionId) {
+                  navigate(`/transactions/${fromTransactionId}`);
+                } else {
+                  navigate('/inventory');
+                }
+              }}
               disabled={loadingAction || imageActionLoading}
             >
               Volver

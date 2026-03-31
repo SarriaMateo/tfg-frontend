@@ -3,10 +3,19 @@ import { transactionService } from '../services/transactionService';
 import { translateError } from '../utils/errorTranslator';
 import { useAuth } from './useAuth';
 
+const DEFAULT_ORDER_BY = 'last_event_at';
+
+const normalizeOrderBy = (orderByValue) => {
+  if (orderByValue === 'total_items') return 'total_items';
+  if (orderByValue === 'created_at') return DEFAULT_ORDER_BY;
+  if (orderByValue === DEFAULT_ORDER_BY) return DEFAULT_ORDER_BY;
+  return DEFAULT_ORDER_BY;
+};
+
 const DEFAULT_TRANSACTIONS_QUERY = {
   page: 1,
   pageSize: 20,
-  order_by: 'created_at',
+  order_by: DEFAULT_ORDER_BY,
   order_desc: true,
 };
 
@@ -32,6 +41,7 @@ const readStoredTransactionsQuery = (userId) => {
       ...parsed,
       page: Number(parsed?.page) || DEFAULT_TRANSACTIONS_QUERY.page,
       pageSize: Number(parsed?.pageSize) || DEFAULT_TRANSACTIONS_QUERY.pageSize,
+      order_by: normalizeOrderBy(parsed?.order_by),
       order_desc: typeof parsed?.order_desc === 'boolean' ? parsed.order_desc : DEFAULT_TRANSACTIONS_QUERY.order_desc,
     };
   } catch {
@@ -86,7 +96,13 @@ export const useTransactions = () => {
           }
         : (storedQuery || buildDefaultTransactionsQuery(defaultBranchId));
 
-      const { page = 1, pageSize = 20, ...restFilters } = nextQuery;
+      const normalizedOrderBy = normalizeOrderBy(nextQuery.order_by);
+      const nextQueryWithNormalizedOrder = {
+        ...nextQuery,
+        order_by: normalizedOrderBy,
+      };
+
+      const { page = 1, pageSize = 20, ...restFilters } = nextQueryWithNormalizedOrder;
       const params = {
         page,
         page_size: pageSize,
