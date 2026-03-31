@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth";
 import { translateError } from "../utils/errorTranslator";
+import { handleNavigationClick } from "../utils/navigationUtils";
 
 export default function LandingPage() {
     const navigate = useNavigate();
@@ -82,7 +83,7 @@ export default function LandingPage() {
                         <Card.Body className="p-4 text-center">
                             <p className="text-muted mb-3">¿No tienes cuenta?</p>
                             <Button 
-                                onClick={() => navigate("/register")}
+                                onClick={(e) => handleNavigationClick(e, "/register", navigate)}
                                 className="w-100 btn-outline-primary"
                                 variant="outline-primary"
                             >

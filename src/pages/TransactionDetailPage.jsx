@@ -15,6 +15,7 @@ import { useAuthorization } from '../hooks/useAuthorization';
 import { useAuth } from '../hooks/useAuth';
 import { useTransactionPermissions } from '../hooks/useTransactionPermissions';
 import { formatDecimal, formatUnit } from '../utils/formatters';
+import { handleNavigationClickWithState, handleFileOpenClick } from '../utils/navigationUtils';
 
 const OPERATION_TYPE_LABELS = {
   IN: 'Entrada',
@@ -665,7 +666,14 @@ export const TransactionDetailPage = () => {
 
     if (isImageDocument) {
       return (
-        <div className="text-center">
+        <div 
+          className="text-center"
+          style={{ cursor: 'pointer' }}
+          onClick={(e) => handleFileOpenClick(e, documentPreviewUrl)}
+          role="button"
+          tabIndex={0}
+          title="Abrir"
+        >
           <img
             src={documentPreviewUrl}
             alt="Documento adjunto"
@@ -676,6 +684,7 @@ export const TransactionDetailPage = () => {
               borderRadius: '8px',
               border: '1px solid #e6e6e6',
               backgroundColor: '#fff',
+              pointerEvents: 'none',
             }}
           />
         </div>
@@ -684,11 +693,18 @@ export const TransactionDetailPage = () => {
 
     if (isPdfDocument) {
       return (
-        <div className="border rounded overflow-hidden" style={{ backgroundColor: '#fff' }}>
+        <div 
+          className="border rounded overflow-hidden" 
+          style={{ backgroundColor: '#fff' }}
+          onClick={(e) => handleFileOpenClick(e, documentPreviewUrl)}
+          role="button"
+          tabIndex={0}
+          title="Ctrl+Click (Cmd+Click en Mac) para abrir en nueva pestaña"
+        >
           <iframe
             title="Vista previa del documento"
             src={documentPreviewUrl}
-            style={{ width: '100%', height: '420px', border: 0 }}
+            style={{ width: '100%', height: '420px', border: 0, pointerEvents: 'none' }}
           />
         </div>
       );
@@ -768,12 +784,10 @@ export const TransactionDetailPage = () => {
             <Button
               variant="outline-secondary"
               className="detail-page-action-btn"
-              onClick={() => {
-                if (fromItemId) {
-                  navigate(`/inventory/items/${fromItemId}`);
-                } else {
-                  navigate('/transactions');
-                }
+              onClick={(e) => {
+                const path = fromItemId ? `/inventory/items/${fromItemId}` : '/transactions';
+                const state = fromItemId ? { fromTransactionId: transactionId } : {};
+                handleNavigationClickWithState(e, path, state, navigate);
               }}
               disabled={actionLoading}
             >
@@ -971,7 +985,12 @@ export const TransactionDetailPage = () => {
                                     variant="primary"
                                     size="sm"
                                     className="list-action-btn"
-                                    onClick={() => navigate(`/inventory/items/${line.item_id}`, { state: { fromTransactionId: transaction.id } })}
+                                    onClick={(e) => handleNavigationClickWithState(
+                                      e,
+                                      `/inventory/items/${line.item_id}`,
+                                      { fromTransactionId: transaction.id },
+                                      navigate,
+                                    )}
                                     title="Ver detalles del artículo"
                                   >
                                     <BsInfoCircle />

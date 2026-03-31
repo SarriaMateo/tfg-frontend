@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Alert, Spinner, Button, Form, Row, Col, Pagination, Modal } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { BsCheckSquare, BsDownload, BsFiletypeCsv, BsFiletypePdf, BsFillTrash3Fill, BsInfoCircle, BsUpload, BsSortUp, BsSortDown } from 'react-icons/bs';
+import { handleNavigationClick } from '../utils/navigationUtils';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
@@ -458,8 +459,8 @@ export const TransactionListTable = ({
     };
   };
 
-  const handleDetailsClick = (transactionId) => {
-    navigate(`/transactions/${transactionId}`);
+  const handleDetailsClick = (event, transactionId) => {
+    handleNavigationClick(event, `/transactions/${transactionId}`, navigate);
   };
 
   const renderLinesTooltip = (transaction) => {
@@ -797,7 +798,7 @@ export const TransactionListTable = ({
                           variant="primary"
                           size="sm"
                           className="list-action-btn"
-                          onClick={() => handleDetailsClick(transaction.id)}
+                          onClick={(e) => handleDetailsClick(e, transaction.id)}
                           title="Ver detalles"
                         >
                           <BsInfoCircle />

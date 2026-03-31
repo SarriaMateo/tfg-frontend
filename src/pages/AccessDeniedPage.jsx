@@ -1,5 +1,6 @@
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { handleNavigationClick } from "../utils/navigationUtils";
 
 export default function AccessDeniedPage() {
     const navigate = useNavigate();
@@ -21,13 +22,13 @@ export default function AccessDeniedPage() {
                             <div className="d-flex gap-2 justify-content-center">
                                 <Button 
                                     variant="primary"
-                                    onClick={() => navigate("/test")}
+                                    onClick={(e) => handleNavigationClick(e, "/test", navigate)}
                                 >
                                     Volver al  Test Dashboard
                                 </Button>
                                 <Button 
                                     variant="outline-secondary"
-                                    onClick={() => navigate("/dashboard")}
+                                    onClick={(e) => handleNavigationClick(e, "/dashboard", navigate)}
                                 >
                                     Ir al Inicio
                                 </Button>

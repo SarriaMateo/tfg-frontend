@@ -6,6 +6,7 @@ import { companyService } from '../services/companyService';
 import { branchService } from '../services/branchService';
 import { Navbar as BSNavbar, Container, Nav, Button, Dropdown, Spinner } from 'react-bootstrap';
 import { BsBuildingFill, BsPersonCircle } from 'react-icons/bs';
+import { handleNavigationClick } from '../utils/navigationUtils';
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -73,9 +74,11 @@ export const Navbar = () => {
     setShowBranchDropdown(false);
   };
 
-  const navigateTo = (path) => {
-    navigate(path);
-    setExpanded(false);
+  const navigateTo = (event, path) => {
+    handleNavigationClick(event, path, navigate);
+    if (!event.ctrlKey && !event.metaKey) {
+      setExpanded(false);
+    }
   };
 
   const getSelectedBranchName = () => {
@@ -88,7 +91,7 @@ export const Navbar = () => {
     <BSNavbar bg="primary" expand="lg" sticky="top" className="shadow-sm">
       <Container className="navbar-container">
         <BSNavbar.Brand 
-          onClick={() => navigateTo('/dashboard')}
+          onClick={(e) => navigateTo(e, '/dashboard')}
           style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '2.2rem' }}
           className="app-brand"
         >
@@ -101,25 +104,25 @@ export const Navbar = () => {
           <Nav className="nav-links">
             <Nav.Link 
               className="fw-600"
-              onClick={() => navigateTo('/dashboard')}
+              onClick={(e) => navigateTo(e, '/dashboard')}
             >
               Dashboard
             </Nav.Link>
             <Nav.Link 
               className="fw-600"
-              onClick={() => navigateTo('/inventory')}
+              onClick={(e) => navigateTo(e, '/inventory')}
             >
               Inventario
             </Nav.Link>
             <Nav.Link 
               className="fw-600"
-              onClick={() => navigateTo('/transactions')}
+              onClick={(e) => navigateTo(e, '/transactions')}
             >
               Operaciones
             </Nav.Link>
             <Nav.Link 
               className="fw-600"
-              onClick={() => navigateTo('/settings')}
+              onClick={(e) => navigateTo(e, '/settings')}
             >
               Ajustes
             </Nav.Link>

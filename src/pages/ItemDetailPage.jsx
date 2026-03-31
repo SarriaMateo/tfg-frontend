@@ -14,6 +14,7 @@ import { useAuthorization } from '../hooks/useAuthorization';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { formatDecimal, formatUnitExtended } from '../utils/formatters';
+import { handleNavigationClickWithState, handleFileOpenClick } from '../utils/navigationUtils';
 
 const OPERATION_TYPE_LABELS = {
   IN: 'Entrada',
@@ -382,11 +383,13 @@ export const ItemDetailPage = () => {
             <Button
               variant="outline-secondary"
               className="detail-page-action-btn"
-              onClick={() => {
-                if (fromTransactionId) {
-                  navigate(`/transactions/${fromTransactionId}`);
+              onClick={(e) => {
+                const path = fromTransactionId ? `/transactions/${fromTransactionId}` : '/inventory';
+                const state = fromTransactionId ? { fromItemId: Number(item?.id) || parsedItemId } : undefined;
+                if (state) {
+                  handleNavigationClickWithState(e, path, state, navigate);
                 } else {
-                  navigate('/inventory');
+                  handleNavigationClickWithState(e, path, {}, navigate);
                 }
               }}
               disabled={loadingAction || imageActionLoading}
@@ -528,11 +531,19 @@ export const ItemDetailPage = () => {
                     ) : imageError ? (
                       <Alert variant="warning" className="mb-0">{imageError}</Alert>
                     ) : imageUrl ? (
-                      <div className="item-detail-image-stage text-center">
+                      <div 
+                        className="item-detail-image-stage text-center"
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => handleFileOpenClick(e, imageUrl)}
+                        role="button"
+                        tabIndex={0}
+                        title="Abrir"
+                      >
                         <img
                           src={imageUrl}
                           alt={item.name}
                           className="item-detail-image"
+                          style={{ pointerEvents: 'none' }}
                         />
                       </div>
                     ) : (
@@ -626,9 +637,11 @@ export const ItemDetailPage = () => {
                                     variant="primary"
                                     size="sm"
                                     className="list-action-btn"
-                                    onClick={() => navigate(
+                                    onClick={(e) => handleNavigationClickWithState(
+                                      e,
                                       `/transactions/${transaction.id}`,
-                                      { state: { fromItemId: Number(item?.id) || parsedItemId } },
+                                      { fromItemId: Number(item?.id) || parsedItemId },
+                                      navigate,
                                     )}
                                     title="Ver detalles"
                                   >

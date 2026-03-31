@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Spinner, Alert, Button, Form, Row, Col, Pagination } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { BsInfoCircle, BsSortUp, BsSortDown } from 'react-icons/bs';
+import { handleNavigationClick } from '../utils/navigationUtils';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { branchService } from '../services/branchService';
@@ -228,8 +229,8 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     );
   };
 
-  const handleDetailsClick = (itemId) => {
-    navigate(`/inventory/items/${itemId}`);
+  const handleDetailsClick = (event, itemId) => {
+    handleNavigationClick(event, `/inventory/items/${itemId}`, navigate);
   };
 
   if (loading) {
@@ -405,7 +406,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
                       variant="primary"
                       size="sm"
                       className="list-action-btn"
-                      onClick={() => handleDetailsClick(item.id)}
+                      onClick={(e) => handleDetailsClick(e, item.id)}
                       title="Ver detalles"
                     >
                       <BsInfoCircle />
