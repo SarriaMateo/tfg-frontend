@@ -67,19 +67,19 @@ export const UserList = ({
     <>
       <div className="table-responsive">
         <Table hover className="align-middle">
-          <thead className="table-light">
+          <thead>
             <tr>
-              <th style={{ fontWeight: '600' }}>Nombre</th>
-              <th style={{ fontWeight: '600' }}>Usuario</th>
-              <th style={{ fontWeight: '600', textAlign: 'center' }}>Rol</th>
-              <th style={{ fontWeight: '600', textAlign: 'center' }}>Sede</th>
-              <th style={{ fontWeight: '600', textAlign: 'center' }}>Activo</th>
-              <th style={{ fontWeight: '600', textAlign: 'center' }}>Acciones</th>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th className="text-center">Rol</th>
+              <th className="text-center">Sede</th>
+              <th className="text-center">Activo</th>
+              <th className="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {users.map(user => (
-              <tr key={user.id} className={user.id === currentUserId ? 'table-light' : ''}>
+              <tr key={user.id} className={user.id === currentUserId ? 'current-user-row' : ''}>
                 <td>
                   <div className="fw-500">{user.name}</div>
                   {user.id === currentUserId && <small className="text-muted">(tu cuenta)</small>}

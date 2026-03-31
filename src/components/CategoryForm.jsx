@@ -274,7 +274,7 @@ export const CategoryForm = ({
               Guardando...
             </>
           ) : (
-            isEditMode ? 'Actualizar categoría' : 'Crear categoría'
+            isEditMode ? 'Actualizar Categoría' : 'Crear Categoría'
           )}
         </Button>
       </div>

@@ -163,7 +163,7 @@ export const UserProfileForm = ({
           disabled={loading}
           className="flex-grow-1"
         >
-          {loading ? <><Spinner size="sm" className="me-2" />Guardando...</> : 'Guardar Cambios'}
+          {loading ? <><Spinner size="sm" className="me-2" />Guardando...</> : 'Actualizar Perfil'}
         </Button>
       </div>
     </Form>

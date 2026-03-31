@@ -438,7 +438,7 @@ export const TransactionListTable = ({
 
     if (transaction?.operation_type === 'TRANSFER' && transaction?.status === 'PENDING') {
       return {
-        title: 'Enviar traspaso',
+        title: 'Enviar Traspaso',
         message: `¿Seguro que quieres enviar el traspaso #${transaction?.id}? Esta acción no se puede deshacer.`,
         confirmText: completeAction.title,
       };
@@ -446,14 +446,14 @@ export const TransactionListTable = ({
 
     if (transaction?.operation_type === 'TRANSFER' && transaction?.status === 'TRANSIT') {
       return {
-        title: 'Recibir traspaso',
+        title: 'Recibir Traspaso',
         message: `¿Seguro que quieres recibir el traspaso #${transaction?.id}? Esta acción no se puede deshacer.`,
         confirmText: completeAction.title,
       };
     }
 
     return {
-      title: 'Completar operación',
+      title: 'Completar Operación',
       message: `¿Seguro que quieres completar la operación #${transaction?.id}? Esta acción no se puede deshacer.`,
       confirmText: completeAction.title,
     };
@@ -906,7 +906,7 @@ export const TransactionListTable = ({
       {/* Confirm cancel dialog with optional reason */}
       <Modal show={!!confirmCancel} onHide={() => setConfirmCancel(null)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Cancelar operación</Modal.Title>
+          <Modal.Title>Cancelar Operación</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>¿Seguro que quieres cancelar la operación <strong>#{confirmCancel?.id}</strong>? Esta acción no se puede deshacer.</p>
@@ -924,7 +924,7 @@ export const TransactionListTable = ({
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setConfirmCancel(null)}>Volver</Button>
-          <Button variant="danger" onClick={handleConfirmCancel}>Cancelar operación</Button>
+          <Button variant="danger" onClick={handleConfirmCancel}>Cancelar Operación</Button>
         </Modal.Footer>
       </Modal>
 

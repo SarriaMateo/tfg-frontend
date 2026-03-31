@@ -591,7 +591,7 @@ export const TransactionDetailPage = () => {
     ? <BsUpload className="me-1" />
     : (isTransferTransit ? <BsDownload className="me-1" /> : <BsCheckSquare className="me-1" />);
 
-  const completeConfirmTitle = isTransferPending ? 'Enviar traspaso' : (isTransferTransit ? 'Recibir traspaso' : 'Completar operación');
+  const completeConfirmTitle = isTransferPending ? 'Enviar Traspaso' : (isTransferTransit ? 'Recibir Traspaso' : 'Completar Operación');
   const completeConfirmText = completeButtonLabel;
   const completeConfirmMessage = isTransferPending
     ? `¿Seguro que quieres enviar el traspaso #${transaction?.id}? Esta acción no se puede deshacer.`

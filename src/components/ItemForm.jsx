@@ -406,7 +406,7 @@ export const ItemForm = ({
                   disabled={loading}
                   style={{ height: '49px' }}
                 >
-                  + Nueva categoría
+                  + Nueva Categoría
                 </Button>
               </div>
             </div>
@@ -454,7 +454,7 @@ export const ItemForm = ({
               Guardando...
             </>
           ) : (
-            isEditMode ? 'Actualizar artículo' : 'Crear artículo'
+            isEditMode ? 'Actualizar Artículo' : 'Crear Artículo'
           )}
         </Button>
       </div>

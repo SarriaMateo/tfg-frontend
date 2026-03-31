@@ -388,6 +388,10 @@
   line-height: 1;
 }
 
+.current-user-row {
+  background-color: #fff !important;
+}
+
 @media (max-width: 991.98px) {
   .navbar-collapse {
     flex-direction: column;

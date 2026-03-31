@@ -204,7 +204,7 @@ export const CompanyForm = ({
               Guardando...
             </>
           ) : (
-            'Guardar Cambios'
+            'Actualizar Empresa'
           )}
         </Button>
       </div>

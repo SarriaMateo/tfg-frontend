@@ -30,7 +30,7 @@ export const ItemModal = ({
     }
   };
 
-  const title = item ? 'Editar artículo' : 'Nuevo artículo';
+  const title = item ? 'Editar artículo' : 'Nuevo Artículo';
 
   return (
     <Modal

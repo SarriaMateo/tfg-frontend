@@ -39,12 +39,12 @@ export const BranchList = ({ onEditBranch, onDeleteBranch, canModify }) => {
     <>
       <div className="table-responsive">
         <Table hover className="align-middle">
-          <thead className="table-light">
+          <thead>
             <tr>
-              <th style={{ fontWeight: '600' }}>Nombre</th>
-              <th style={{ fontWeight: '600' }}>Dirección</th>
-              <th style={{ fontWeight: '600', textAlign: 'center' }}>Activo</th>
-              {canModify && <th style={{ fontWeight: '600', textAlign: 'center' }}>Acciones</th>}
+              <th>Nombre</th>
+              <th>Dirección</th>
+              <th className="text-center">Activo</th>
+              {canModify && <th className="text-center">Acciones</th>}
             </tr>
           </thead>
           <tbody>

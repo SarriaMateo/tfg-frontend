@@ -154,7 +154,7 @@ export const UserManagement = () => {
 
   const modalTitle = editingOwnProfile
     ? 'Editar Perfil'
-    : (selectedUser ? 'Editar Usuario' : 'Crear Nuevo Usuario');
+    : (selectedUser ? 'Editar Usuario' : 'Crear Usuario');
 
   return (
     <Card className="shadow-sm border-0">
@@ -170,7 +170,14 @@ export const UserManagement = () => {
           <Button
             size="sm"
             onClick={handleCreateUser}
-            style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
+            style={{
+              height: '36px',
+              padding: '0.25rem 0.75rem',
+              backgroundColor: '#198754',
+              borderColor: '#198754',
+              color: 'white',
+              margin: '-0.25rem 0',
+            }}
           >
             + Nuevo Usuario
           </Button>

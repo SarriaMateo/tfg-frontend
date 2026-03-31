@@ -168,7 +168,7 @@ export const BranchForm = ({
               Guardando...
             </>
           ) : (
-            isCreating ? 'Crear Sede' : 'Guardar Cambios'
+            isCreating ? 'Crear Sede' : 'Actualizar Sede'
           )}
         </Button>
       </div>

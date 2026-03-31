@@ -267,7 +267,7 @@ export const UserForm = ({
               Guardando...
             </>
           ) : (
-            isCreating ? 'Crear Usuario' : 'Guardar Cambios'
+            isCreating ? 'Crear Usuario' : 'Actualizar Usuario'
           )}
         </Button>
       </div>

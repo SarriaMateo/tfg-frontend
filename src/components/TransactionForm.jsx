@@ -652,9 +652,9 @@ export const TransactionForm = ({
                 Guardando...
               </>
             ) : isEditMode ? (
-              'Actualizar'
+              'Actualizar Operación'
             ) : (
-              'Crear'
+              'Crear Operación'
             )}
           </Button>
           <Button
