@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
+import { Typeahead, Token } from 'react-bootstrap-typeahead';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
 import { categoryService } from '../services/categoryService';
-import { CategoryBadge } from './CategoryBadge';
 import { CategoryModal } from './CategoryModal';
 import { translateError } from '../utils/errorTranslator';
 import { UNIT_OPTIONS } from '../utils/formatters';
@@ -120,24 +121,6 @@ export const ItemForm = ({
     }
   };
 
-  const handleCategoryToggle = (categoryId) => {
-    const normalizedId = Number(categoryId);
-    if (!Number.isFinite(normalizedId)) {
-      return;
-    }
-    setSelectedCategories(prev => {
-      if (prev.includes(normalizedId)) {
-        return prev.filter(id => id !== normalizedId);
-      } else {
-        return [...prev, normalizedId];
-      }
-    });
-    setError(null);
-    if (onErrorChange) {
-      onErrorChange(null);
-    }
-  };
-
   const validateForm = () => {
     if (!formData.name.trim()) {
       setError('El nombre del artículo es obligatorio');
@@ -207,6 +190,21 @@ export const ItemForm = ({
 
   const isEditMode = !!item;
   const selectedCategoryObjects = categories.filter(cat => selectedCategories.includes(Number(cat.id)));
+  const selectedCategoryIdsSet = new Set(selectedCategories.map((id) => Number(id)));
+  const availableCategoryOptions = categories.filter(
+    (cat) => !selectedCategoryIdsSet.has(Number(cat.id)),
+  );
+
+  const handleCategoriesTypeaheadChange = (selected) => {
+    const normalizedIds = selected
+      .map((category) => Number(category.id))
+      .filter((id) => Number.isFinite(id));
+    setSelectedCategories(normalizedIds);
+    setError(null);
+    if (onErrorChange) {
+      onErrorChange(null);
+    }
+  };
 
   return (
     <>
@@ -255,10 +253,9 @@ export const ItemForm = ({
         </Col>
       </Row>
 
-      {/* Unit, Brand, and Active Status */}
-      {/* Unit and Brand */}
+      {/* Unit, Brand, and Price */}
       <Row>
-        <Col md={6}>
+        <Col md={4}>
           <Form.Group className="mb-3">
             <Form.Label>Unidad de medida <span className="text-danger">*</span></Form.Label>
             <Form.Select
@@ -274,7 +271,7 @@ export const ItemForm = ({
             </Form.Select>
           </Form.Group>
         </Col>
-        <Col md={6}>
+        <Col md={4}>
           <Form.Group className="mb-3">
             <Form.Label>Marca</Form.Label>
             <Form.Control
@@ -288,11 +285,7 @@ export const ItemForm = ({
             />
           </Form.Group>
         </Col>
-      </Row>
-
-      {/* Price and Active Status */}
-      <Row>
-        <Col md={6}>
+        <Col md={4}>
           <Form.Group className="mb-3">
             <Form.Label>Precio</Form.Label>
             <Form.Control
@@ -307,23 +300,7 @@ export const ItemForm = ({
             />
           </Form.Group>
         </Col>
-        {isEditMode && (
-          <Col md={6} className="d-flex align-items-start">
-            <Form.Group className="mt-5 w-100">
-              <Form.Check
-                type="checkbox"
-                id="is_active"
-                name="is_active"
-                label="Artículo activo"
-                checked={formData.is_active}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </Form.Group>
-          </Col>
-        )}
       </Row>
-
 
       {/* Description */}
       <Form.Group className="mb-3">
@@ -340,6 +317,25 @@ export const ItemForm = ({
         />
       </Form.Group>
 
+      {/* Active Status */}
+      {isEditMode && (
+        <Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                id="is_active"
+                name="is_active"
+                label="Artículo activo"
+                checked={formData.is_active}
+                onChange={handleChange}
+                disabled={loading}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+      )}
+
       {/* Categories */}
       <Form.Group className="mb-3">
         <Form.Label>Categorías</Form.Label>
@@ -351,80 +347,64 @@ export const ItemForm = ({
           </div>
         ) : (
           <>
-            {/* Selected Categories Display */}
-            <div
-              className="mb-3 p-3"
-              style={{
-                backgroundColor: '#f8f9fa',
-                borderRadius: '4px',
-                minHeight: '72px',
-                display: 'flex',
-                alignItems: selectedCategoryObjects.length > 0 ? 'flex-start' : 'center',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
-            >
-              {selectedCategoryObjects.length > 0 ? (
-                selectedCategoryObjects.map(cat => (
-                  <CategoryBadge 
-                    key={cat.id}
-                    category={cat}
-                    onRemove={handleCategoryToggle}
-                    removable={true}
-                  />
-                ))
-              ) : (
-                <p className="text-muted mb-0">Sin categorías asignadas</p>
-              )}
-            </div>
-
-            {/* Available Categories */}
             <div className="d-flex gap-3 align-items-start">
-              <div
-                style={{
-                  flex: 1,
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  border: '1px solid #ddd',
-                  padding: '10px',
-                  borderRadius: '4px',
-                  backgroundColor: '#fff',
-                }}
-              >
-                {categories.filter(cat => !selectedCategories.includes(Number(cat.id))).length > 0 ? (
-                  categories
-                    .filter(cat => !selectedCategories.includes(Number(cat.id)))
-                    .map(cat => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => handleCategoryToggle(cat.id)}
-                        disabled={loading}
-                        className="badge"
+              <div style={{ flex: 1 }}>
+                <Typeahead
+                  id="item-categories-typeahead"
+                  multiple
+                  options={availableCategoryOptions}
+                  selected={selectedCategoryObjects}
+                  onChange={handleCategoriesTypeaheadChange}
+                  labelKey="name"
+                  filterBy={['name']}
+                  minLength={0}
+                  placeholder="Selecciona categorías..."
+                  disabled={loading}
+                  flip
+                  emptyLabel="No hay categorías disponibles"
+                  renderToken={(option, tokenProps, index) => {
+                    const textColor = getTextColor(option?.color);
+
+                    return (
+                      <Token
+                        key={index}
+                        {...tokenProps}
+                        option={option}
                         style={{
-                          backgroundColor: cat.color,
-                          color: getTextColor(cat.color),
-                          border: 'none',
-                          cursor: 'pointer',
-                          marginRight: '8px',
-                          marginBottom: '8px',
-                          padding: '6px 12px',
+                          backgroundColor: option?.color || '#6c757d',
+                          color: textColor,
+                          border: `1px solid ${textColor}`,
                         }}
                       >
-                        {cat.name}
-                      </button>
-                    ))
-                ) : (
-                  <p className="text-muted mb-0">No hay categorías disponibles</p>
-                )}
+                        {option.name}
+                      </Token>
+                    );
+                  }}
+                  renderMenuItemChildren={(option) => (
+                    <div className="d-flex align-items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: '10px',
+                          height: '10px',
+                          borderRadius: '50%',
+                          backgroundColor: option?.color || '#6c757d',
+                          border: '1px solid rgba(0, 0, 0, 0.15)',
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span>{option.name}</span>
+                    </div>
+                  )}
+                />
               </div>
 
-              <div>
+              <div className="d-flex align-items-start">
                 <Button
                   variant="outline-primary"
-                  size="sm"
                   onClick={() => setShowCategoryModal(true)}
                   disabled={loading}
+                  style={{ height: '49px' }}
                 >
                   + Nueva categoría
                 </Button>

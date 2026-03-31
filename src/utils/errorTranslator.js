@@ -7,8 +7,25 @@ import { ERROR_MESSAGES, DEFAULT_ERROR_MESSAGE } from "../constants/errorMessage
  */
 export const translateError = (error) => {
   try {
+    const getDynamicMessage = (code) => {
+      if (!code || typeof code !== "string") return null;
+
+      const stockByItemPrefix = "INSUFFICIENT_STOCK_FOR_ITEM_";
+      if (code.startsWith(stockByItemPrefix)) {
+        const itemSku = code.slice(stockByItemPrefix.length).trim();
+        if (itemSku) {
+          return `Stock insuficiente para el artículo ${itemSku}`;
+        }
+        return "Stock insuficiente para completar esta operación de salida";
+      }
+
+      return null;
+    };
+
     const findCodeMessage = (code) => {
       if (!code) return null;
+      const dynamicMessage = getDynamicMessage(code);
+      if (dynamicMessage) return dynamicMessage;
       for (const category of Object.values(ERROR_MESSAGES)) {
         if (category[code]) return category[code];
       }
@@ -31,7 +48,7 @@ export const translateError = (error) => {
         if (translatedDetail) return translatedDetail;
 
         // If it doesn't match directly, try to extract code from format "CODE: message"
-        const codeMatch = errorData.detail.match(/^([A-Z_]+):/);
+        const codeMatch = errorData.detail.match(/^([A-Z0-9_-]+):/);
         if (codeMatch) {
           const translatedDetailCode = findCodeMessage(codeMatch[1]);
           if (translatedDetailCode) return translatedDetailCode;
