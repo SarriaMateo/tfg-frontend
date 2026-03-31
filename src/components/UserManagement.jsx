@@ -1,38 +1,48 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { userService } from '../services/userService';
-import { UserProfile } from './UserProfile';
 import { UserList } from './UserList';
 import { UserForm } from './UserForm';
+import { UserProfileForm } from './UserProfileForm';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Card, Button, Alert } from 'react-bootstrap';
+import { BsPeopleFill } from 'react-icons/bs';
 import { translateError } from '../utils/errorTranslator';
 
 export const UserManagement = () => {
   const { user, updateUser } = useAuth();
   const [selectedUser, setSelectedUser] = useState(null);
+  const [editingOwnProfile, setEditingOwnProfile] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
   const isAdmin = user?.role === 'ADMIN';
 
   const handleCreateUser = () => {
     setSelectedUser(null);
+    setEditingOwnProfile(false);
     setShowModal(true);
   };
 
-  const handleEditUser = (selectedUserData) => {
+  const handleEditUserAsAdmin = (selectedUserData) => {
     setSelectedUser(selectedUserData);
+    setEditingOwnProfile(false);
     setShowModal(true);
   };
 
-  const handleDeleteUser = (userId, onSuccessCallback) => {
+  const handleEditOwnProfile = (selectedUserData) => {
+    setSelectedUser(selectedUserData);
+    setEditingOwnProfile(true);
+    setShowModal(true);
+  };
+
+  const handleDeleteUser = (userId) => {
     setUserToDelete(userId);
     setShowConfirm(true);
   };
@@ -40,14 +50,16 @@ export const UserManagement = () => {
   const confirmDelete = async () => {
     setLoading(true);
     setError(null);
+    setSuccessMessage('');
     try {
       await userService.deleteUser(userToDelete);
-      setSuccess(true);
       setShowConfirm(false);
       setUserToDelete(null);
       setRefreshKey(prev => prev + 1);
-      setTimeout(() => setSuccess(false), 3000);
+      setSuccessMessage('Usuario eliminado correctamente.');
     } catch (err) {
+      setShowConfirm(false);
+      setUserToDelete(null);
       setError(translateError(err));
     } finally {
       setLoading(false);
@@ -57,12 +69,23 @@ export const UserManagement = () => {
   const handleUserSubmit = async (formData) => {
     setLoading(true);
     setError(null);
+    setSuccessMessage('');
     try {
       let updatedUser;
       if (selectedUser) {
-        // Edit user
-        let updateData;
-        if (isAdmin) {
+        // Edit own profile from the user list using profile-only fields
+        if (editingOwnProfile) {
+          const updateData = {
+            name: formData.name || null,
+            username: formData.username || null,
+            password: formData.password || null,
+          };
+          Object.keys(updateData).forEach(
+            key => updateData[key] === null && delete updateData[key]
+          );
+          updatedUser = await userService.updateUser(selectedUser.id, updateData);
+        } else if (isAdmin) {
+          let updateData;
           updateData = {};
 
           // Only include fields we actually want to update
@@ -86,7 +109,7 @@ export const UserManagement = () => {
           console.log('Datos enviados al backend (admin update):', updateData);
           updatedUser = await userService.updateUserAdmin(selectedUser.id, updateData);
         } else {
-          updateData = {
+          const updateData = {
             name: formData.name || null,
             username: formData.username || null,
             password: formData.password || null,
@@ -111,13 +134,17 @@ export const UserManagement = () => {
           branch_id: formData.branch_id ? parseInt(formData.branch_id) : null,
         };
         await userService.createUser(createData);
+        setSuccessMessage('Usuario creado correctamente.');
       }
 
-      setSuccess(true);
+      if (selectedUser) {
+        setSuccessMessage('Usuario actualizado correctamente.');
+      }
+
       setShowModal(false);
       setSelectedUser(null);
+      setEditingOwnProfile(false);
       setRefreshKey(prev => prev + 1);
-      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(translateError(err));
     } finally {
@@ -125,63 +152,94 @@ export const UserManagement = () => {
     }
   };
 
+  const modalTitle = editingOwnProfile
+    ? 'Editar Perfil'
+    : (selectedUser ? 'Editar Usuario' : 'Crear Nuevo Usuario');
+
   return (
-    <div>
-      {/* Mi Perfil Section */}
-      <UserProfile user={user} onUserUpdated={() => setRefreshKey(prev => prev + 1)} />
+    <Card className="shadow-sm border-0">
+      <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+        <div>
+          <Card.Title className="mb-0 d-flex align-items-center gap-2">
+            <BsPeopleFill />
+            Usuarios
+          </Card.Title>
+          <small className="text-white-50">Gestión de usuarios y perfiles</small>
+        </div>
+        {isAdmin && (
+          <Button
+            size="sm"
+            onClick={handleCreateUser}
+            style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white' }}
+          >
+            + Nuevo Usuario
+          </Button>
+        )}
+      </Card.Header>
+      <Card.Body>
+        {error && (
+          <Alert variant="danger" onClose={() => setError(null)} dismissible>
+            {error}
+          </Alert>
+        )}
+        {successMessage && (
+          <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible>
+            {successMessage}
+          </Alert>
+        )}
 
-      <div className="mt-3">
-        <Card className="shadow-sm border-0">
-          <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-            <Card.Title className="mb-0">Lista de Usuarios</Card.Title>
-            {isAdmin && (
-              <Button
-                size="sm"
-                onClick={handleCreateUser}
-                style={{ height: '36px', padding: '0.25rem 0.75rem', backgroundColor: '#198754', borderColor: '#198754', color: 'white'}}
-              >
-                + Nuevo Usuario
-              </Button>
-            )}
-          </Card.Header>
-          <Card.Body>
-            {success && <Alert variant="success" onClose={() => setSuccess(false)} dismissible>¡Operación completada correctamente!</Alert>}
-
-            <UserList
-              key={refreshKey}
-              currentUserId={user.id}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-              isAdmin={isAdmin}
-            />
-          </Card.Body>
-        </Card>
-      </div>
+        <UserList
+          key={refreshKey}
+          currentUserId={user.id}
+          onEditOwnProfile={handleEditOwnProfile}
+          onEditUserAsAdmin={handleEditUserAsAdmin}
+          onDeleteUser={handleDeleteUser}
+          isAdmin={isAdmin}
+        />
+      </Card.Body>
 
       {/* Modal for Creating/Editing Users */}
       <Modal
         isOpen={showModal}
-        title={selectedUser ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
+        title={modalTitle}
         onClose={() => {
           setShowModal(false);
           setSelectedUser(null);
+          setEditingOwnProfile(false);
           setError(null);
         }}
         size="lg"
       >
-        <UserForm
-          user={selectedUser}
-          isAdmin={isAdmin}
-          onSubmit={handleUserSubmit}
-          onCancel={() => {
-            setShowModal(false);
-            setSelectedUser(null);
-            setError(null);
-          }}
-          loading={loading}
-          error={error}
-          onErrorChange={setError}
-        />
+        {editingOwnProfile ? (
+          <UserProfileForm
+            user={selectedUser}
+            onSubmit={handleUserSubmit}
+            onCancel={() => {
+              setShowModal(false);
+              setSelectedUser(null);
+              setEditingOwnProfile(false);
+              setError(null);
+            }}
+            loading={loading}
+            error={error}
+            onErrorChange={setError}
+          />
+        ) : (
+          <UserForm
+            user={selectedUser}
+            isAdmin={isAdmin}
+            onSubmit={handleUserSubmit}
+            onCancel={() => {
+              setShowModal(false);
+              setSelectedUser(null);
+              setEditingOwnProfile(false);
+              setError(null);
+            }}
+            loading={loading}
+            error={error}
+            onErrorChange={setError}
+          />
+        )}
       </Modal>
 
       {/* Confirm Delete Dialog */}
@@ -198,6 +256,6 @@ export const UserManagement = () => {
         cancelText="Cancelar"
         variant="danger"
       />
-    </div>
+    </Card>
   );
 };

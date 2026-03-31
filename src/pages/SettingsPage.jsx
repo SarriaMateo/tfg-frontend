@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
 import { Navbar } from '../components/Navbar';
 import { UserManagement } from '../components/UserManagement';
 import { BranchManagement } from '../components/BranchManagement';
 import { CompanyManagement } from '../components/CompanyManagement';
-import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
-import { BsBuildingFill, BsBuildingsFill, BsPeopleFill, BsPeople } from 'react-icons/bs';
+import { Container, Row, Col, Nav } from 'react-bootstrap';
+import { BsBuildingFill, BsBuildingsFill, BsPeopleFill } from 'react-icons/bs';
 
 export const SettingsPage = () => {
-  const { user } = useAuth();
   const [activeSection, setActiveSection] = useState('empresa');
 
   const sections = [
@@ -71,15 +69,7 @@ export const SettingsPage = () => {
 
             {/* Usuarios Section */}
             {activeSection === 'usuarios' && (
-              <Card className="shadow-sm border-0">
-                <Card.Header className="bg-primary text-white">
-                  <Card.Title className="mb-0 d-flex align-items-center gap-2"><BsPeopleFill /> Usuarios</Card.Title>
-                  <small className="text-white-50">Gestión de usuarios y perfiles</small>
-                </Card.Header>
-                <Card.Body>
-                  <UserManagement />
-                </Card.Body>
-              </Card>
+              <UserManagement />
             )}
           </Col>
         </Row>

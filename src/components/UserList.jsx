@@ -1,26 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Button, Spinner, Alert } from 'react-bootstrap';
 import { BsPencilSquare, BsFillTrash3Fill } from 'react-icons/bs';
 import { userService } from '../services/userService';
 import { companyService } from '../services/companyService';
 import { translateError } from '../utils/errorTranslator';
 
-export const UserList = ({ currentUserId, onEditUser, onDeleteUser, isAdmin = false }) => {
+export const UserList = ({
+  currentUserId,
+  onEditOwnProfile,
+  onEditUserAsAdmin,
+  onDeleteUser,
+  isAdmin = false,
+}) => {
   const [users, setUsers] = useState([]);
   const [branches, setBranches] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const usersData = await userService.getUsersByCompany();
-      setUsers(usersData);
+      const sortedUsers = [...usersData].sort((a, b) => {
+        if (a.id === currentUserId) return -1;
+        if (b.id === currentUserId) return 1;
+        return 0;
+      });
+      setUsers(sortedUsers);
 
       // Get information for all branches
       const branchesData = await companyService.getCompanyBranches();
@@ -34,12 +41,14 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser, isAdmin = fa
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleDelete = (userId) => {
-    onDeleteUser(userId, () => {
-      setUsers(users.filter(u => u.id !== userId));
-    });
+    onDeleteUser(userId);
   };
 
   const getRoleColor = (role) => {
@@ -65,7 +74,7 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser, isAdmin = fa
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Rol</th>
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Sede</th>
               <th style={{ fontWeight: '600', textAlign: 'center' }}>Activo</th>
-              {isAdmin && <th style={{ fontWeight: '600', textAlign: 'center' }}>Acciones</th>}
+              <th style={{ fontWeight: '600', textAlign: 'center' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -91,22 +100,32 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser, isAdmin = fa
                     {user.is_active ? 'Sí' : 'No'}
                   </span>
                 </td>
-                {isAdmin && (
-                  <td>
-                    <div className="d-flex gap-2 justify-content-center">
-                      {user.id !== currentUserId && (
-                        <Button 
+                <td>
+                  <div className="d-flex gap-2 justify-content-center">
+                    {user.id === currentUserId && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="list-action-btn"
+                        onClick={() => onEditOwnProfile(user)}
+                        title="Editar perfil"
+                      >
+                        <BsPencilSquare />
+                      </Button>
+                    )}
+
+                    {isAdmin && user.id !== currentUserId && (
+                      <>
+                        <Button
                           variant="primary"
                           size="sm"
                           className="list-action-btn"
-                          onClick={() => onEditUser(user)}
-                          title="Editar"
+                          onClick={() => onEditUserAsAdmin(user)}
+                          title="Editar usuario"
                         >
                           <BsPencilSquare />
                         </Button>
-                      )}
-                      {user.id !== currentUserId && (
-                        <Button 
+                        <Button
                           variant="danger"
                           size="sm"
                           className="list-action-btn"
@@ -115,10 +134,10 @@ export const UserList = ({ currentUserId, onEditUser, onDeleteUser, isAdmin = fa
                         >
                           <BsFillTrash3Fill />
                         </Button>
-                      )}
-                    </div>
-                  </td>
-                )}
+                      </>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
