@@ -9,7 +9,7 @@ import { CategoryManagementModal } from './CategoryManagementModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Card, Button, Alert } from 'react-bootstrap';
 import { translateError } from '../utils/errorTranslator';
-import { BsFillTagsFill } from 'react-icons/bs';
+import { BsFillTagsFill, BsBox } from 'react-icons/bs';
 
 export const ItemManagement = ({ items = [], loading: listLoading = false, error: listError = null, pagination = {}, currentQuery = {}, onFetchItems = () => {} }) => {
   const { user } = useAuth();
@@ -99,7 +99,7 @@ export const ItemManagement = ({ items = [], loading: listLoading = false, error
       {/* Items Management Section */}
       <Card className="shadow-sm border-0">
         <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center py-3">
-          <Card.Title as="h4" className="mb-0">Artículos</Card.Title>
+          <Card.Title as="h4" className="mb-0"><BsBox className="me-2" style={{ marginBottom: '2px' }} />Artículos</Card.Title>
           <div className="d-flex gap-2">
             <Button
               variant="info"

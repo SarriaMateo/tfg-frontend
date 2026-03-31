@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Spinner, Alert, Button, Form, Row, Col, Pagination } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsInfoCircle } from 'react-icons/bs';
+import { BsInfoCircle, BsSortUp, BsSortDown } from 'react-icons/bs';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
 import { branchService } from '../services/branchService';
@@ -334,7 +334,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
                 style={sortDirectionButtonStyle}
                 title={filters.order_desc === 'true' ? 'Descendente' : 'Ascendente'}
               >
-                {filters.order_desc === 'true' ? '↓' : '↑'}
+                {filters.order_desc === 'true' ? <BsSortDown /> : <BsSortUp />}
               </Button>
             </Form.Group>
           </Col>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Button, Alert } from 'react-bootstrap';
+import { BsClipboardData } from 'react-icons/bs';
 import { TransactionListTable } from './TransactionListTable';
 import { TransactionModal } from './TransactionModal';
 import { transactionService } from '../services/transactionService';
@@ -105,7 +106,7 @@ export const TransactionManagement = ({
     <>
       <Card className="shadow-sm border-0">
         <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center py-3">
-          <Card.Title as="h4" className="mb-0">Historial de Operaciones</Card.Title>
+          <Card.Title as="h4" className="mb-0"><BsClipboardData className="me-2" style={{ marginBottom: '2px' }} />Historial de Operaciones</Card.Title>
           <Button
             size="sm"
             onClick={handleCreateTransaction}

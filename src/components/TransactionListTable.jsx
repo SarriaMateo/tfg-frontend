@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Spinner, Button, Form, Row, Col, Pagination, Modal } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsCheckSquare, BsDownload, BsFiletypeCsv, BsFiletypePdf, BsFillTrash3Fill, BsInfoCircle, BsUpload } from 'react-icons/bs';
+import { BsCheckSquare, BsDownload, BsFiletypeCsv, BsFiletypePdf, BsFillTrash3Fill, BsInfoCircle, BsUpload, BsSortUp, BsSortDown } from 'react-icons/bs';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
@@ -713,7 +713,7 @@ export const TransactionListTable = ({
                 style={sortDirectionButtonStyle}
                 title={filters.order_desc === 'true' ? 'Descendente' : 'Ascendente'}
               >
-                {filters.order_desc === 'true' ? '↓' : '↑'}
+                {filters.order_desc === 'true' ? <BsSortDown /> : <BsSortUp />}
               </Button>
             </Form.Group>
           </Col>
