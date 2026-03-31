@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Alert, Button, Card, Col, Container, Form, Modal, Row, Spinner, Table } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsBoxArrowUpRight, BsCheckSquare, BsDownload, BsFillTrash3Fill, BsInfoCircle, BsPencilSquare, BsUpload } from 'react-icons/bs';
+import { BsCheckSquare, BsDownload, BsFillTrash3Fill, BsInfoCircle, BsPencilSquare, BsUpload } from 'react-icons/bs';
 import { Navbar } from '../components/Navbar';
 import { TransactionModal } from '../components/TransactionModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -85,13 +85,6 @@ const resolveDocumentFileName = ({ fileName, transactionId, contentType }) => {
   const extension = CONTENT_TYPE_EXTENSION[contentType] || 'bin';
   return `documento-operacion-${transactionId}.${extension}`;
 };
-
-const escapeHtml = (value) => String(value)
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#39;');
 
 export const TransactionDetailPage = () => {
   const navigate = useNavigate();
@@ -346,42 +339,6 @@ export const TransactionDetailPage = () => {
     } finally {
       setDocumentActionLoading(false);
     }
-  };
-
-  const handleOpenDocument = () => {
-    if (!documentPreviewUrl) return;
-
-    const resolvedName = documentFileName || `documento-operacion-${transaction?.id}`;
-    const openWindow = window.open('', '_blank');
-
-    if (!openWindow) {
-      window.open(documentPreviewUrl, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    const safeTitle = escapeHtml(resolvedName);
-    const encodedUrl = encodeURI(documentPreviewUrl);
-    const previewTag = isImageDocument
-      ? `<img src="${encodedUrl}" alt="${safeTitle}" style="max-width:100%; max-height:100vh; object-fit:contain; display:block; margin:auto;" />`
-      : `<iframe src="${encodedUrl}" title="${safeTitle}" style="width:100%; height:100%; border:0;"></iframe>`;
-
-    openWindow.document.open();
-    openWindow.document.write(`<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>${safeTitle}</title>
-  <style>
-    html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #f5f7fa; }
-    .viewer { width: 100%; height: 100%; }
-  </style>
-</head>
-<body>
-  <div class="viewer">${previewTag}</div>
-</body>
-</html>`);
-    openWindow.document.close();
   };
 
   const handleDownloadDocument = () => {
@@ -669,7 +626,10 @@ export const TransactionDetailPage = () => {
         <div 
           className="text-center"
           style={{ cursor: 'pointer' }}
-          onClick={(e) => handleFileOpenClick(e, documentPreviewUrl)}
+          onClick={(e) => handleFileOpenClick(e, documentPreviewUrl, {
+            fileName: documentFileName || `documento-operacion-${transaction?.id}`,
+            contentType: documentContentType,
+          })}
           role="button"
           tabIndex={0}
           title="Abrir"
@@ -696,10 +656,13 @@ export const TransactionDetailPage = () => {
         <div 
           className="border rounded overflow-hidden" 
           style={{ backgroundColor: '#fff' }}
-          onClick={(e) => handleFileOpenClick(e, documentPreviewUrl)}
+          onClick={(e) => handleFileOpenClick(e, documentPreviewUrl, {
+            fileName: documentFileName || `documento-operacion-${transaction?.id}`,
+            contentType: documentContentType,
+          })}
           role="button"
           tabIndex={0}
-          title="Ctrl+Click (Cmd+Click en Mac) para abrir en nueva pestaña"
+          title="Abrir"
         >
           <iframe
             title="Vista previa del documento"
@@ -715,7 +678,7 @@ export const TransactionDetailPage = () => {
         <div className="border rounded p-4 bg-light text-center">
           <p className="mb-1 fw-semibold">Vista previa no disponible en este navegador</p>
           <p className="text-muted mb-0">
-            Usa los botones de abrir o descargar para ver el archivo
+            Usa el boton de descarga para ver el archivo
             {documentFileName ? ` (${documentFileName})` : ''}.
           </p>
         </div>
@@ -726,7 +689,7 @@ export const TransactionDetailPage = () => {
         )}
         {!isPdfDocument && !isOfficeDocument && !isImageDocument && (
           <p className="text-muted small mt-2 mb-0">
-            Este tipo de archivo se debe abrir o descargar para visualizarlo.
+            Este tipo de archivo se debe descargar para visualizarlo.
           </p>
         )}
       </div>
@@ -891,62 +854,49 @@ export const TransactionDetailPage = () => {
 
                   <div className="d-flex justify-content-between align-items-start mb-3 gap-3">
                     <div>
-                      <h5 className="fw-bold mb-1">Documento adjunto</h5>
-                      <p className="text-muted mb-0">
-                        {hasDocument ? 'Documento disponible para consulta' : 'Sin documento adjunto'}
-                      </p>
+                      <h4 className="fw-bold mb-1">Documento adjunto</h4>
                     </div>
 
-                    {canUploadDocument && (
-                      <div className="d-flex gap-2 flex-wrap justify-content-end">
-                        <Button
-                          variant={hasDocument ? 'primary' : 'success'}
-                          className="detail-page-action-btn"
-                          onClick={triggerDocumentPicker}
-                          disabled={documentActionLoading}
-                        >
-                          {hasDocument ? <BsPencilSquare className="me-1" /> : <BsUpload className="me-1" />}
-                          {hasDocument ? 'Editar' : 'Añadir'}
-                        </Button>
-                        {hasDocument && canDeleteDocument && (
+                    <div className="d-flex gap-2 justify-content-end align-items-center flex-nowrap">
+                      {canUploadDocument && (
+                        <>
                           <Button
-                            variant="danger"
-                            className="detail-page-action-btn"
-                            onClick={() => setShowConfirmDeleteDocument(true)}
+                            variant={hasDocument ? 'primary' : 'success'}
+                            className="detail-media-icon-btn"
+                            onClick={triggerDocumentPicker}
                             disabled={documentActionLoading}
+                            title={hasDocument ? 'Editar documento' : 'Añadir documento'}
                           >
-                            <BsFillTrash3Fill className="me-1" />
-                            Eliminar
+                            {hasDocument ? <BsPencilSquare /> : <BsUpload />}
                           </Button>
-                        )}
-                      </div>
-                    )}
+                          {hasDocument && canDeleteDocument && (
+                            <Button
+                              variant="danger"
+                              className="detail-media-icon-btn"
+                              onClick={() => setShowConfirmDeleteDocument(true)}
+                              disabled={documentActionLoading}
+                              title="Eliminar documento"
+                            >
+                              <BsFillTrash3Fill />
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      {hasDocument && documentPreviewUrl && canDownloadDocument && (
+                        <Button
+                          variant="outline-secondary"
+                          className="detail-media-icon-btn"
+                          onClick={handleDownloadDocument}
+                          disabled={documentActionLoading}
+                          title="Descargar documento"
+                        >
+                          <BsDownload />
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {renderDocumentPreview()}
-
-                  {hasDocument && documentPreviewUrl && canDownloadDocument && (
-                    <div className="d-flex gap-2 flex-wrap mt-3">
-                      <Button
-                        variant="outline-primary"
-                        className="detail-page-action-btn"
-                        onClick={handleOpenDocument}
-                        disabled={documentActionLoading}
-                      >
-                        <BsBoxArrowUpRight className="me-1" />
-                        Abrir
-                      </Button>
-                      <Button
-                        variant="outline-secondary"
-                        className="detail-page-action-btn"
-                        onClick={handleDownloadDocument}
-                        disabled={documentActionLoading}
-                      >
-                        <BsDownload className="me-1" />
-                        Descargar
-                      </Button>
-                    </div>
-                  )}
                 </Card.Body>
               </Card>
               </Col>

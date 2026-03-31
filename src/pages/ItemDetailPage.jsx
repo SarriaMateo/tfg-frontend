@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Alert, Spinner, Table } from 'react-bootstrap';
-import { BsBoxArrowUpRight, BsDownload, BsFillTrash3Fill, BsInfoCircle, BsPencilSquare, BsUpload } from 'react-icons/bs';
+import { BsDownload, BsFillTrash3Fill, BsInfoCircle, BsPencilSquare, BsUpload } from 'react-icons/bs';
 import { Navbar } from '../components/Navbar';
 import { ItemModal } from '../components/ItemModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -230,11 +230,6 @@ export const ItemDetailPage = () => {
     } finally {
       setImageActionLoading(false);
     }
-  };
-
-  const handleOpenImage = () => {
-    if (!imageUrl) return;
-    window.open(imageUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleDownloadImage = () => {
@@ -494,33 +489,46 @@ export const ItemDetailPage = () => {
 
                     <div className="d-flex justify-content-between align-items-start mb-3 gap-3">
                       <div>
-                        <h5 className="fw-bold mb-1">Imagen del artículo</h5>
+                        <h4 className="fw-bold mb-1">Imagen del artículo</h4>
                       </div>
 
-                      {canManageImage && (
-                        <div className="d-flex gap-2 flex-wrap justify-content-end">
-                          <Button
-                            variant={item.has_image ? 'primary' : 'success'}
-                            className="detail-page-action-btn"
-                            onClick={triggerImagePicker}
-                            disabled={imageActionLoading || loadingAction}
-                          >
-                            {item.has_image ? <BsPencilSquare className="me-1" /> : <BsUpload className="me-1" />}
-                            {item.has_image ? 'Editar' : 'Añadir'}
-                          </Button>
-                          {item.has_image && (
+                      <div className="d-flex gap-2 justify-content-end align-items-center flex-nowrap">
+                        {canManageImage && (
+                          <>
                             <Button
-                              variant="danger"
-                              className="detail-page-action-btn"
-                              onClick={() => setShowConfirmDeleteImage(true)}
+                              variant={item.has_image ? 'primary' : 'success'}
+                              className="detail-media-icon-btn"
+                              onClick={triggerImagePicker}
                               disabled={imageActionLoading || loadingAction}
+                              title={item.has_image ? 'Editar imagen' : 'Añadir imagen'}
                             >
-                              <BsFillTrash3Fill className="me-1" />
-                              Eliminar
+                              {item.has_image ? <BsPencilSquare /> : <BsUpload />}
                             </Button>
-                          )}
-                        </div>
-                      )}
+                            {item.has_image && (
+                              <Button
+                                variant="danger"
+                                className="detail-media-icon-btn"
+                                onClick={() => setShowConfirmDeleteImage(true)}
+                                disabled={imageActionLoading || loadingAction}
+                                title="Eliminar imagen"
+                              >
+                                <BsFillTrash3Fill />
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        {item.has_image && imageUrl && (
+                          <Button
+                            variant="outline-secondary"
+                            className="detail-media-icon-btn"
+                            onClick={handleDownloadImage}
+                            disabled={imageActionLoading || loadingAction}
+                            title="Descargar imagen"
+                          >
+                            <BsDownload />
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {imageLoading ? (
@@ -534,7 +542,10 @@ export const ItemDetailPage = () => {
                       <div 
                         className="item-detail-image-stage text-center"
                         style={{ cursor: 'pointer' }}
-                        onClick={(e) => handleFileOpenClick(e, imageUrl)}
+                        onClick={(e) => handleFileOpenClick(e, imageUrl, {
+                          fileName: imageName || `imagen-articulo-${item?.id}`,
+                          contentType: 'image/*',
+                        })}
                         role="button"
                         tabIndex={0}
                         title="Abrir"
@@ -552,28 +563,6 @@ export const ItemDetailPage = () => {
                       </div>
                     )}
 
-                    {item.has_image && imageUrl && (
-                      <div className="d-flex gap-2 flex-wrap mt-3">
-                        <Button
-                          variant="outline-primary"
-                          className="detail-page-action-btn"
-                          onClick={handleOpenImage}
-                          disabled={imageActionLoading || loadingAction}
-                        >
-                          <BsBoxArrowUpRight className="me-1" />
-                          Abrir
-                        </Button>
-                        <Button
-                          variant="outline-secondary"
-                          className="detail-page-action-btn"
-                          onClick={handleDownloadImage}
-                          disabled={imageActionLoading || loadingAction}
-                        >
-                          <BsDownload className="me-1" />
-                          Descargar
-                        </Button>
-                      </div>
-                    )}
                   </Card.Body>
                 </Card>
               </Col>
