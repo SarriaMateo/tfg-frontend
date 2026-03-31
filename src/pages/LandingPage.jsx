@@ -4,13 +4,17 @@ import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth";
 import { translateError } from "../utils/errorTranslator";
 import { handleNavigationClick } from "../utils/navigationUtils";
+import { UI_MESSAGES } from "../constants/errorMessages";
+
+const SESSION_EXPIRED_NOTICE_KEY = 'auth:sessionExpiredNotice';
 
 export default function LandingPage() {
     const navigate = useNavigate();
-    const { login, loading, error, isAuthenticated } = useAuth();
+    const { login, loading, isAuthenticated } = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState(null);
+    const [sessionExpiredNotice, setSessionExpiredNotice] = useState(null);
 
     // Redirect to dashboard if already authenticated
     useEffect(() => {
@@ -18,6 +22,14 @@ export default function LandingPage() {
             navigate("/dashboard", { replace: true });
         }
     }, [isAuthenticated, loading, navigate]);
+
+    useEffect(() => {
+        const hasExpiredSessionNotice = sessionStorage.getItem(SESSION_EXPIRED_NOTICE_KEY);
+        if (hasExpiredSessionNotice) {
+            setSessionExpiredNotice(UI_MESSAGES.SESSION_EXPIRED_NOTICE);
+            sessionStorage.removeItem(SESSION_EXPIRED_NOTICE_KEY);
+        }
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -46,6 +58,12 @@ export default function LandingPage() {
                             {loginError && (
                                 <Alert variant="danger" dismissible onClose={() => setLoginError(null)}>
                                     {loginError}
+                                </Alert>
+                            )}
+
+                            {sessionExpiredNotice && (
+                                <Alert variant="warning" dismissible onClose={() => setSessionExpiredNotice(null)}>
+                                    {sessionExpiredNotice}
                                 </Alert>
                             )}
 

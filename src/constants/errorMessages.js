@@ -95,3 +95,7 @@ export const ERROR_MESSAGES = {
 };
 
 export const DEFAULT_ERROR_MESSAGE = "Ha ocurrido un error inesperado. Por favor, intenta de nuevo.";
+
+export const UI_MESSAGES = {
+  SESSION_EXPIRED_NOTICE: "Tu sesión ha expirado. Inicia sesión de nuevo para continuar.",
+};
