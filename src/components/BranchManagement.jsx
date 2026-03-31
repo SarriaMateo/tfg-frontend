@@ -121,7 +121,7 @@ export const BranchManagement = () => {
       {/* Modal for Creating/Editing Branches */}
       <Modal
         isOpen={showModal}
-        title={selectedBranch ? 'Editar Sede' : 'Crear Sede'}
+        title={selectedBranch ? 'Editar Sede' : 'Nueva Sede'}
         onClose={() => {
           setShowModal(false);
           setSelectedBranch(null);

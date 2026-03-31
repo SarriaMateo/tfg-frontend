@@ -747,10 +747,9 @@ export const TransactionDetailPage = () => {
             <Button
               variant="outline-secondary"
               className="detail-page-action-btn"
-              onClick={(e) => {
+              onClick={() => {
                 const path = fromItemId ? `/inventory/items/${fromItemId}` : '/transactions';
-                const state = fromItemId ? { fromTransactionId: transactionId } : {};
-                handleNavigationClickWithState(e, path, state, navigate);
+                navigate(path);
               }}
               disabled={actionLoading}
             >

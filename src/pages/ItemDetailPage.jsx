@@ -380,12 +380,7 @@ export const ItemDetailPage = () => {
               className="detail-page-action-btn"
               onClick={(e) => {
                 const path = fromTransactionId ? `/transactions/${fromTransactionId}` : '/inventory';
-                const state = fromTransactionId ? { fromItemId: Number(item?.id) || parsedItemId } : undefined;
-                if (state) {
-                  handleNavigationClickWithState(e, path, state, navigate);
-                } else {
-                  handleNavigationClickWithState(e, path, {}, navigate);
-                }
+                handleNavigationClickWithState(e, path, {}, navigate);
               }}
               disabled={loadingAction || imageActionLoading}
             >

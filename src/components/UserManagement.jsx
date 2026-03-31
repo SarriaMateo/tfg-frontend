@@ -154,7 +154,7 @@ export const UserManagement = () => {
 
   const modalTitle = editingOwnProfile
     ? 'Editar Perfil'
-    : (selectedUser ? 'Editar Usuario' : 'Crear Usuario');
+    : (selectedUser ? 'Editar Usuario' : 'Nuevo Usuario');
 
   return (
     <Card className="shadow-sm border-0">
