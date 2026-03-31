@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Alert, Button, Card, Col, Container, Form, Modal, Row, Spinner, Table } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { BsBoxArrowUpRight, BsCheckSquare, BsDownload, BsFillTrash3Fill, BsInfoCircle, BsPencilSquare, BsUpload } from 'react-icons/bs';
@@ -94,10 +94,12 @@ const escapeHtml = (value) => String(value)
 
 export const TransactionDetailPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { transactionId } = useParams();
   const { user } = useAuth();
   const { hasAnyRole } = useAuthorization();
   const canCreateEdit = hasAnyRole(['MANAGER', 'ADMIN']);
+  const fromItemId = location.state?.fromItemId;
 
   const [transaction, setTransaction] = useState(null);
   const [branches, setBranches] = useState([]);
@@ -766,7 +768,13 @@ export const TransactionDetailPage = () => {
             <Button
               variant="outline-secondary"
               className="detail-page-action-btn"
-              onClick={() => navigate('/transactions')}
+              onClick={() => {
+                if (fromItemId) {
+                  navigate(`/inventory/items/${fromItemId}`);
+                } else {
+                  navigate('/transactions');
+                }
+              }}
               disabled={actionLoading}
             >
               Volver

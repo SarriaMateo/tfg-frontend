@@ -626,7 +626,10 @@ export const ItemDetailPage = () => {
                                     variant="primary"
                                     size="sm"
                                     className="list-action-btn"
-                                    onClick={() => navigate(`/transactions/${transaction.id}`)}
+                                    onClick={() => navigate(
+                                      `/transactions/${transaction.id}`,
+                                      { state: { fromItemId: Number(item?.id) || parsedItemId } },
+                                    )}
                                     title="Ver detalles"
                                   >
                                     <BsInfoCircle />
