@@ -1,19 +1,20 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Alert, Spinner, Table } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert, Spinner, Table, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { BsDownload, BsFillTrash3Fill, BsInfoCircle, BsPencilSquare, BsUpload } from 'react-icons/bs';
 import { Navbar } from '../components/Navbar';
 import { ItemModal } from '../components/ItemModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CategoryBadge } from '../components/CategoryBadge';
 import { itemService } from '../services/itemService';
+import { branchService } from '../services/branchService';
 import { categoryService } from '../services/categoryService';
 import { transactionService } from '../services/transactionService';
 import { translateError } from '../utils/errorTranslator';
 import { useAuthorization } from '../hooks/useAuthorization';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
-import { formatDecimal, formatUnitExtended } from '../utils/formatters';
+import { formatDecimal, formatUnit } from '../utils/formatters';
 import { handleNavigationClickWithState, handleFileOpenClick } from '../utils/navigationUtils';
 
 const OPERATION_TYPE_LABELS = {
@@ -51,6 +52,7 @@ export const ItemDetailPage = () => {
   const imageInputRef = useRef(null);
   const dataCardRef = useRef(null);
   const [dataCardHeight, setDataCardHeight] = useState(null);
+  const [activeBranches, setActiveBranches] = useState(null);
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [recentTransactionsLoading, setRecentTransactionsLoading] = useState(false);
   const [recentTransactionsError, setRecentTransactionsError] = useState(null);
@@ -132,6 +134,19 @@ export const ItemDetailPage = () => {
       }
     };
   }, [item?.id, item?.has_image, imageRefresh]);
+
+  useEffect(() => {
+    const loadActiveBranches = async () => {
+      try {
+        const response = await branchService.getBranches({ is_active: true });
+        setActiveBranches(Array.isArray(response) ? response : []);
+      } catch {
+        setActiveBranches(null);
+      }
+    };
+
+    loadActiveBranches();
+  }, []);
 
   useEffect(() => {
     const fetchRecentTransactions = async () => {
@@ -343,6 +358,55 @@ export const ItemDetailPage = () => {
     return formatDecimal(0);
   };
 
+  const getBranchStock = () => {
+    if (!resolvedBranchId) return '0';
+
+    const branchStock = item?.stock_by_branch?.find(
+      (sb) => Number(sb.branch_id) === Number(resolvedBranchId)
+    );
+    return branchStock ? formatDecimal(branchStock.stock) : '0';
+  };
+
+  const getTotalStock = () => {
+    const total = item?.stock_by_branch?.reduce(
+      (sum, sb) => sum + parseFloat(sb.stock || 0),
+      0,
+    ) || 0;
+    return formatDecimal(total);
+  };
+
+  const getStockByBranchRows = () => {
+    const activeBranchIds = activeBranches
+      ? new Set(activeBranches.map((branch) => Number(branch.id)))
+      : null;
+
+    return (item?.stock_by_branch || []).filter((branch) => {
+      if (!activeBranchIds) return true;
+      return activeBranchIds.has(Number(branch.branch_id));
+    });
+  };
+
+  const renderStockTooltip = () => {
+    const branches = getStockByBranchRows();
+
+    return (
+      <Tooltip id={`stock-tooltip-${item?.id || 'detail'}`}>
+        <div className="text-start" style={{ fontSize: '0.95rem', lineHeight: '1.35' }}>
+          <div className="fw-semibold mb-1">Stock por sede</div>
+          {branches.length > 0 ? (
+            branches.map((sb) => (
+              <div key={sb.branch_id}>
+                <strong>{sb.branch_name}:</strong> {formatDecimal(sb.stock)} {formatUnit(item?.unit)}
+              </div>
+            ))
+          ) : (
+            <div>Sin stock en sedes</div>
+          )}
+        </div>
+      </Tooltip>
+    );
+  };
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <Navbar />
@@ -422,28 +486,42 @@ export const ItemDetailPage = () => {
                     </div>
 
                     <Row className="mb-3">
-                      <Col md={6}>
-                        <p className="mb-1 text-muted">Unidad</p>
-                        <p className="fw-semibold">{formatUnitExtended(item.unit)}</p>
-                      </Col>
-                      <Col md={6}>
+                      <Col md={4}>
                         <p className="mb-1 text-muted">Precio</p>
                         <p className="fw-semibold">
                           {item.price !== null && item.price !== undefined ? `${item.price} €` : 'Sin precio'}
                         </p>
                       </Col>
-                    </Row>
-
-                    <Row className="mb-3">
-                      <Col md={6}>
+                      <Col md={4}>
                         <p className="mb-1 text-muted">Marca</p>
                         <p className="fw-semibold">{item.brand || 'Sin marca'}</p>
                       </Col>
-                      <Col md={6}>
+                      <Col md={4}>
                         <p className="mb-1 text-muted">Fecha de alta</p>
                         <p className="fw-semibold">
                           {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
                         </p>
+                      </Col>
+                    </Row>
+
+                    <Row className="mb-3">
+                      <Col md={4}>
+                        <p className="mb-1 text-muted">Stock en sede</p>
+                        <p className="fw-semibold">{getBranchStock()} {formatUnit(item.unit)}</p>
+                      </Col>
+                      <Col md={4}>
+                        <p className="mb-1 text-muted">Stock total</p>
+                        <p className="fw-semibold mb-0">
+                          <OverlayTrigger trigger={['hover', 'focus']} placement="top" overlay={renderStockTooltip()}>
+                            <span style={{ textDecoration: 'underline dotted', cursor: 'help' }}>
+                              {getTotalStock()} {formatUnit(item.unit)}
+                            </span>
+                          </OverlayTrigger>
+                        </p>
+                      </Col>
+                      <Col md={4}>
+                        <p className="mb-1 text-muted">Umbral de stock bajo</p>
+                        <p className="fw-semibold">{item.low_stock_threshold ?? '-'}</p>
                       </Col>
                     </Row>
 

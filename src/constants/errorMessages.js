@@ -21,6 +21,7 @@ export const ERROR_MESSAGES = {
     ITEM_NAME_TOO_LONG: "El nombre del artículo no puede exceder 100 caracteres",
     INVALID_SKU_FORMAT: "El SKU debe contener solo caracteres alfanuméricos y no exceder 12 caracteres",
     INVALID_PRICE_FORMAT: "El precio debe ser un número válido mayor o igual a 0",
+    LOW_STOCK_THRESHOLD_REQUIRED: "El umbral de stock bajo es obligatorio y no puede ser nulo",
     CATEGORY_NAME_TOO_SHORT: "El nombre de la categoría debe tener al menos 1 carácter",
     CATEGORY_NAME_TOO_LONG: "El nombre de la categoría no puede exceder 50 caracteres",
     INVALID_COLOR_FORMAT: "El color debe estar en formato hexadecimal válido (#RRGGBB)",
