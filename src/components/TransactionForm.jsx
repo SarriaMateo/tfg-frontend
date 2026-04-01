@@ -6,7 +6,7 @@ import { branchService } from '../services/branchService';
 import { itemService } from '../services/itemService';
 import { useAuth } from '../hooks/useAuth';
 import { useBranchSelection } from '../hooks/useBranchSelection';
-import { formatUnit } from '../utils/formatters';
+import { formatDecimal, formatUnit } from '../utils/formatters';
 import { translateError } from '../utils/errorTranslator';
 
 const ITEMS_PAGE_SIZE = 20;
@@ -34,6 +34,25 @@ const normalizeArrayResponse = (response) => {
 };
 
 const requiresIntegerQuantity = (unit) => INTEGER_ONLY_UNITS.includes(unit);
+
+const getItemBranchStock = (item, branchId) => {
+  const resolvedBranchId = Number(branchId);
+
+  if (!Number.isFinite(resolvedBranchId) || resolvedBranchId <= 0) {
+    return null;
+  }
+
+  const stockEntry = Array.isArray(item?.stock_by_branch)
+    ? item.stock_by_branch.find((entry) => Number(entry?.branch_id) === resolvedBranchId)
+    : null;
+
+  if (!stockEntry) {
+    return 0;
+  }
+
+  const stockValue = Number(stockEntry.stock);
+  return Number.isFinite(stockValue) ? stockValue : 0;
+};
 
 export const TransactionForm = ({
   transaction,
@@ -352,6 +371,23 @@ export const TransactionForm = ({
     return true;
   });
   const effectiveBranchId = userBranchId || formData.branch_id;
+  const selectedBranchStockWarning = (item, quantityValue) => {
+    const availableStock = getItemBranchStock(item, effectiveBranchId);
+    if (availableStock === null) return false;
+
+    const numericQuantity = Number(quantityValue);
+    const consumesStock = ['OUT', 'TRANSFER', 'ADJUSTMENT'].includes(formData.operation_type);
+
+    if (!consumesStock) return false;
+
+    if (!Number.isFinite(numericQuantity)) return false;
+
+    if (formData.operation_type === 'ADJUSTMENT') {
+      return numericQuantity < 0 && Math.abs(numericQuantity) > availableStock;
+    }
+
+    return availableStock <= 0 || numericQuantity > availableStock;
+  };
 
   const destinationBranchOptions = branches.filter(
     (b) => String(b.id) !== effectiveBranchId,
@@ -536,10 +572,13 @@ export const TransactionForm = ({
           }}
         >
           <Row className="mb-1">
-            <Col xs={6} md={8}>
+            <Col xs={5} md={5}>
               <small className="text-muted fw-semibold">Artículo</small>
             </Col>
-            <Col xs={4} md={2}>
+            <Col xs={2} md={3}>
+              <small className="text-muted fw-semibold">Cantidad Disponible</small>
+            </Col>
+            <Col xs={3} md={2}>
               <small className="text-muted fw-semibold">Cantidad</small>
             </Col>
             <Col xs={2} md={2}>
@@ -548,13 +587,30 @@ export const TransactionForm = ({
           </Row>
           {typeaheadSelected.map((item) => (
             <Row key={item.id} className="align-items-center mb-2">
-              <Col xs={6} md={8}>
+              <Col xs={5} md={6}>
                 <span className="fw-medium" style={{ fontSize: '0.9rem' }}>
                   {item.name}
                 </span>
                 <code className="ms-2">{item.sku}</code>
               </Col>
-              <Col xs={4} md={2}>
+              <Col xs={2} md={2}>
+                {(() => {
+                  const availableStock = getItemBranchStock(item, effectiveBranchId);
+                  const quantityValue = lineQuantities[item.id];
+                  const shouldHighlight = selectedBranchStockWarning(item, quantityValue);
+
+                  if (availableStock === null) {
+                    return <small className="text-muted">-</small>;
+                  }
+
+                  return (
+                    <small className={shouldHighlight ? 'text-danger fw-bold' : 'text-muted'}>
+                      {formatDecimal(availableStock)} {formatUnit(item.unit)}
+                    </small>
+                  );
+                })()}
+              </Col>
+              <Col xs={3} md={2}>
                 <Form.Control
                   type="number"
                   value={lineQuantities[item.id] || ''}
