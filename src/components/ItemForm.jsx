@@ -38,6 +38,7 @@ export const ItemForm = ({
     name: '',
     sku: '',
     unit: 'ud',
+    low_stock_threshold: 0,
     description: '',
     price: '',
     brand: '',
@@ -60,6 +61,7 @@ export const ItemForm = ({
         name: item.name || '',
         sku: item.sku || '',
         unit: item.unit || 'ud',
+        low_stock_threshold: item.low_stock_threshold ?? 0,
         description: item.description || '',
         price: item.price || '',
         brand: item.brand || '',
@@ -154,6 +156,19 @@ export const ItemForm = ({
       setError('El precio no puede ser negativo');
       return false;
     }
+    if (formData.low_stock_threshold !== '' && isNaN(Number(formData.low_stock_threshold))) {
+      setError('El umbral de stock bajo debe ser un número válido');
+      return false;
+    }
+    const lowStockThresholdValue = Number(formData.low_stock_threshold || 0);
+    if (!Number.isInteger(lowStockThresholdValue)) {
+      setError('El umbral de stock bajo debe ser un número entero');
+      return false;
+    }
+    if (lowStockThresholdValue < 0) {
+      setError('El umbral de stock bajo no puede ser negativo');
+      return false;
+    }
     if (formData.description && formData.description.length > 500) {
       setError('La descripción no puede exceder 500 caracteres');
       return false;
@@ -176,6 +191,7 @@ export const ItemForm = ({
       name: formData.name.trim(),
       sku: formData.sku.trim(),
       unit: formData.unit,
+      low_stock_threshold: formData.low_stock_threshold === '' ? 0 : parseInt(formData.low_stock_threshold, 10),
       description: normalizedDescription || null,
       price: formData.price === '' ? null : parseFloat(formData.price),
       brand: normalizedBrand || null,
@@ -253,9 +269,9 @@ export const ItemForm = ({
         </Col>
       </Row>
 
-      {/* Unit, Brand, and Price */}
+      {/* Unit and low stock threshold */}
       <Row>
-        <Col md={4}>
+        <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Unidad de medida <span className="text-danger">*</span></Form.Label>
             <Form.Select
@@ -271,7 +287,26 @@ export const ItemForm = ({
             </Form.Select>
           </Form.Group>
         </Col>
-        <Col md={4}>
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label>Umbral de stock bajo</Form.Label>
+            <Form.Control
+              type="number"
+              name="low_stock_threshold"
+              value={formData.low_stock_threshold}
+              onChange={handleChange}
+              placeholder="0"
+              step="1"
+              min="0"
+              disabled={loading}
+            />
+          </Form.Group>
+        </Col>
+      </Row>
+
+      {/* Brand and price */}
+      <Row>
+        <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Marca</Form.Label>
             <Form.Control
@@ -285,7 +320,7 @@ export const ItemForm = ({
             />
           </Form.Group>
         </Col>
-        <Col md={4}>
+        <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Precio</Form.Label>
             <Form.Control

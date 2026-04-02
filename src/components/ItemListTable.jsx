@@ -28,6 +28,20 @@ const queryToFilters = (query = {}) => ({
   order_desc: String(query.order_desc ?? true),
 });
 
+const getStockValue = (stock) => {
+  const parsedStock = Number.parseFloat(stock ?? 0);
+  return Number.isFinite(parsedStock) ? parsedStock : 0;
+};
+
+const getStockSeverity = (stock, threshold) => {
+  const stockValue = getStockValue(stock);
+  const thresholdValue = Number.parseFloat(threshold ?? 0);
+
+  if (stockValue <= 0) return 'zero';
+  if (Number.isFinite(thresholdValue) && stockValue < thresholdValue) return 'low';
+  return 'normal';
+};
+
 export const ItemListTable = ({ items, loading, error, pagination, initialQuery = {}, onFetchItems }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -176,6 +190,15 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
   };
 
+  const getCurrentBranchStockEntry = (item) => {
+    const branchId = getBranchIdForStock();
+    if (!branchId) return null;
+
+    return item.stock_by_branch?.find(
+      (sb) => Number(sb.branch_id) === Number(branchId)
+    ) || null;
+  };
+
   // Get the branch ID to display stock (user's branch or selected from localStorage)
   const getBranchIdForStock = () => {
     return user?.branch_id || selectedBranchId;
@@ -192,6 +215,10 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     return branchStock ? formatDecimal(branchStock.stock) : '0';
   };
 
+  const getBranchStockSeverity = (item) => getStockSeverity(getCurrentBranchStockEntry(item)?.stock, item.low_stock_threshold);
+
+  const canHighlightStock = (item) => item?.is_active === true;
+
   // Get total stock across all branches
   const getTotalStock = (item) => {
     const total = item.stock_by_branch?.reduce(
@@ -201,15 +228,77 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     return formatDecimal(total);
   };
 
-  // Render stock by branch tooltip
-  const renderStockTooltip = (item) => {
+  const getVisibleBranches = (item) => {
     const activeBranchIds = activeBranches
       ? new Set(activeBranches.map((branch) => Number(branch.id)))
       : null;
-    const branches = (item.stock_by_branch || []).filter((branch) => {
+
+    return (item.stock_by_branch || []).filter((branch) => {
       if (!activeBranchIds) return true;
       return activeBranchIds.has(Number(branch.branch_id));
     });
+  };
+
+  const getVisibleBranchesSeverity = (item) => {
+    if (!canHighlightStock(item)) return 'normal';
+
+    const branches = getVisibleBranches(item);
+
+    if (branches.some((branch) => getStockSeverity(branch.stock, item.low_stock_threshold) === 'zero')) {
+      return 'zero';
+    }
+
+    if (branches.some((branch) => getStockSeverity(branch.stock, item.low_stock_threshold) === 'low')) {
+      return 'low';
+    }
+
+    return 'normal';
+  };
+
+  const getOtherBranchesSeverity = (item) => {
+    if (!canHighlightStock(item)) return 'normal';
+
+    const currentBranchId = getBranchIdForStock();
+    const branches = getVisibleBranches(item).filter((branch) => Number(branch.branch_id) !== Number(currentBranchId));
+
+    if (branches.some((branch) => getStockSeverity(branch.stock, item.low_stock_threshold) === 'zero')) {
+      return 'zero';
+    }
+
+    if (branches.some((branch) => getStockSeverity(branch.stock, item.low_stock_threshold) === 'low')) {
+      return 'low';
+    }
+
+    return 'normal';
+  };
+
+  const getRowSeverityClass = (item) => {
+    if (!canHighlightStock(item)) return '';
+
+    const severity = getBranchStockSeverity(item);
+    if (severity === 'zero') return 'stock-status-zero-row';
+    if (severity === 'low') return 'stock-status-low-row';
+    return '';
+  };
+
+  const getSeverityClass = (severity) => {
+    if (!severity || severity === 'normal') return '';
+    if (severity === 'zero') return 'stock-status-zero-text';
+    if (severity === 'low') return 'stock-status-low-text';
+    return '';
+  };
+
+  const getTooltipSeverityClass = (severity) => {
+    if (!severity || severity === 'normal') return '';
+    if (severity === 'zero') return 'stock-status-zero-tooltip';
+    if (severity === 'low') return 'stock-status-low-tooltip';
+    return '';
+  };
+
+  // Render stock by branch tooltip
+  const renderStockTooltip = (item) => {
+    const branches = getVisibleBranches(item);
+    const shouldHighlightStock = canHighlightStock(item);
 
     return (
       <Tooltip id={`stock-tooltip-${item.id}`}>
@@ -217,7 +306,10 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
           <div className="fw-semibold mb-1">Stock por sede</div>
           {branches.length > 0 ? (
             branches.map((sb) => (
-              <div key={sb.branch_id}>
+              <div
+                key={sb.branch_id}
+                className={shouldHighlightStock ? getTooltipSeverityClass(getStockSeverity(sb.stock, item.low_stock_threshold)) : ''}
+              >
                 <strong>{sb.branch_name}:</strong> {formatDecimal(sb.stock)} {formatUnit(item.unit)}
               </div>
             ))
@@ -377,7 +469,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
               </tr>
             ) : (
               items.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.id} className={getRowSeverityClass(item)}>
                   <td>{item.name}</td>
                   <td>
                     <code>{item.sku}</code>
@@ -387,7 +479,10 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
                   </td>
                   <td className="text-center">
                     <OverlayTrigger trigger={['hover', 'focus']} placement="top" overlay={renderStockTooltip(item)}>
-                      <span style={{ textDecoration: 'underline dotted' }}>
+                      <span
+                        className={canHighlightStock(item) ? getSeverityClass(getOtherBranchesSeverity(item)) : ''}
+                        style={{ textDecoration: 'underline dotted', cursor: 'help' }}
+                      >
                         {getTotalStock(item)} {formatUnit(item.unit)}
                       </span>
                     </OverlayTrigger>

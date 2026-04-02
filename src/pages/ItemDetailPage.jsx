@@ -24,6 +24,20 @@ const OPERATION_TYPE_LABELS = {
   ADJUSTMENT: 'Ajuste',
 };
 
+const getStockValue = (stock) => {
+  const parsedStock = Number.parseFloat(stock ?? 0);
+  return Number.isFinite(parsedStock) ? parsedStock : 0;
+};
+
+const getStockSeverity = (stock, threshold) => {
+  const stockValue = getStockValue(stock);
+  const thresholdValue = Number.parseFloat(threshold ?? 0);
+
+  if (stockValue <= 0) return 'zero';
+  if (Number.isFinite(thresholdValue) && stockValue < thresholdValue) return 'low';
+  return 'normal';
+};
+
 export const ItemDetailPage = () => {
   const { itemId } = useParams();
   const navigate = useNavigate();
@@ -367,6 +381,19 @@ export const ItemDetailPage = () => {
     return branchStock ? formatDecimal(branchStock.stock) : '0';
   };
 
+  const getCurrentBranchStockValue = () => {
+    if (!resolvedBranchId) return 0;
+
+    const branchStock = item?.stock_by_branch?.find(
+      (sb) => Number(sb.branch_id) === Number(resolvedBranchId)
+    );
+    return getStockValue(branchStock?.stock);
+  };
+
+  const getCurrentBranchStockSeverity = () => getStockSeverity(getCurrentBranchStockValue(), item?.low_stock_threshold);
+
+  const canHighlightStock = item?.is_active === true;
+
   const getTotalStock = () => {
     const total = item?.stock_by_branch?.reduce(
       (sum, sb) => sum + parseFloat(sb.stock || 0),
@@ -386,6 +413,36 @@ export const ItemDetailPage = () => {
     });
   };
 
+  const getVisibleBranchesSeverity = () => {
+    if (!canHighlightStock) return 'normal';
+
+    const branches = getStockByBranchRows();
+
+    if (branches.some((branch) => getStockSeverity(branch.stock, item?.low_stock_threshold) === 'zero')) {
+      return 'zero';
+    }
+
+    if (branches.some((branch) => getStockSeverity(branch.stock, item?.low_stock_threshold) === 'low')) {
+      return 'low';
+    }
+
+    return 'normal';
+  };
+
+  const getSeverityClass = (severity) => {
+    if (!canHighlightStock) return '';
+    if (severity === 'zero') return 'stock-status-zero-text';
+    if (severity === 'low') return 'stock-status-low-text';
+    return '';
+  };
+
+  const getTooltipSeverityClass = (severity) => {
+    if (!canHighlightStock) return '';
+    if (severity === 'zero') return 'stock-status-zero-tooltip';
+    if (severity === 'low') return 'stock-status-low-tooltip';
+    return '';
+  };
+
   const renderStockTooltip = () => {
     const branches = getStockByBranchRows();
 
@@ -395,7 +452,7 @@ export const ItemDetailPage = () => {
           <div className="fw-semibold mb-1">Stock por sede</div>
           {branches.length > 0 ? (
             branches.map((sb) => (
-              <div key={sb.branch_id}>
+              <div key={sb.branch_id} className={getTooltipSeverityClass(getStockSeverity(sb.stock, item?.low_stock_threshold))}>
                 <strong>{sb.branch_name}:</strong> {formatDecimal(sb.stock)} {formatUnit(item?.unit)}
               </div>
             ))
@@ -507,11 +564,13 @@ export const ItemDetailPage = () => {
                     <Row className="mb-3">
                       <Col md={4}>
                         <p className="mb-1 text-muted">Stock en sede</p>
-                        <p className="fw-semibold">{getBranchStock()} {formatUnit(item.unit)}</p>
+                        <p className={`fw-semibold mb-0 ${canHighlightStock ? getSeverityClass(getCurrentBranchStockSeverity()) : ''}`}>
+                          {getBranchStock()} {formatUnit(item.unit)}
+                        </p>
                       </Col>
                       <Col md={4}>
                         <p className="mb-1 text-muted">Stock total</p>
-                        <p className="fw-semibold mb-0">
+                        <p className={`fw-semibold mb-0 ${canHighlightStock ? getSeverityClass(getVisibleBranchesSeverity()) : ''}`}>
                           <OverlayTrigger trigger={['hover', 'focus']} placement="top" overlay={renderStockTooltip()}>
                             <span style={{ textDecoration: 'underline dotted', cursor: 'help' }}>
                               {getTotalStock()} {formatUnit(item.unit)}
