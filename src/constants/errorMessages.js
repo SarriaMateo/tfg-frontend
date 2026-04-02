@@ -26,6 +26,7 @@ export const ERROR_MESSAGES = {
     CATEGORY_NAME_TOO_LONG: "El nombre de la categoría no puede exceder 50 caracteres",
     INVALID_COLOR_FORMAT: "El color debe estar en formato hexadecimal válido (#RRGGBB)",
     INVALID_UNIT: "La unidad de medida es inválida",
+    INVALID_ACTIVITY_PERIOD: "El periodo es inválido. Valores permitidos: day, week, month o total",
     QUANTITY_MUST_BE_INTEGER: "La cantidad debe ser un número entero para artículos en unidades, cajas o packs",
   },
   conflict_errors: {
