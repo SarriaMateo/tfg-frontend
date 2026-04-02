@@ -371,22 +371,32 @@ export const TransactionForm = ({
     return true;
   });
   const effectiveBranchId = userBranchId || formData.branch_id;
-  const selectedBranchStockWarning = (item, quantityValue) => {
+  const getProjectedStockStatus = (item, quantityValue) => {
     const availableStock = getItemBranchStock(item, effectiveBranchId);
-    if (availableStock === null) return false;
+    if (availableStock === null) return '';
 
     const numericQuantity = Number(quantityValue);
-    const consumesStock = ['OUT', 'TRANSFER', 'ADJUSTMENT'].includes(formData.operation_type);
+    if (!Number.isFinite(numericQuantity)) return '';
 
-    if (!consumesStock) return false;
+    const lowStockThresholdValue = Number(item?.low_stock_threshold);
+    const lowStockThreshold = Number.isFinite(lowStockThresholdValue)
+      ? lowStockThresholdValue
+      : 0;
 
-    if (!Number.isFinite(numericQuantity)) return false;
+    let projectedStock;
 
-    if (formData.operation_type === 'ADJUSTMENT') {
-      return numericQuantity < 0 && Math.abs(numericQuantity) > availableStock;
+    if (['IN', 'ADJUSTMENT'].includes(formData.operation_type)) {
+      projectedStock = availableStock + numericQuantity;
+    } else if (['OUT', 'TRANSFER'].includes(formData.operation_type)) {
+      projectedStock = availableStock - numericQuantity;
+    } else {
+      return '';
     }
 
-    return availableStock <= 0 || numericQuantity > availableStock;
+    if (projectedStock <= 0) return 'zero';
+    if (projectedStock < lowStockThreshold) return 'low';
+
+    return '';
   };
 
   const destinationBranchOptions = branches.filter(
@@ -576,7 +586,7 @@ export const TransactionForm = ({
               <small className="text-muted fw-semibold">Artículo</small>
             </Col>
             <Col xs={2} md={3}>
-              <small className="text-muted fw-semibold">Cantidad Disponible</small>
+              <small className="text-muted fw-semibold">Stock Disponible</small>
             </Col>
             <Col xs={3} md={2}>
               <small className="text-muted fw-semibold">Cantidad</small>
@@ -587,24 +597,28 @@ export const TransactionForm = ({
           </Row>
           {typeaheadSelected.map((item) => (
             <Row key={item.id} className="align-items-center mb-2">
-              <Col xs={5} md={6}>
+              <Col xs={5} md={5}>
                 <span className="fw-medium" style={{ fontSize: '0.9rem' }}>
                   {item.name}
                 </span>
                 <code className="ms-2">{item.sku}</code>
               </Col>
-              <Col xs={2} md={2}>
+              <Col xs={2} md={3}>
                 {(() => {
                   const availableStock = getItemBranchStock(item, effectiveBranchId);
                   const quantityValue = lineQuantities[item.id];
-                  const shouldHighlight = selectedBranchStockWarning(item, quantityValue);
+                  const projectedStockStatus = getProjectedStockStatus(item, quantityValue);
 
                   if (availableStock === null) {
                     return <small className="text-muted">-</small>;
                   }
 
+                  const statusClassName = projectedStockStatus === 'zero'
+                    ? 'stock-status-zero-text'
+                    : (projectedStockStatus === 'low' ? 'stock-status-low-text' : 'text-muted');
+
                   return (
-                    <small className={shouldHighlight ? 'text-danger fw-bold' : 'text-muted'}>
+                    <small className={statusClassName}>
                       {formatDecimal(availableStock)} {formatUnit(item.unit)}
                     </small>
                   );
