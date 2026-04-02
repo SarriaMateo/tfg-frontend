@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, ButtonGroup, Button } from "react-bootstrap";
 import {
   ResponsiveContainer,
@@ -17,6 +17,9 @@ import { Navbar } from "../components/Navbar";
 import { useAuth } from "../hooks/useAuth";
 import { useDashboard } from "../hooks/useDashboard";
 import { DASHBOARD_COLORS } from "../constants/colors";
+import { useNavigate } from "react-router-dom";
+
+const DISMISSED_ALERTS_STORAGE_KEY = "dashboard:dismissedAlerts";
 
 // Component sections will be implemented in stages
 // Placeholder component for each section
@@ -226,7 +229,14 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
   );
 };
 
-const DashboardAlertsSection = ({ loading, error, stockRiskData }) => {
+const DashboardAlertsSection = ({
+  loading,
+  alerts,
+  dismissedCount,
+  onDismissAlert,
+  onShowAllAlerts,
+  onNavigateToAlert,
+}) => {
   if (loading) {
     return (
       <Card className="shadow-sm border-0">
@@ -238,11 +248,58 @@ const DashboardAlertsSection = ({ loading, error, stockRiskData }) => {
   }
 
   return (
-    <Card className="shadow-sm border-0">
+    <Card className="shadow-sm border-0 h-100">
       <Card.Body className="p-4">
-        <h5 className="text-dark fw-bold mb-4">Alertas</h5>
-        {/* To be implemented in Stage 4 */}
-        <p className="text-muted">Sección de alertas - En desarrollo</p>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="text-dark fw-bold mb-0">Alertas</h5>
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={onShowAllAlerts}
+            disabled={dismissedCount === 0}
+          >
+            Mostrar todas
+          </Button>
+        </div>
+
+        {alerts.length === 0 ? (
+          <p className="text-muted mb-0">No hay alertas activas</p>
+        ) : (
+          <div style={{ maxHeight: 280, overflowY: "auto" }}>
+            <div className="d-flex flex-column gap-2">
+              {alerts.map((alertItem) => (
+                <button
+                  key={alertItem.id}
+                  type="button"
+                  className="btn btn-light text-start"
+                  onClick={() => onNavigateToAlert(alertItem.path)}
+                  style={{
+                    borderLeft: `5px solid ${alertItem.color}`,
+                    backgroundColor: `${alertItem.color}20`,
+                  }}
+                >
+                  <div className="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                      <p className="fw-semibold mb-1">{alertItem.title}</p>
+                      <p className="small text-muted mb-0">{alertItem.description}</p>
+                    </div>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="text-muted text-decoration-none p-0"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDismissAlert(alertItem.id);
+                      }}
+                    >
+                      Descartar
+                    </Button>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Card.Body>
     </Card>
   );
@@ -271,6 +328,7 @@ const DashboardRecentOperationsSection = ({ loading, error, stockRiskData }) => 
 };
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const parsedStoredBranchId = Number(localStorage.getItem("selectedBranchId"));
@@ -281,6 +339,15 @@ export default function DashboardPage() {
   // Dashboard state
   const [selectedPeriod, setSelectedPeriod] = useState("day");
   const [selectedBranch, setSelectedBranch] = useState(null);
+  const [dismissedAlerts, setDismissedAlerts] = useState(() => {
+    try {
+      const rawValue = localStorage.getItem(DISMISSED_ALERTS_STORAGE_KEY);
+      const parsedValue = rawValue ? JSON.parse(rawValue) : [];
+      return Array.isArray(parsedValue) ? parsedValue : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Check if user is central (can see all branches)
   const isCentralUser = user?.branch_id == null;
@@ -298,6 +365,81 @@ export default function DashboardPage() {
   const workBranchName = activityData?.data?.find(
     (branchData) => Number(branchData?.branch?.branch_id) === Number(workBranchId)
   )?.branch?.branch_name || null;
+
+  const allAlerts = useMemo(() => {
+    const stockAlerts = (stockRiskData?.data || []).flatMap((branchData) => {
+      const branchId = branchData?.branch?.branch_id;
+      const branchName = branchData?.branch?.branch_name || "Sin sede";
+      const items = branchData?.stock_alert_items || [];
+
+      return items.map((item) => {
+        const isZeroStock = item?.stock_status === "ZERO";
+        return {
+          id: `stock-${branchId}-${item.item_id}-${item.stock_status}`,
+          title: isZeroStock
+            ? `Stock cero: ${item.item_name}`
+            : `Stock bajo: ${item.item_name}`,
+          description: `Sede: ${branchName} · SKU: ${item.item_sku} · Stock: ${item.stock}`,
+          color: isZeroStock
+            ? DASHBOARD_COLORS.alerts.zeroStock
+            : DASHBOARD_COLORS.alerts.lowStock,
+          path: `/inventory/items/${item.item_id}`,
+          severityOrder: isZeroStock ? 1 : 2,
+        };
+      });
+    });
+
+    const staleTransactionAlerts = (stockRiskData?.data || []).flatMap((branchData) => {
+      const staleTransactions = branchData?.stale_transactions || [];
+
+      return staleTransactions
+        .filter((transaction) => ["PENDING", "TRANSIT"].includes(transaction?.status))
+        .filter((transaction) => Number(transaction?.days_since_last_event) >= 1)
+        .map((transaction) => {
+          const isPending = transaction.status === "PENDING";
+          return {
+            id: `transaction-${transaction.transaction_id}-${transaction.status}`,
+            title: isPending
+              ? `PENDING +24h: #${transaction.transaction_id}`
+              : `TRANSIT +24h: #${transaction.transaction_id}`,
+            description: `${transaction.operation_type} · ${transaction.days_since_last_event} día(s) sin cambios`,
+            color: isPending
+              ? DASHBOARD_COLORS.alerts.pendingStale
+              : DASHBOARD_COLORS.alerts.transitStale,
+            path: `/transactions/${transaction.transaction_id}`,
+            severityOrder: isPending ? 3 : 4,
+          };
+        });
+    });
+
+    return [...stockAlerts, ...staleTransactionAlerts].sort(
+      (firstAlert, secondAlert) => firstAlert.severityOrder - secondAlert.severityOrder
+    );
+  }, [stockRiskData]);
+
+  const visibleAlerts = useMemo(
+    () => allAlerts.filter((alertItem) => !dismissedAlerts.includes(alertItem.id)),
+    [allAlerts, dismissedAlerts]
+  );
+
+  const handleDismissAlert = (alertId) => {
+    setDismissedAlerts((previousAlerts) => {
+      const nextAlerts = previousAlerts.includes(alertId)
+        ? previousAlerts
+        : [...previousAlerts, alertId];
+      localStorage.setItem(DISMISSED_ALERTS_STORAGE_KEY, JSON.stringify(nextAlerts));
+      return nextAlerts;
+    });
+  };
+
+  const handleShowAllAlerts = () => {
+    setDismissedAlerts([]);
+    localStorage.removeItem(DISMISSED_ALERTS_STORAGE_KEY);
+  };
+
+  const handleNavigateToAlert = (path) => {
+    navigate(path);
+  };
 
   if (!user) {
     return (
@@ -355,8 +497,11 @@ export default function DashboardPage() {
             <div style={{ flex: "1 1 50%", minHeight: 0 }}>
               <DashboardAlertsSection
                 loading={loading}
-                error={error}
-                stockRiskData={stockRiskData}
+                alerts={visibleAlerts}
+                dismissedCount={dismissedAlerts.length}
+                onDismissAlert={handleDismissAlert}
+                onShowAllAlerts={handleShowAllAlerts}
+                onNavigateToAlert={handleNavigateToAlert}
               />
             </div>
           </div>
