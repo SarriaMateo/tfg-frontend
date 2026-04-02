@@ -1,8 +1,22 @@
 import { useState } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, ButtonGroup, Button } from "react-bootstrap";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 import { Navbar } from "../components/Navbar";
 import { useAuth } from "../hooks/useAuth";
 import { useDashboard } from "../hooks/useDashboard";
+import { DASHBOARD_COLORS } from "../constants/colors";
 
 // Component sections will be implemented in stages
 // Placeholder component for each section
@@ -18,7 +32,6 @@ const DashboardControls = ({ selectedPeriod, onPeriodChange, selectedBranch, onB
     <div className="d-flex gap-4 align-items-center flex-wrap">
       {/* Period selector */}
       <div>
-        <label className="small text-muted d-block mb-2">Periodo</label>
         <ButtonGroup>
           {periodOptions.map((option) => (
             <Button
@@ -36,7 +49,6 @@ const DashboardControls = ({ selectedPeriod, onPeriodChange, selectedBranch, onB
       {/* Branch selector (only for central users) */}
       {isCentralUser && (
         <div>
-          <label className="small text-muted d-block mb-2">Sede</label>
           <ButtonGroup>
             <Button
               variant={selectedBranch === null ? "secondary" : "outline-secondary"}
@@ -87,6 +99,42 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
     0
   ) || 0;
 
+  const pieOperationTypes = ["IN", "OUT", "TRANSFER", "ADJUSTMENT"];
+
+  const pieData = pieOperationTypes.flatMap((operationType) => {
+    const incomingValue = activityData?.data?.reduce(
+      (acc, branchData) => acc + (branchData?.incoming_transaction_lines_by_operation?.[operationType] || 0),
+      0
+    ) || 0;
+
+    const outgoingValue = activityData?.data?.reduce(
+      (acc, branchData) => acc + (branchData?.outgoing_transaction_lines_by_operation?.[operationType] || 0),
+      0
+    ) || 0;
+
+    return [
+      {
+        key: `incoming-${operationType}`,
+        name: `Entrantes ${operationType}`,
+        value: incomingValue,
+        color: DASHBOARD_COLORS.transactions.incoming[operationType],
+      },
+      {
+        key: `outgoing-${operationType}`,
+        name: `Salientes ${operationType}`,
+        value: outgoingValue,
+        color: DASHBOARD_COLORS.transactions.outgoing[operationType],
+      },
+    ];
+  }).filter((entry) => entry.value > 0);
+
+  const stockByBranchChartData = (stockRiskData?.data || []).map((branchData) => ({
+    branchName: branchData?.branch?.branch_name || "Sin sede",
+    zero: branchData?.stock_buckets?.zero_stock_items || 0,
+    low: branchData?.stock_buckets?.low_stock_items || 0,
+    healthy: branchData?.stock_buckets?.healthy_stock_items || 0,
+  }));
+
   return (
     <Card className="shadow-sm border-0 h-100">
       <Card.Body className="p-4">
@@ -98,7 +146,7 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
             {/* Completed operations */}
             <div className="text-center flex-grow-1">
               <p className="text-muted small mb-2">Operaciones Completadas</p>
-              <p className="display-4 fw-bold text-primary mb-0">
+              <p className="display-6 fw-bold text-primary mb-0">
                 {aggregatedData.totalOperations}
               </p>
             </div>
@@ -106,22 +154,69 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
             {/* Pending operations */}
             <div className="text-center flex-grow-1">
               <p className="text-muted small mb-2">Operaciones Pendientes</p>
-              <p className="display-4 fw-bold text-warning mb-0">
+              <p className="display-6 fw-bold text-warning mb-0">
                 {pendingOperations}
               </p>
             </div>
           </div>
 
-          {/* Summary stats */}
+          {/* Charts section */}
           <div className="mt-4 pt-4 border-top">
             <div className="row g-3">
-              <div className="col-6">
-                <small className="text-muted d-block">Líneas Entrantes</small>
-                <p className="mb-0 fw-bold text-info">{aggregatedData.totalIncoming}</p>
+              <div className="col-12 col-xl-6">
+                <p className="small text-muted mb-2">Líneas entrantes y salientes por operación</p>
+                <div style={{ height: 260 }}>
+                  {pieData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          dataKey="value"
+                          nameKey="name"
+                          innerRadius={45}
+                          outerRadius={80}
+                          paddingAngle={2}
+                          startAngle={180}
+                          endAngle={-180}
+                        >
+                          {pieData.map((entry) => (
+                            <Cell key={entry.key} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [`${value}`, "Líneas"]} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-100 d-flex align-items-center justify-content-center text-muted small">
+                      Sin datos para mostrar
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="col-6">
-                <small className="text-muted d-block">Líneas Salientes</small>
-                <p className="mb-0 fw-bold text-danger">{aggregatedData.totalOutgoing}</p>
+
+              <div className="col-12 col-xl-6">
+                <p className="small text-muted mb-2">Estado de stock por sede</p>
+                <div style={{ height: 260 }}>
+                  {stockByBranchChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={stockByBranchChartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="branchName" tick={{ fontSize: 12 }} />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="healthy" name="Stock saludable" stackId="stock" fill={DASHBOARD_COLORS.stock.healthy} />
+                        <Bar dataKey="low" name="Stock bajo" stackId="stock" fill={DASHBOARD_COLORS.stock.low} />
+                        <Bar dataKey="zero" name="Stock cero" stackId="stock" fill={DASHBOARD_COLORS.stock.zero} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-100 d-flex align-items-center justify-content-center text-muted small">
+                      Sin datos para mostrar
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
