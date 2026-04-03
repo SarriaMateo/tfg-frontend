@@ -9,13 +9,13 @@ The application is built with React + Vite and consumes a REST API (FastAPI back
 ## Main features
 
 - Authentication with login and session persistence.
-- Expired session detection on 401 responses with automatic redirect to login.
 - Company, branch, and user management.
 - Inventory management for items and categories.
-- Operations management (IN, OUT, TRANSFER) with state-based workflow.
+- Operations management (IN, OUT, TRANSFER, ADJUSTMENT) with state-based workflow.
 - Operations export in CSV/PDF.
-- Transaction document management (upload, download, replace, delete).
+- Item image and transaction document management (upload, download, replace, delete).
 - Access control by role and branch.
+- Dashboard with branch-aware KPIs, summary charts, dismissible alerts, and latest operations.
 
 ## Tech stack
 

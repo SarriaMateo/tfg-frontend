@@ -9,13 +9,13 @@ La aplicación está construida con React + Vite y consume una API REST (backend
 ## Funcionalidades principales
 
 - Autenticación con login y persistencia de sesión.
-- Detección de sesión expirada en respuestas 401 y redirección automática al login.
 - Gestión de empresa, sedes y usuarios.
 - Gestión de inventario de artículos y categorías.
-- Gestión de operaciones (IN, OUT, TRANSFER) con estados y flujo operativo.
+- Gestión de operaciones (IN, OUT, TRANSFER, ADJUSTMENT) con estados y flujo operativo.
 - Exportación de operaciones en CSV/PDF.
-- Gestión de documentos asociados a operaciones (subir, descargar, reemplazar, eliminar).
+- Gestión de imagenes asociadas a artículos y documentos asociados a operaciones (subir, descargar, reemplazar, eliminar).
 - Control de acceso por rol y por sede.
+- Dashboard con KPIs por sede, gráficos de resumen, alertas descartables y últimas operaciones.
 
 ## Stack técnico
 
