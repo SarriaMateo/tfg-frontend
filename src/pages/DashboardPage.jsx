@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Container, Row, Col, Card, Spinner, Alert, ButtonGroup, Button } from "react-bootstrap";
+import { useEffect, useMemo, useState } from "react";
+import { Container, Row, Col, Card, Spinner, Alert, ButtonGroup, Button, DropdownButton, Dropdown } from "react-bootstrap";
 import {
   ResponsiveContainer,
   PieChart,
@@ -18,12 +18,21 @@ import { useAuth } from "../hooks/useAuth";
 import { useDashboard } from "../hooks/useDashboard";
 import { DASHBOARD_COLORS } from "../constants/colors";
 import { useNavigate } from "react-router-dom";
+import { branchService } from "../services/branchService";
 
 const DISMISSED_ALERTS_STORAGE_KEY = "dashboard:dismissedAlerts";
 
 // Component sections will be implemented in stages
 // Placeholder component for each section
-const DashboardControls = ({ selectedPeriod, onPeriodChange, selectedBranch, onBranchChange, isCentralUser, workBranchId, workBranchName }) => {
+const DashboardControls = ({
+  selectedPeriod,
+  onPeriodChange,
+  selectedBranch,
+  onBranchChange,
+  isCentralUser,
+  branchOptions,
+  selectedBranchName,
+}) => {
   const periodOptions = [
     { value: "day", label: "Día" },
     { value: "week", label: "Semana" },
@@ -60,14 +69,22 @@ const DashboardControls = ({ selectedPeriod, onPeriodChange, selectedBranch, onB
             >
               Total
             </Button>
-            <Button
-              variant={selectedBranch === workBranchId ? "secondary" : "outline-secondary"}
+            <DropdownButton
+              title={selectedBranchName || "Seleccionar sede"}
+              variant={selectedBranch === null ? "outline-secondary" : "secondary"}
               size="sm"
-              onClick={() => onBranchChange(workBranchId)}
-              disabled={!workBranchId}
+              align="end"
             >
-              {workBranchName || "Sede de trabajo"}
-            </Button>
+              {branchOptions.map((branch) => (
+                <Dropdown.Item
+                  key={branch.id}
+                  active={selectedBranch === branch.id}
+                  onClick={() => onBranchChange(branch.id)}
+                >
+                  {branch.name}
+                </Dropdown.Item>
+              ))}
+            </DropdownButton>
           </ButtonGroup>
         </div>
       )}
@@ -336,9 +353,11 @@ export default function DashboardPage() {
     ? parsedStoredBranchId
     : null;
 
+  const [activeBranches, setActiveBranches] = useState([]);
+
   // Dashboard state
   const [selectedPeriod, setSelectedPeriod] = useState("day");
-  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState(() => workBranchId);
   const [dismissedAlerts, setDismissedAlerts] = useState(() => {
     try {
       const rawValue = localStorage.getItem(DISMISSED_ALERTS_STORAGE_KEY);
@@ -362,9 +381,34 @@ export default function DashboardPage() {
     branchId: resolvedBranchId,
   });
 
-  const workBranchName = activityData?.data?.find(
-    (branchData) => Number(branchData?.branch?.branch_id) === Number(workBranchId)
-  )?.branch?.branch_name || null;
+  useEffect(() => {
+    if (!isCentralUser) return;
+
+    const loadActiveBranches = async () => {
+      try {
+        const response = await branchService.getBranches({ is_active: true });
+        const branches = Array.isArray(response) ? response : response?.data || [];
+        setActiveBranches(branches);
+      } catch (loadError) {
+        setActiveBranches([]);
+      }
+    };
+
+    loadActiveBranches();
+  }, [isCentralUser]);
+
+  const branchOptions = useMemo(
+    () => activeBranches.map((branch) => ({
+      id: Number(branch.id),
+      name: branch.name,
+    })),
+    [activeBranches]
+  );
+
+  const selectedBranchName = useMemo(() => {
+    if (selectedBranch == null) return null;
+    return branchOptions.find((branch) => branch.id === Number(selectedBranch))?.name || null;
+  }, [branchOptions, selectedBranch]);
 
   const allAlerts = useMemo(() => {
     const stockAlerts = (stockRiskData?.data || []).flatMap((branchData) => {
@@ -474,8 +518,8 @@ export default function DashboardPage() {
             selectedBranch={selectedBranch}
             onBranchChange={setSelectedBranch}
             isCentralUser={isCentralUser}
-            workBranchId={workBranchId}
-            workBranchName={workBranchName}
+            branchOptions={branchOptions}
+            selectedBranchName={selectedBranchName}
           />
         </div>
 
