@@ -29,6 +29,44 @@ import {
 } from "react-icons/bs";
 
 const DISMISSED_ALERTS_STORAGE_KEY = "dashboard:dismissedAlerts";
+const DASHBOARD_CONTROLS_STORAGE_PREFIX = "dashboardControlsState:";
+const PERIOD_OPTIONS = ["day", "week", "month", "total"];
+
+const getDashboardControlsStorageKey = (userId) => `${DASHBOARD_CONTROLS_STORAGE_PREFIX}${userId}`;
+
+const readStoredDashboardControls = (userId) => {
+    if (!userId) return null;
+
+    try {
+        const rawValue = sessionStorage.getItem(getDashboardControlsStorageKey(userId));
+        if (!rawValue) return null;
+
+        const parsed = JSON.parse(rawValue);
+        const period = PERIOD_OPTIONS.includes(parsed?.period) ? parsed.period : "day";
+        const parsedBranchId = Number(parsed?.branchId);
+        const branchId = Number.isInteger(parsedBranchId) && parsedBranchId > 0
+            ? parsedBranchId
+            : null;
+        const parsedLastBranchId = Number(parsed?.lastBranchId);
+        const lastBranchId = Number.isInteger(parsedLastBranchId) && parsedLastBranchId > 0
+            ? parsedLastBranchId
+            : null;
+
+        return { period, branchId, lastBranchId };
+    } catch {
+        return null;
+    }
+};
+
+const saveDashboardControls = (userId, controls) => {
+    if (!userId) return;
+
+    try {
+        sessionStorage.setItem(getDashboardControlsStorageKey(userId), JSON.stringify(controls));
+    } catch {
+        // Ignore storage errors in private mode or blocked storage
+    }
+};
 
 // Component sections will be implemented in stages
 // Placeholder component for each section
@@ -49,10 +87,10 @@ const DashboardControls = ({
     ];
 
     return (
-        <div className="d-flex gap-4 align-items-center flex-wrap">
+        <div className="dashboard-controls d-flex align-items-start justify-content-between flex-wrap gap-2">
             {/* Period selector */}
-            <div>
-                <ButtonGroup>
+            <div className="dashboard-controls-period">
+                <ButtonGroup className="dashboard-period-group">
                     {periodOptions.map((option) => (
                         <Button
                             key={option.value}
@@ -68,8 +106,8 @@ const DashboardControls = ({
 
             {/* Branch selector (only for central users) */}
             {isCentralUser && (
-                <div>
-                    <ButtonGroup>
+                <div className="dashboard-controls-branch ms-auto">
+                    <ButtonGroup className="dashboard-branch-group">
                         <Button
                             variant={selectedBranch === null ? "secondary" : "outline-secondary"}
                             size="sm"
@@ -78,7 +116,8 @@ const DashboardControls = ({
                             Total
                         </Button>
                         <DropdownButton
-                            title={selectedBranchName || "Seleccionar sede"}
+                            className="dashboard-branch-dropdown"
+                            title={selectedBranchName}
                             variant={selectedBranch === null ? "outline-secondary" : "secondary"}
                             size="sm"
                             align="end"
@@ -473,6 +512,8 @@ export default function DashboardPage() {
     // Dashboard state
     const [selectedPeriod, setSelectedPeriod] = useState("day");
     const [selectedBranch, setSelectedBranch] = useState(() => workBranchId);
+    const [lastSelectedBranchId, setLastSelectedBranchId] = useState(() => workBranchId);
+    const [isDashboardControlsHydrated, setIsDashboardControlsHydrated] = useState(false);
     const [recentTransactions, setRecentTransactions] = useState([]);
     const [recentTransactionsLoading, setRecentTransactionsLoading] = useState(true);
     const [recentTransactionsError, setRecentTransactionsError] = useState(null);
@@ -488,6 +529,32 @@ export default function DashboardPage() {
 
     // Check if user is central (can see all branches)
     const isCentralUser = user?.branch_id == null;
+
+    useEffect(() => {
+        if (!user?.id) {
+            setIsDashboardControlsHydrated(false);
+            return;
+        }
+
+        const storedControls = readStoredDashboardControls(user?.id);
+        if (storedControls) {
+            setSelectedPeriod(storedControls.period);
+            setSelectedBranch(storedControls.branchId);
+            setLastSelectedBranchId(storedControls.lastBranchId || storedControls.branchId || workBranchId);
+        }
+
+        setIsDashboardControlsHydrated(true);
+    }, [user?.id]);
+
+    useEffect(() => {
+        if (!isDashboardControlsHydrated) return;
+
+        saveDashboardControls(user?.id, {
+            period: selectedPeriod,
+            branchId: selectedBranch,
+            lastBranchId: lastSelectedBranchId,
+        });
+    }, [isDashboardControlsHydrated, user?.id, selectedPeriod, selectedBranch, lastSelectedBranchId]);
 
     const resolvedBranchId = isCentralUser
         ? selectedBranch
@@ -523,10 +590,39 @@ export default function DashboardPage() {
         [activeBranches]
     );
 
+    useEffect(() => {
+        if (!isCentralUser) return;
+        if (selectedBranch != null) {
+            setLastSelectedBranchId(Number(selectedBranch));
+            return;
+        }
+
+        if (lastSelectedBranchId != null) return;
+
+        const firstBranchId = branchOptions[0]?.id;
+        if (Number.isInteger(firstBranchId) && firstBranchId > 0) {
+            setLastSelectedBranchId(firstBranchId);
+        }
+    }, [isCentralUser, selectedBranch, lastSelectedBranchId, branchOptions]);
+
+    const handleBranchChange = (branchId) => {
+        setSelectedBranch(branchId);
+        if (branchId != null) {
+            setLastSelectedBranchId(Number(branchId));
+        }
+    };
+
     const selectedBranchName = useMemo(() => {
-        if (selectedBranch == null) return null;
-        return branchOptions.find((branch) => branch.id === Number(selectedBranch))?.name || null;
-    }, [branchOptions, selectedBranch]);
+        if (selectedBranch != null) {
+            return branchOptions.find((branch) => branch.id === Number(selectedBranch))?.name || null;
+        }
+
+        if (lastSelectedBranchId != null) {
+            return branchOptions.find((branch) => branch.id === Number(lastSelectedBranchId))?.name || null;
+        }
+
+        return branchOptions[0]?.name || null;
+    }, [branchOptions, selectedBranch, lastSelectedBranchId]);
 
     const branchesById = useMemo(() => {
         const map = new Map();
@@ -674,12 +770,12 @@ export default function DashboardPage() {
                 )}
 
                 {/* Controls (Period and Branch selectors) */}
-                <div className="mb-4">
+                <div className="dashboard-controls-shell container px-0 mb-4">
                     <DashboardControls
                         selectedPeriod={selectedPeriod}
                         onPeriodChange={setSelectedPeriod}
                         selectedBranch={selectedBranch}
-                        onBranchChange={setSelectedBranch}
+                        onBranchChange={handleBranchChange}
                         isCentralUser={isCentralUser}
                         branchOptions={branchOptions}
                         selectedBranchName={selectedBranchName}

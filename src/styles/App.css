@@ -212,6 +212,59 @@
   background-color: #ededed !important;
 }
 
+/* Dashboard controls */
+.dashboard-controls-shell {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.dashboard-controls .btn {
+  min-height: 38px;
+  padding: 0.5rem 1rem;
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.dashboard-period-group > .btn:first-child {
+  border-top-left-radius: 0.4rem !important;
+  border-bottom-left-radius: 0.4rem !important;
+}
+
+.dashboard-period-group > .btn:not(:first-child) {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.dashboard-period-group > .btn:not(:last-child) {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.dashboard-branch-group > .btn:first-child {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.dashboard-branch-group > .dropdown > .btn {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+@media (max-width: 576px) {
+  .dashboard-controls-shell {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .dashboard-controls {
+    gap: 0.5rem;
+  }
+
+  .dashboard-controls-branch {
+    margin-left: 0 !important;
+  }
+}
+
 .stock-status-low-text {
   color: #e6aa05 !important;
   font-weight: 600;
@@ -332,6 +385,7 @@
 .navbar-container {
   display: flex;
   align-items: center;
+  padding: 0;
 }
 
 .navbar-collapse {
