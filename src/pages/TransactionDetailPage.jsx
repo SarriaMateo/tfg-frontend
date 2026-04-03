@@ -748,11 +748,11 @@ export const TransactionDetailPage = () => {
             <Button
               variant="outline-secondary"
               className="detail-page-action-btn"
-              onClick={() => {
+              onClick={(e) => {
                 const path = fromDashboard
                   ? '/dashboard'
                   : (fromItemId ? `/inventory/items/${fromItemId}` : '/transactions');
-                navigate(path);
+                handleNavigationClickWithState(e, path, {}, navigate);
               }}
               disabled={actionLoading}
             >
@@ -916,7 +916,7 @@ export const TransactionDetailPage = () => {
                             <th>Artículo</th>
                             <th className="text-end">Cantidad</th>
                             <th>Unidad</th>
-                            <th className="text-center">Acciones</th>
+                            <th className="text-center">Detalles</th>
                           </tr>
                         </thead>
                         <tbody>

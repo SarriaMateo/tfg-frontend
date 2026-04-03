@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Spinner, Button, Form, Row, Col, Pagination, Modal } from 'react-bootstrap';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { BsCheckSquare, BsDownload, BsFiletypeCsv, BsFiletypePdf, BsFillTrash3Fill, BsInfoCircle, BsUpload, BsSortUp, BsSortDown } from 'react-icons/bs';
+import { BsArrowLeftRight, BsCheckSquare, BsDownload, BsFiletypeCsv, BsFiletypePdf, BsFillTrash3Fill, BsGear, BsInfoCircle, BsUpload, BsSortUp, BsSortDown } from 'react-icons/bs';
 import { handleNavigationClick } from '../utils/navigationUtils';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
@@ -378,6 +378,21 @@ export const TransactionListTable = ({
 
   const getOperationTypeLabel = (operationType) => {
     return OPERATION_TYPE_LABELS[operationType] || operationType || '-';
+  };
+
+  const getOperationTypeIcon = (operationType) => {
+    switch (operationType) {
+      case 'IN':
+        return <BsDownload title="Entrada" />;
+      case 'OUT':
+        return <BsUpload title="Salida" />;
+      case 'TRANSFER':
+        return <BsArrowLeftRight title="Traspaso" />;
+      case 'ADJUSTMENT':
+        return <BsGear title="Ajuste" />;
+      default:
+        return <BsInfoCircle title={operationType || 'Operación'} />;
+    }
   };
 
   const getStatusLabel = (status) => {
@@ -772,7 +787,12 @@ export const TransactionListTable = ({
 
                 return (
                   <tr key={transaction.id}>
-                    <td>{getOperationTypeLabel(transaction.operation_type)}</td>
+                    <td>
+                      <span className="d-inline-flex align-items-center gap-2">
+                        {getOperationTypeIcon(transaction.operation_type)}
+                        <span>{getOperationTypeLabel(transaction.operation_type)}</span>
+                      </span>
+                    </td>
                     <td>{getTransactionBranchDisplay(transaction)}</td>
                     <td>{formatTransactionDateTime(transaction.last_event_at || transaction.created_at)}</td>
                     <td>

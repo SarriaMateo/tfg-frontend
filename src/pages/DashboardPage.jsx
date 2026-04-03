@@ -18,6 +18,7 @@ import { DASHBOARD_COLORS } from "../constants/colors";
 import { useNavigate } from "react-router-dom";
 import { branchService } from "../services/branchService";
 import { transactionService } from "../services/transactionService";
+import { handleNavigationClickWithState } from "../utils/navigationUtils";
 import {
     BsDownload,
     BsArrowLeftRight,
@@ -347,7 +348,7 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
 
                         <div className="col-12 col-xl-4 h-100">
                             <div className="d-flex flex-column h-100 rounded-3 px-1 pt-2">
-                                <p className="small text-muted mb-2 text-center">Líneas entrantes y salientes</p>
+                                <p className="small text-muted mb-2 text-center">SKUs entrantes y salientes</p>
                                 <div className="flex-grow-1 position-relative" style={{ minHeight: 180 }}>
                                     {pieData.length > 0 ? (
                                         <>
@@ -460,7 +461,9 @@ const DashboardAlertsSection = ({
                 </div>
 
                 {alerts.length === 0 ? (
-                    <p className="text-muted mb-0">No hay alertas activas</p>
+                    <div className="flex-grow-1 d-flex align-items-center justify-content-center" style={{ minHeight: 0 }}>
+                        <p className="text-muted mb-0 text-center">No hay alertas</p>
+                    </div>
                 ) : (
                     <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0, overflowY: "hidden" }}>
                         <div className="d-flex gap-3 h-100 align-items-stretch pb-1" style={{ minWidth: "max-content" }}>
@@ -470,11 +473,11 @@ const DashboardAlertsSection = ({
                                     role="button"
                                     tabIndex={0}
                                     className="rounded-3 p-3 h-100"
-                                    onClick={() => onNavigateToAlert(alertItem.path)}
+                                    onClick={(event) => onNavigateToAlert(event, alertItem.path)}
                                     onKeyDown={(event) => {
                                         if (event.key === "Enter" || event.key === " ") {
                                             event.preventDefault();
-                                            onNavigateToAlert(alertItem.path);
+                                            onNavigateToAlert(null, alertItem.path);
                                         }
                                     }}
                                     style={{
@@ -642,7 +645,7 @@ const DashboardRecentOperationsSection = ({
                                                 variant="primary"
                                                 size="sm"
                                                 className="list-action-btn"
-                                                onClick={() => onOpenDetails(transaction.id)}
+                                                onClick={(event) => onOpenDetails(event, transaction.id)}
                                                 title="Ver detalles"
                                             >
                                                 <BsInfoCircle />
@@ -863,8 +866,16 @@ export default function DashboardPage() {
         };
     }, [error, isCentralUser, selectedBranchName]);
 
-    const handleOpenTransactionDetails = (transactionId) => {
-        navigate(`/transactions/${transactionId}`);
+    const handleOpenTransactionDetails = (event, transactionId) => {
+        const path = `/transactions/${transactionId}`;
+        const state = { fromDashboard: true };
+
+        if (event) {
+            handleNavigationClickWithState(event, path, state, navigate);
+            return;
+        }
+
+        navigate(path, { state });
     };
 
     const allAlerts = useMemo(() => {
@@ -955,8 +966,15 @@ export default function DashboardPage() {
         localStorage.removeItem(DISMISSED_ALERTS_STORAGE_KEY);
     };
 
-    const handleNavigateToAlert = (path) => {
-        navigate(path, { state: { fromDashboard: true } });
+    const handleNavigateToAlert = (event, path) => {
+        const state = { fromDashboard: true };
+
+        if (event) {
+            handleNavigationClickWithState(event, path, state, navigate);
+            return;
+        }
+
+        navigate(path, { state });
     };
 
     if (!user) {

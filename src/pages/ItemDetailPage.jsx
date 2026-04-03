@@ -734,7 +734,7 @@ export const ItemDetailPage = () => {
                           <th>Fecha y hora</th>
                           <th>Descripción</th>
                           <th className="text-end">Cantidad</th>
-                          <th className="text-center">Acciones</th>
+                          <th className="text-center">Detalles</th>
                         </tr>
                       </thead>
                       <tbody>
