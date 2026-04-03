@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const SESSION_STORAGE_CLEAR_PREFIXES = ['itemsListState:', 'transactionsListState:'];
+const SESSION_STORAGE_CLEAR_PREFIXES = ['itemsListState:', 'transactionsListState:', 'dashboardControlsState:'];
+const LOCAL_STORAGE_CLEAR_KEYS = ['token', 'user', 'dashboard:dismissedAlerts'];
 const SESSION_EXPIRED_NOTICE_KEY = 'auth:sessionExpiredNotice';
 
 const clearSessionScopedUiState = () => {
@@ -19,8 +20,7 @@ const clearSessionScopedUiState = () => {
 };
 
 const clearAuthState = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  LOCAL_STORAGE_CLEAR_KEYS.forEach((key) => localStorage.removeItem(key));
   clearSessionScopedUiState();
 };
 

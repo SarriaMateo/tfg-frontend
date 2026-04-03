@@ -93,6 +93,7 @@ export const TransactionDetailPage = () => {
   const { user } = useAuth();
   const { hasAnyRole } = useAuthorization();
   const canCreateEdit = hasAnyRole(['MANAGER', 'ADMIN']);
+  const fromDashboard = location.state?.fromDashboard;
   const fromItemId = location.state?.fromItemId;
 
   const [transaction, setTransaction] = useState(null);
@@ -748,7 +749,9 @@ export const TransactionDetailPage = () => {
               variant="outline-secondary"
               className="detail-page-action-btn"
               onClick={() => {
-                const path = fromItemId ? `/inventory/items/${fromItemId}` : '/transactions';
+                const path = fromDashboard
+                  ? '/dashboard'
+                  : (fromItemId ? `/inventory/items/${fromItemId}` : '/transactions');
                 navigate(path);
               }}
               disabled={actionLoading}

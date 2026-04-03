@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Container, Row, Col, Card, Spinner, Alert, ButtonGroup, Button, DropdownButton, Dropdown } from "react-bootstrap";
 import {
     ResponsiveContainer,
@@ -24,11 +24,14 @@ import {
     BsUpload,
     BsGear,
     BsInfoCircle,
+    BsEyeFill,
 } from "react-icons/bs";
 
 const DISMISSED_ALERTS_STORAGE_KEY = "dashboard:dismissedAlerts";
 const DASHBOARD_CONTROLS_STORAGE_PREFIX = "dashboardControlsState:";
 const PERIOD_OPTIONS = ["day", "week", "month", "total"];
+const DASHBOARD_SUMMARY_MIN_HEIGHT = 300;
+const DASHBOARD_ALERTS_MIN_HEIGHT = 200;
 
 const getDashboardControlsStorageKey = (userId) => `${DASHBOARD_CONTROLS_STORAGE_PREFIX}${userId}`;
 
@@ -142,6 +145,21 @@ const operationTypeLabels = {
     "OUT": "Salida",
     "TRANSFER": "Traspaso",
     "ADJUSTMENT": "Ajuste",
+};
+
+const getOperationTypeIcon = (operationType, title) => {
+    switch (operationType) {
+        case "IN":
+            return <BsDownload title={title || "Entrada"} />;
+        case "OUT":
+            return <BsUpload title={title || "Salida"} />;
+        case "TRANSFER":
+            return <BsArrowLeftRight title={title || "Traspaso"} />;
+        case "ADJUSTMENT":
+            return <BsGear title={title || "Ajuste"} />;
+        default:
+            return <BsInfoCircle title={title || operationType || "Operación"} />;
+    }
 };
 
 const PieChartTooltip = ({ payload }) => {
@@ -425,53 +443,97 @@ const DashboardAlertsSection = ({
 
     return (
         <Card className="shadow-sm border-0 h-100">
-            <Card.Body className="p-4">
+            <Card.Body className="p-4 d-flex flex-column h-100" style={{ minHeight: 0 }}>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h5 className="text-dark fw-bold mb-0">Alertas</h5>
                     <Button
-                        variant="outline-secondary"
-                        size="sm"
+                        variant="secondary"
+                        size="md"
+                        className="px-2 py-1 d-inline-flex align-items-center justify-content-center"
                         onClick={onShowAllAlerts}
                         disabled={dismissedCount === 0}
+                        aria-label="Mostrar todas"
+                        title="Mostrar todas"
                     >
-                        Mostrar todas
+                        <BsEyeFill />
                     </Button>
                 </div>
 
                 {alerts.length === 0 ? (
                     <p className="text-muted mb-0">No hay alertas activas</p>
                 ) : (
-                    <div style={{ maxHeight: 280, overflowY: "auto" }}>
-                        <div className="d-flex flex-column gap-2">
+                    <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0, overflowY: "hidden" }}>
+                        <div className="d-flex gap-3 h-100 align-items-stretch pb-1" style={{ minWidth: "max-content" }}>
                             {alerts.map((alertItem) => (
-                                <button
+                                <div
                                     key={alertItem.id}
-                                    type="button"
-                                    className="btn btn-light text-start"
+                                    role="button"
+                                    tabIndex={0}
+                                    className="rounded-3 p-3 h-100"
                                     onClick={() => onNavigateToAlert(alertItem.path)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter" || event.key === " ") {
+                                            event.preventDefault();
+                                            onNavigateToAlert(alertItem.path);
+                                        }
+                                    }}
                                     style={{
+                                        width: 160,
                                         borderLeft: `5px solid ${alertItem.color}`,
                                         backgroundColor: `${alertItem.color}20`,
+                                        cursor: "pointer",
                                     }}
                                 >
-                                    <div className="d-flex justify-content-between align-items-start gap-2">
-                                        <div>
-                                            <p className="fw-semibold mb-1">{alertItem.title}</p>
-                                            <p className="small text-muted mb-0">{alertItem.description}</p>
+                                    <div className="d-flex flex-column h-100" style={{ minWidth: 0 }}>
+                                        <div className="d-flex justify-content-end mb-2">
+                                            <button
+                                                type="button"
+                                                className="btn-close"
+                                                aria-label="Descartar"
+                                                title="Descartar"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    onDismissAlert(alertItem.id);
+                                                }}
+                                            />
                                         </div>
-                                        <Button
-                                            variant="link"
-                                            size="sm"
-                                            className="text-muted text-decoration-none p-0"
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                onDismissAlert(alertItem.id);
-                                            }}
-                                        >
-                                            Descartar
-                                        </Button>
+
+                                        <div className="d-flex flex-column justify-content-end flex-grow-1">
+                                            {alertItem.kind === "stock" ? (
+                                                <>
+                                                    <p className="small fw-semibold text-uppercase text-muted mb-2">
+                                                        {alertItem.stockStatusLabel}
+                                                    </p>
+                                                    <p className="fw-semibold mb-1 text-break">
+                                                        {alertItem.itemName} (<code>{alertItem.itemSku || "-"}</code>)
+                                                    </p>
+                                                    <p className="small text-muted mb-1 text-break">{alertItem.branchName}</p>
+                                                    <p className="small mb-0">
+                                                        Stock: {alertItem.stock}/{alertItem.lowStockThreshold}
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="small fw-semibold text-uppercase text-muted mb-2">
+                                                        {alertItem.staleStatusLabel}: #{alertItem.transactionId}
+                                                    </p>
+                                                    <p className="small mb-1 text-break d-flex align-items-center gap-2">
+                                                        <span className="fs-6 lh-1">{getOperationTypeIcon(alertItem.operationType, alertItem.operationTypeLabel)}</span>
+                                                        <span>
+                                                            {alertItem.originBranchName}
+                                                            {alertItem.destinationBranchName
+                                                                ? ` → ${alertItem.destinationBranchName}`
+                                                                : ""}
+                                                        </span>
+                                                    </p>
+                                                    <p className="small text-muted mb-0">
+                                                        {alertItem.daysSinceLastEvent} día(s) sin cambios
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
-                                </button>
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -516,20 +578,7 @@ const DashboardRecentOperationsSection = ({
         return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
     };
 
-    const getTypeIcon = (operationType) => {
-        switch (operationType) {
-            case "IN":
-                return <BsDownload title="Entrada" />;
-            case "OUT":
-                return <BsUpload title="Salida" />;
-            case "TRANSFER":
-                return <BsArrowLeftRight title="Traspaso" />;
-            case "ADJUSTMENT":
-                return <BsGear title="Ajuste" />;
-            default:
-                return <BsInfoCircle title={operationType || "Operación"} />;
-        }
-    };
+    const getTypeIcon = (operationType) => getOperationTypeIcon(operationType);
 
     const getStatusRowClass = (status) => {
         const normalizedStatus = status === "COMPLETED" ? "COMPLETE" : status;
@@ -554,12 +603,12 @@ const DashboardRecentOperationsSection = ({
 
     return (
         <Card className="shadow-sm border-0 h-100">
-            <Card.Body className="p-4">
+            <Card.Body className="p-4 d-flex flex-column h-100" style={{ minHeight: 0 }}>
                 <h5 className="text-dark fw-bold mb-3">Últimas Operaciones</h5>
 
                 {error && <p className="text-danger small">{error}</p>}
 
-                <div style={{ height: 520, overflowY: "auto" }}>
+                <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
                     <table className="table table-sm table-hover align-middle mb-0 dashboard-recent-operations-table">
                         <thead style={{ position: "sticky", top: 0, background: "white", zIndex: 1 }}>
                             <tr>
@@ -613,6 +662,7 @@ const DashboardRecentOperationsSection = ({
 export default function DashboardPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const dashboardLayoutRef = useRef(null);
 
     const parsedStoredBranchId = Number(localStorage.getItem("selectedBranchId"));
     const workBranchId = Number.isInteger(parsedStoredBranchId) && parsedStoredBranchId > 0
@@ -641,6 +691,8 @@ export default function DashboardPage() {
 
     // Check if user is central (can see all branches)
     const isCentralUser = user?.branch_id == null;
+
+    const [dashboardLayoutHeight, setDashboardLayoutHeight] = useState(null);
 
     useEffect(() => {
         if (!user?.id) {
@@ -783,6 +835,34 @@ export default function DashboardPage() {
         fetchRecentTransactions();
     }, [resolvedBranchId]);
 
+    useEffect(() => {
+        const updateDashboardLayoutHeight = () => {
+            const element = dashboardLayoutRef.current;
+            if (!element) return;
+
+            const topOffset = element.getBoundingClientRect().top;
+            const availableHeight = window.innerHeight - topOffset - 24;
+            setDashboardLayoutHeight(Math.max(availableHeight, 420));
+        };
+
+        updateDashboardLayoutHeight();
+
+        const resizeObserver = typeof ResizeObserver !== "undefined" && dashboardLayoutRef.current
+            ? new ResizeObserver(updateDashboardLayoutHeight)
+            : null;
+
+        if (resizeObserver && dashboardLayoutRef.current) {
+            resizeObserver.observe(dashboardLayoutRef.current);
+        }
+
+        window.addEventListener("resize", updateDashboardLayoutHeight);
+
+        return () => {
+            resizeObserver?.disconnect();
+            window.removeEventListener("resize", updateDashboardLayoutHeight);
+        };
+    }, [error, isCentralUser, selectedBranchName]);
+
     const handleOpenTransactionDetails = (transactionId) => {
         navigate(`/transactions/${transactionId}`);
     };
@@ -797,10 +877,13 @@ export default function DashboardPage() {
                 const isZeroStock = item?.stock_status === "ZERO";
                 return {
                     id: `stock-${branchId}-${item.item_id}-${item.stock_status}`,
-                    title: isZeroStock
-                        ? `Stock cero: ${item.item_name}`
-                        : `Stock bajo: ${item.item_name}`,
-                    description: `Sede: ${branchName} · SKU: ${item.item_sku} · Stock: ${item.stock}`,
+                    kind: "stock",
+                    stockStatusLabel: isZeroStock ? "Stock 0" : "Stock bajo",
+                    itemName: item.item_name || "Sin nombre",
+                    itemSku: item.item_sku || "-",
+                    branchName,
+                    stock: Number(item.stock) || 0,
+                    lowStockThreshold: Number(item.low_stock_threshold) || 0,
                     color: isZeroStock
                         ? DASHBOARD_COLORS.alerts.zeroStock
                         : DASHBOARD_COLORS.alerts.lowStock,
@@ -810,28 +893,42 @@ export default function DashboardPage() {
             });
         });
 
-        const staleTransactionAlerts = (stockRiskData?.data || []).flatMap((branchData) => {
+        const staleAlertsById = new Map();
+
+        (stockRiskData?.data || []).forEach((branchData) => {
             const staleTransactions = branchData?.stale_transactions || [];
 
-            return staleTransactions
+            staleTransactions
                 .filter((transaction) => ["PENDING", "TRANSIT"].includes(transaction?.status))
                 .filter((transaction) => Number(transaction?.days_since_last_event) >= 1)
-                .map((transaction) => {
+                .forEach((transaction) => {
+                    const alertId = `transaction-${transaction.transaction_id}-${transaction.status}`;
+                    if (staleAlertsById.has(alertId)) return;
+
                     const isPending = transaction.status === "PENDING";
-                    return {
-                        id: `transaction-${transaction.transaction_id}-${transaction.status}`,
-                        title: isPending
-                            ? `PENDING +24h: #${transaction.transaction_id}`
-                            : `TRANSIT +24h: #${transaction.transaction_id}`,
-                        description: `${transaction.operation_type} · ${transaction.days_since_last_event} día(s) sin cambios`,
+                    const hasDestination = Boolean(transaction?.destination_branch_name);
+                    const operationTypeLabel = operationTypeLabels[transaction?.operation_type] || transaction?.operation_type || "Operación";
+
+                    staleAlertsById.set(alertId, {
+                        id: alertId,
+                        kind: "stale-transaction",
+                        staleStatusLabel: isPending ? "Pendiente +24h" : "En transito +24h",
+                        transactionId: transaction.transaction_id,
+                        operationType: transaction?.operation_type,
+                        operationTypeLabel,
+                        originBranchName: transaction?.origin_branch_name || branchData?.branch?.branch_name || "Sin sede",
+                        destinationBranchName: hasDestination ? transaction.destination_branch_name : null,
+                        daysSinceLastEvent: Number(transaction?.days_since_last_event) || 0,
                         color: isPending
                             ? DASHBOARD_COLORS.alerts.pendingStale
                             : DASHBOARD_COLORS.alerts.transitStale,
                         path: `/transactions/${transaction.transaction_id}`,
                         severityOrder: isPending ? 3 : 4,
-                    };
+                    });
                 });
         });
+
+        const staleTransactionAlerts = Array.from(staleAlertsById.values());
 
         return [...stockAlerts, ...staleTransactionAlerts].sort(
             (firstAlert, secondAlert) => firstAlert.severityOrder - secondAlert.severityOrder
@@ -859,7 +956,7 @@ export default function DashboardPage() {
     };
 
     const handleNavigateToAlert = (path) => {
-        navigate(path);
+        navigate(path, { state: { fromDashboard: true } });
     };
 
     if (!user) {
@@ -895,11 +992,21 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Main Layout: 2 columns (left: summary + alerts, right: recent operations) */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", minHeight: "calc(100vh - 300px)" }}>
+                <div
+                    ref={dashboardLayoutRef}
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+                        gap: "1.5rem",
+                        height: dashboardLayoutHeight ? `${dashboardLayoutHeight}px` : "calc(100dvh - 240px)",
+                        minHeight: 0,
+                        alignItems: "stretch",
+                    }}
+                >
                     {/* Left Column: Summary (top) and Alerts (bottom) */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", minHeight: 0, height: "100%" }}>
                         {/* Section 1: Summary */}
-                        <div style={{ flex: "1 1 50%", minHeight: 0 }}>
+                        <div style={{ flex: "0 0 auto", minHeight: DASHBOARD_SUMMARY_MIN_HEIGHT }}>
                             <DashboardSummarySection
                                 loading={loading}
                                 error={error}
@@ -909,7 +1016,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Section 2: Alerts */}
-                        <div style={{ flex: "1 1 50%", minHeight: 0 }}>
+                        <div style={{ flex: "1 1 auto", minHeight: DASHBOARD_ALERTS_MIN_HEIGHT }}>
                             <DashboardAlertsSection
                                 loading={loading}
                                 alerts={visibleAlerts}
@@ -922,7 +1029,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Right Column: Recent Operations (full height) */}
-                    <div style={{ flex: "1 1 100%", minHeight: 0 }}>
+                    <div style={{ minHeight: 0, height: "100%" }}>
                         <DashboardRecentOperationsSection
                             loading={recentTransactionsLoading}
                             error={recentTransactionsError}

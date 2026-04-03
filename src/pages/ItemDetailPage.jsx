@@ -46,6 +46,7 @@ export const ItemDetailPage = () => {
   const { selectedBranchId } = useBranchSelection();
   const { hasAnyRole, hasRole } = useAuthorization();
   
+  const fromDashboard = location.state?.fromDashboard;
   const fromTransactionId = location.state?.fromTransactionId;
 
   const [item, setItem] = useState(null);
@@ -500,7 +501,9 @@ export const ItemDetailPage = () => {
               variant="outline-secondary"
               className="detail-page-action-btn"
               onClick={(e) => {
-                const path = fromTransactionId ? `/transactions/${fromTransactionId}` : '/inventory';
+                const path = fromDashboard
+                  ? '/dashboard'
+                  : (fromTransactionId ? `/transactions/${fromTransactionId}` : '/inventory');
                 handleNavigationClickWithState(e, path, {}, navigate);
               }}
               disabled={loadingAction || imageActionLoading}

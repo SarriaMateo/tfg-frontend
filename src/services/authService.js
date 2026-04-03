@@ -1,6 +1,7 @@
 import api from '../api/api';
 
 const SESSION_STORAGE_CLEAR_PREFIXES = ['itemsListState:', 'transactionsListState:', 'dashboardControlsState:'];
+const LOCAL_STORAGE_CLEAR_KEYS = ['token', 'user', 'dashboard:dismissedAlerts'];
 
 const clearSessionScopedUiState = () => {
   try {
@@ -44,8 +45,7 @@ export const authService = {
   },
 
   logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    LOCAL_STORAGE_CLEAR_KEYS.forEach((key) => localStorage.removeItem(key));
     clearSessionScopedUiState();
   },
 
