@@ -16,16 +16,14 @@ export const DASHBOARD_COLORS = {
   // Transaction line colors - Incoming (blue)
   transactions: {
     incoming: {
-      IN: '#4C72B0',        // Deep blue
-      OUT: '#55A1DC',       // Medium blue
-      TRANSFER: '#8CC4E6',  // Light blue
-      ADJUSTMENT: '#C5E0F2', // Very light blue
+      IN: '#023E8A',
+      TRANSFER: '#0096C7',
+      ADJUSTMENT: '#90E0EF',
     },
     outgoing: {
-      IN: '#F37936',        // Deep orange
-      OUT: '#F5A44D',       // Medium orange
-      TRANSFER: '#F7C87B',  // Light orange
-      ADJUSTMENT: '#FDEBD0', // Very light orange
+      OUT: '#ff4d00',
+      TRANSFER: '#ff9a00',
+      ADJUSTMENT: '#ffc100',
     },
   },
   // Stock status colors
