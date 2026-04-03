@@ -19,6 +19,14 @@ import { useDashboard } from "../hooks/useDashboard";
 import { DASHBOARD_COLORS } from "../constants/colors";
 import { useNavigate } from "react-router-dom";
 import { branchService } from "../services/branchService";
+import { transactionService } from "../services/transactionService";
+import {
+  BsDownload,
+  BsArrowLeftRight,
+  BsUpload,
+  BsGear,
+  BsInfoCircle,
+} from "react-icons/bs";
 
 const DISMISSED_ALERTS_STORAGE_KEY = "dashboard:dismissedAlerts";
 
@@ -322,10 +330,16 @@ const DashboardAlertsSection = ({
   );
 };
 
-const DashboardRecentOperationsSection = ({ loading, error, stockRiskData }) => {
+const DashboardRecentOperationsSection = ({
+  loading,
+  error,
+  transactions,
+  branchesById,
+  onOpenDetails,
+}) => {
   if (loading) {
     return (
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-sm border-0 h-100">
         <Card.Body className="p-4 text-center">
           <Spinner animation="border" size="sm" />
         </Card.Body>
@@ -333,12 +347,113 @@ const DashboardRecentOperationsSection = ({ loading, error, stockRiskData }) => 
     );
   }
 
+  const formatDateTime = (value) => {
+    if (!value) return "-";
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) return "-";
+
+    const day = String(parsedDate.getDate()).padStart(2, "0");
+    const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+    const hours = String(parsedDate.getHours()).padStart(2, "0");
+    const minutes = String(parsedDate.getMinutes()).padStart(2, "0");
+    return `${day}/${month}, ${hours}:${minutes}`;
+  };
+
+  const cropDescription = (value) => {
+    if (!value) return "-";
+    const maxLength = 70;
+    return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+  };
+
+  const getTypeIcon = (operationType) => {
+    switch (operationType) {
+      case "IN":
+        return <BsDownload title="Entrada" />;
+      case "OUT":
+        return <BsUpload title="Salida" />;
+      case "TRANSFER":
+        return <BsArrowLeftRight title="Traspaso" />;
+      case "ADJUSTMENT":
+        return <BsGear title="Ajuste" />;
+      default:
+        return <BsInfoCircle title={operationType || "Operación"} />;
+    }
+  };
+
+  const getStatusRowClass = (status) => {
+    const normalizedStatus = status === "COMPLETED" ? "COMPLETE" : status;
+
+    if (normalizedStatus === "PENDING") return "transaction-status-pending-row";
+    if (normalizedStatus === "TRANSIT") return "transaction-status-transit-row";
+    if (normalizedStatus === "CANCELLED") return "transaction-status-cancelled-row";
+    return "";
+  };
+
+  const getBranchDisplay = (transaction) => {
+    const branchId = Number(transaction?.branch_id);
+    const destinationBranchId = Number(transaction?.destination_branch_id);
+    const originBranchName = branchesById.get(branchId) || (branchId ? `Sede #${branchId}` : "-");
+
+    if (transaction?.operation_type !== "TRANSFER") return originBranchName;
+
+    const destinationBranchName = branchesById.get(destinationBranchId)
+      || (destinationBranchId ? `Sede #${destinationBranchId}` : "-");
+    return `${originBranchName} → ${destinationBranchName}`;
+  };
+
   return (
-    <Card className="shadow-sm border-0">
+    <Card className="shadow-sm border-0 h-100">
       <Card.Body className="p-4">
-        <h5 className="text-dark fw-bold mb-4">Últimas Operaciones</h5>
-        {/* To be implemented in Stage 5 */}
-        <p className="text-muted">Sección de últimas operaciones - En desarrollo</p>
+        <h5 className="text-dark fw-bold mb-3">Últimas Operaciones</h5>
+
+        {error && <p className="text-danger small">{error}</p>}
+
+        <div style={{ height: 520, overflowY: "auto" }}>
+          <table className="table table-sm table-hover align-middle mb-0 dashboard-recent-operations-table">
+            <thead style={{ position: "sticky", top: 0, background: "white", zIndex: 1 }}>
+              <tr>
+                <th>Tipo</th>
+                <th>Sede</th>
+                <th>Fecha y hora</th>
+                <th>Descripción</th>
+                <th className="text-center">Detalles</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center text-muted py-4">
+                    No hay operaciones recientes
+                  </td>
+                </tr>
+              ) : (
+                transactions.map((transaction) => (
+                  <tr key={transaction.id} className={getStatusRowClass(transaction.status)}>
+                    <td className="fs-5">{getTypeIcon(transaction.operation_type)}</td>
+                    <td>{getBranchDisplay(transaction)}</td>
+                    <td>{formatDateTime(transaction.last_event_at || transaction.created_at)}</td>
+                    <td>
+                      <span title={transaction.description || ""}>
+                        {cropDescription(transaction.description)}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="list-action-btn"
+                        onClick={() => onOpenDetails(transaction.id)}
+                        title="Ver detalles"
+                      >
+                        <BsInfoCircle />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card.Body>
     </Card>
   );
@@ -358,6 +473,9 @@ export default function DashboardPage() {
   // Dashboard state
   const [selectedPeriod, setSelectedPeriod] = useState("day");
   const [selectedBranch, setSelectedBranch] = useState(() => workBranchId);
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [recentTransactionsLoading, setRecentTransactionsLoading] = useState(true);
+  const [recentTransactionsError, setRecentTransactionsError] = useState(null);
   const [dismissedAlerts, setDismissedAlerts] = useState(() => {
     try {
       const rawValue = localStorage.getItem(DISMISSED_ALERTS_STORAGE_KEY);
@@ -409,6 +527,57 @@ export default function DashboardPage() {
     if (selectedBranch == null) return null;
     return branchOptions.find((branch) => branch.id === Number(selectedBranch))?.name || null;
   }, [branchOptions, selectedBranch]);
+
+  const branchesById = useMemo(() => {
+    const map = new Map();
+
+    activeBranches.forEach((branch) => {
+      const branchId = Number(branch?.id);
+      if (branchId) map.set(branchId, branch?.name || `Sede #${branchId}`);
+    });
+
+    (stockRiskData?.data || []).forEach((branchData) => {
+      const branchId = Number(branchData?.branch?.branch_id);
+      if (branchId) map.set(branchId, branchData?.branch?.branch_name || `Sede #${branchId}`);
+    });
+
+    return map;
+  }, [activeBranches, stockRiskData]);
+
+  useEffect(() => {
+    const fetchRecentTransactions = async () => {
+      try {
+        setRecentTransactionsLoading(true);
+        setRecentTransactionsError(null);
+
+        const params = {
+          page: 1,
+          page_size: 20,
+          order_by: "last_event_at",
+          order_desc: true,
+        };
+
+        if (resolvedBranchId) {
+          params.branch_id = Number(resolvedBranchId);
+        }
+
+        const response = await transactionService.listTransactions(params);
+        const transactions = Array.isArray(response) ? response : response?.data || [];
+        setRecentTransactions(transactions);
+      } catch (fetchError) {
+        setRecentTransactions([]);
+        setRecentTransactionsError("No se pudieron cargar las últimas operaciones");
+      } finally {
+        setRecentTransactionsLoading(false);
+      }
+    };
+
+    fetchRecentTransactions();
+  }, [resolvedBranchId]);
+
+  const handleOpenTransactionDetails = (transactionId) => {
+    navigate(`/transactions/${transactionId}`);
+  };
 
   const allAlerts = useMemo(() => {
     const stockAlerts = (stockRiskData?.data || []).flatMap((branchData) => {
@@ -553,9 +722,11 @@ export default function DashboardPage() {
           {/* Right Column: Recent Operations (full height) */}
           <div style={{ flex: "1 1 100%", minHeight: 0 }}>
             <DashboardRecentOperationsSection
-              loading={loading}
-              error={error}
-              stockRiskData={stockRiskData}
+              loading={recentTransactionsLoading}
+              error={recentTransactionsError}
+              transactions={recentTransactions}
+              branchesById={branchesById}
+              onOpenDetails={handleOpenTransactionDetails}
             />
           </div>
         </div>

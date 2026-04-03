@@ -183,6 +183,35 @@
   background-color: #ffe3e3 !important;
 }
 
+/* Transaction status highlighting */
+.transaction-status-pending-row > * {
+  background-color: #fff8e1 !important;
+}
+
+.transaction-status-transit-row > * {
+  background-color: #e3f2fd !important;
+}
+
+.transaction-status-cancelled-row > * {
+  background-color: #f5f5f5 !important;
+}
+
+.dashboard-recent-operations-table.table-hover tbody tr:hover > * {
+  background-color: #eef5ff !important;
+}
+
+.dashboard-recent-operations-table.table-hover tbody tr.transaction-status-pending-row:hover > * {
+  background-color: #fff4cc !important;
+}
+
+.dashboard-recent-operations-table.table-hover tbody tr.transaction-status-transit-row:hover > * {
+  background-color: #d8ebff !important;
+}
+
+.dashboard-recent-operations-table.table-hover tbody tr.transaction-status-cancelled-row:hover > * {
+  background-color: #ededed !important;
+}
+
 .stock-status-low-text {
   color: #e6aa05 !important;
   font-weight: 600;
