@@ -66,6 +66,7 @@ export const ERROR_MESSAGES = {
   },
   auth_errors: {
     INVALID_CREDENTIALS: "Credenciales inválidas",
+    TOO_MANY_REQUESTS: "Demasiados intentos de inicio de sesión. Inténtalo de nuevo en un minuto.",
   },
   authorization_errors: {
     INSUFFICIENT_ROLE: "El usuario no tiene permisos suficientes para esta acción",

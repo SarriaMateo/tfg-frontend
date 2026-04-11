@@ -88,7 +88,7 @@ Create a `.env` file in the project root with:
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-Important note: company registration currently uses a hardcoded URL: `http://localhost:8000/api/v1/company/register`.
+All frontend API calls, including company registration, use `VITE_API_BASE_URL`.
 
 ## Local setup
 

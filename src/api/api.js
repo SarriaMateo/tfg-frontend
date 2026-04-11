@@ -76,8 +76,8 @@ api.interceptors.response.use(
 );
 
 export const registerCompany = async (companyData) => {
-  const response = await axios.post(
-    'http://localhost:8000/api/v1/company/register',
+  const response = await api.post(
+    '/company/register',
     {
       company: {
         name: companyData.companyName,

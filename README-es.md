@@ -88,7 +88,7 @@ Crear el archivo `.env` en la raíz con:
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-Nota importante: el flujo de registro de empresa usa actualmente una URL hardcodeada: `http://localhost:8000/api/v1/company/register`.
+Todas las llamadas API del frontend, incluido el registro de empresa, usan `VITE_API_BASE_URL`.
 
 ## Puesta en marcha local
 
