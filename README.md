@@ -82,13 +82,18 @@ Access control is enforced at two levels:
 
 ## Environment configuration
 
-Create a `.env` file in the project root with:
+Vite automatically uses environment files by mode:
+
+- `.env.development` for `yarn dev`
+- `.env.production` for `yarn build`
+
+Use `VITE_API_URL` as the frontend API base URL.
+
+Example:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:8000/api/v1
 ```
-
-All frontend API calls, including company registration, use `VITE_API_BASE_URL`.
 
 ## Local setup
 

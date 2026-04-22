@@ -25,10 +25,12 @@ dist-ssr
 
 # Environment variables
 .env
-.env.local
+.env.development
+.env.production
 .env.*.local
 
 # Misc
 C4_ARCHITECTURE_SIMPLE.md
 C4_COMPONENT_ARCHITECTURE.md
 package-lock.json
+.firebase/*

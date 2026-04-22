@@ -82,13 +82,18 @@ El acceso se controla a dos niveles:
 
 ## Configuración de entorno
 
-Crear el archivo `.env` en la raíz con:
+Vite usa automáticamente archivos de entorno según el modo:
+
+- `.env.development` para `yarn dev`
+- `.env.production` para `yarn build`
+
+Usa `VITE_API_URL` como base de la API del frontend.
+
+Ejemplo:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:8000/api/v1
 ```
-
-Todas las llamadas API del frontend, incluido el registro de empresa, usan `VITE_API_BASE_URL`.
 
 ## Puesta en marcha local
 
