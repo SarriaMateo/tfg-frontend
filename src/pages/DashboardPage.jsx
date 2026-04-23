@@ -44,7 +44,7 @@ const readStoredDashboardControls = (userId) => {
         if (!rawValue) return null;
 
         const parsed = JSON.parse(rawValue);
-        const period = PERIOD_OPTIONS.includes(parsed?.period) ? parsed.period : "day";
+        const period = PERIOD_OPTIONS.includes(parsed?.period) ? parsed.period : "total";
         const parsedBranchId = Number(parsed?.branchId);
         const branchId = Number.isInteger(parsedBranchId) && parsedBranchId > 0
             ? parsedBranchId
@@ -327,9 +327,9 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
                 <div className="d-flex flex-column h-100">
                     <h5 className="text-dark fw-bold mb-2">Resumen</h5>
 
-                    <div className="row g-3 flex-grow-1 align-items-stretch">
-                        <div className="col-12 col-xl-4 h-100">
-                            <div className="d-flex flex-column gap-1 h-100">
+                    <div className="row g-3 flex-grow-1 align-items-start align-items-xl-stretch dashboard-summary-grid">
+                        <div className="col-12 col-xl-4 h-100 dashboard-summary-column">
+                            <div className="d-flex flex-column gap-1 h-100 dashboard-summary-panel">
                                 <div className="text-center d-flex flex-column justify-content-center rounded-3 px-1 pt-2 pb-3">
                                     <p className="text-muted small mb-3">Operaciones Completadas</p>
                                     <p className="fs-2 fw-bold text-primary mb-0 lh-1">
@@ -346,10 +346,10 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
                             </div>
                         </div>
 
-                        <div className="col-12 col-xl-4 h-100">
-                            <div className="d-flex flex-column h-100 rounded-3 px-1 pt-2">
+                        <div className="col-12 col-xl-4 h-100 dashboard-summary-column">
+                            <div className="d-flex flex-column h-100 rounded-3 px-1 pt-2 dashboard-summary-panel">
                                 <p className="small text-muted mb-2 text-center">SKUs entrantes y salientes</p>
-                                <div className="flex-grow-1 position-relative" style={{ minHeight: 180 }}>
+                                <div className="dashboard-summary-chart dashboard-summary-chart-pie flex-grow-1 position-relative" style={{ minHeight: 180 }}>
                                     {pieData.length > 0 ? (
                                         <>
                                             <ResponsiveContainer width="100%" height="100%">
@@ -392,10 +392,10 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
                             </div>
                         </div>
 
-                        <div className="col-12 col-xl-4 h-100">
-                            <div className="d-flex flex-column h-100 rounded-3 px-1 pt-2">
+                        <div className="col-12 col-xl-4 h-100 dashboard-summary-column">
+                            <div className="d-flex flex-column h-100 rounded-3 px-1 pt-2 dashboard-summary-panel">
                                 <p className="small text-muted mb-2 text-center">Estado de stock por sede</p>
-                                <div className="flex-grow-1" style={{ minHeight: 180, overflowX: "auto", overflowY: "hidden" }}>
+                                <div className="dashboard-summary-chart dashboard-summary-chart-bar flex-grow-1" style={{ minHeight: 180, overflowX: "auto", overflowY: "hidden" }}>
                                     {stockByBranchChartData.length > 0 ? (
                                         <div style={{ width: stockChartContentWidth, minWidth: "100%", height: "100%" }}>
                                             <ResponsiveContainer width="100%" height="100%">
@@ -465,14 +465,14 @@ const DashboardAlertsSection = ({
                         <p className="text-muted mb-0 text-center">No hay alertas</p>
                     </div>
                 ) : (
-                    <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0, overflowY: "hidden" }}>
-                        <div className="d-flex gap-3 h-100 align-items-stretch pb-1" style={{ minWidth: "max-content" }}>
+                    <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
+                        <div className="d-flex flex-column gap-3 pb-1">
                             {alerts.map((alertItem) => (
                                 <div
                                     key={alertItem.id}
                                     role="button"
                                     tabIndex={0}
-                                    className="rounded-3 p-3 h-100"
+                                    className="rounded-3 p-2"
                                     onClick={(event) => onNavigateToAlert(event, alertItem.path)}
                                     onKeyDown={(event) => {
                                         if (event.key === "Enter" || event.key === " ") {
@@ -481,17 +481,25 @@ const DashboardAlertsSection = ({
                                         }
                                     }}
                                     style={{
-                                        width: 160,
+                                        width: "100%",
+                                        maxWidth: "100%",
                                         borderLeft: `5px solid ${alertItem.color}`,
                                         backgroundColor: `${alertItem.color}20`,
                                         cursor: "pointer",
+                                        overflow: "hidden",
                                     }}
                                 >
-                                    <div className="d-flex flex-column h-100" style={{ minWidth: 0 }}>
-                                        <div className="d-flex justify-content-end mb-2">
+                                    <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+                                        <div className="d-flex justify-content-between align-items-start gap-1">
+                                            <p className="small fw-semibold text-uppercase text-muted mb-0 text-truncate">
+                                                {alertItem.kind === "stock"
+                                                    ? alertItem.stockStatusLabel
+                                                    : `${alertItem.staleStatusLabel}: #${alertItem.transactionId}`}
+                                            </p>
                                             <button
                                                 type="button"
                                                 className="btn-close"
+                                                style={{ marginRight: "0.3rem" }}
                                                 aria-label="Descartar"
                                                 title="Descartar"
                                                 onClick={(event) => {
@@ -501,37 +509,39 @@ const DashboardAlertsSection = ({
                                             />
                                         </div>
 
-                                        <div className="d-flex flex-column justify-content-end flex-grow-1">
+                                        <div className="d-flex align-items-center gap-1 flex-nowrap overflow-auto" style={{ minWidth: 0 }}>
                                             {alertItem.kind === "stock" ? (
                                                 <>
-                                                    <p className="small fw-semibold text-uppercase text-muted mb-2">
-                                                        {alertItem.stockStatusLabel}
-                                                    </p>
-                                                    <p className="fw-semibold mb-1 text-break">
-                                                        {alertItem.itemName} (<code>{alertItem.itemSku || "-"}</code>)
-                                                    </p>
-                                                    <p className="small text-muted mb-1 text-break">{alertItem.branchName}</p>
-                                                    <p className="small mb-0">
+                                                    <span className="fw-semibold text-nowrap text-truncate" title={alertItem.itemName}>
+                                                        {alertItem.itemName}
+                                                    </span>
+                                                    <span className="small text-nowrap">
+                                                        (<code>{alertItem.itemSku || "-"}</code>)
+                                                    </span>
+                                                    <span className="text-muted">|</span>
+                                                    <span className="small text-nowrap text-truncate" title={alertItem.branchName}>
+                                                        {alertItem.branchName}
+                                                    </span>
+                                                    <span className="text-muted">|</span>
+                                                    <span className="small text-nowrap">
                                                         Stock: {alertItem.stock}/{alertItem.lowStockThreshold}
-                                                    </p>
+                                                    </span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <p className="small fw-semibold text-uppercase text-muted mb-2">
-                                                        {alertItem.staleStatusLabel}: #{alertItem.transactionId}
-                                                    </p>
-                                                    <p className="small mb-1 text-break d-flex align-items-center gap-2">
+                                                    <span className="small text-nowrap d-flex align-items-center gap-2">
                                                         <span className="fs-6 lh-1">{getOperationTypeIcon(alertItem.operationType, alertItem.operationTypeLabel)}</span>
-                                                        <span>
+                                                        <span className="text-nowrap">
                                                             {alertItem.originBranchName}
                                                             {alertItem.destinationBranchName
                                                                 ? ` → ${alertItem.destinationBranchName}`
                                                                 : ""}
                                                         </span>
-                                                    </p>
-                                                    <p className="small text-muted mb-0">
+                                                    </span>
+                                                    <span className="text-muted">|</span>
+                                                    <span className="small text-nowrap">
                                                         {alertItem.daysSinceLastEvent} día(s) sin cambios
-                                                    </p>
+                                                    </span>
                                                 </>
                                             )}
                                         </div>
@@ -675,7 +685,7 @@ export default function DashboardPage() {
     const [activeBranches, setActiveBranches] = useState([]);
 
     // Dashboard state
-    const [selectedPeriod, setSelectedPeriod] = useState("day");
+    const [selectedPeriod, setSelectedPeriod] = useState("total");
     const [selectedBranch, setSelectedBranch] = useState(() => workBranchId);
     const [lastSelectedBranchId, setLastSelectedBranchId] = useState(() => workBranchId);
     const [isDashboardControlsHydrated, setIsDashboardControlsHydrated] = useState(false);
@@ -988,7 +998,7 @@ export default function DashboardPage() {
     return (
         <>
             <Navbar />
-            <Container fluid className="py-4">
+            <Container fluid className="py-4 mx-auto" style={{ maxWidth: "1500px" }}>
                 {/* Error alert */}
                 {error && (
                     <Alert variant="danger" dismissible onClose={() => { }}>
@@ -1011,6 +1021,7 @@ export default function DashboardPage() {
 
                 {/* Main Layout: 2 columns (left: summary + alerts, right: recent operations) */}
                 <div
+                    className="dashboard-main-layout"
                     ref={dashboardLayoutRef}
                     style={{
                         display: "grid",
@@ -1022,9 +1033,9 @@ export default function DashboardPage() {
                     }}
                 >
                     {/* Left Column: Summary (top) and Alerts (bottom) */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", minHeight: 0, height: "100%" }}>
+                    <div className="dashboard-main-left-column" style={{ display: "flex", flexDirection: "column", gap: "1.5rem", minHeight: 0, height: "100%" }}>
                         {/* Section 1: Summary */}
-                        <div style={{ flex: "0 0 auto", minHeight: DASHBOARD_SUMMARY_MIN_HEIGHT }}>
+                        <div className="dashboard-main-section" style={{ flex: "0 0 auto", minHeight: DASHBOARD_SUMMARY_MIN_HEIGHT }}>
                             <DashboardSummarySection
                                 loading={loading}
                                 error={error}
@@ -1034,7 +1045,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Section 2: Alerts */}
-                        <div style={{ flex: "1 1 auto", minHeight: DASHBOARD_ALERTS_MIN_HEIGHT }}>
+                        <div className="dashboard-main-section" style={{ flex: "1 1 auto", minHeight: DASHBOARD_ALERTS_MIN_HEIGHT }}>
                             <DashboardAlertsSection
                                 loading={loading}
                                 alerts={visibleAlerts}
@@ -1047,7 +1058,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Right Column: Recent Operations (full height) */}
-                    <div style={{ minHeight: 0, height: "100%" }}>
+                    <div className="dashboard-main-section" style={{ minHeight: 0, height: "100%" }}>
                         <DashboardRecentOperationsSection
                             loading={recentTransactionsLoading}
                             error={recentTransactionsError}

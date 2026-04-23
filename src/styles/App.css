@@ -249,6 +249,37 @@
   }
 }
 
+@media (max-width: 1199.98px) {
+  .dashboard-summary-grid {
+    align-items: flex-start !important;
+  }
+
+  .dashboard-summary-column,
+  .dashboard-summary-panel {
+    height: auto !important;
+    min-height: 0;
+  }
+
+  .dashboard-summary-chart {
+    height: 220px;
+    min-height: 220px !important;
+  }
+
+  .dashboard-main-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    height: auto !important;
+  }
+
+  .dashboard-main-left-column,
+  .dashboard-main-section {
+    height: auto !important;
+  }
+
+  .dashboard-main-section {
+    max-height: 1000px;
+  }
+}
+
 .stock-status-low-text {
   color: #e6aa05 !important;
   font-weight: 600;

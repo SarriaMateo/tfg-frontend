@@ -16,14 +16,14 @@ export const DASHBOARD_COLORS = {
   // Transaction line colors - Incoming (blue)
   transactions: {
     incoming: {
-      IN: '#023E8A',
-      TRANSFER: '#0096C7',
-      ADJUSTMENT: '#90E0EF',
+      IN: '#1D4ED8',
+      TRANSFER: '#3B82F6',
+      ADJUSTMENT: '#93C5FD',
     },
     outgoing: {
-      OUT: '#ff4d00',
-      TRANSFER: '#ff9a00',
-      ADJUSTMENT: '#ffc100',
+      OUT: '#EA580C',
+      TRANSFER: '#F97316',
+      ADJUSTMENT: '#FDBA74',
     },
   },
   // Stock status colors
