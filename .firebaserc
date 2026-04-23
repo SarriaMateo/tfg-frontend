@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "project-cfa2e14e-a4b0-4f55-9e8"
+  },
+  "targets": {
+    "project-cfa2e14e-a4b0-4f55-9e8": {
+      "hosting": {
+        "itematic": ["itematic-site"],
+        "root": ["mateosarria-root"]
+      }
+    }
   }
 }
