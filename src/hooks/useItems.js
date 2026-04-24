@@ -2,15 +2,29 @@ import { useState, useCallback } from 'react';
 import { itemService } from '../services/itemService';
 import { translateError } from '../utils/errorTranslator';
 import { useAuth } from './useAuth';
+import { useBranchSelection } from './useBranchSelection';
 
 const DEFAULT_ITEMS_QUERY = {
   page: 1,
   pageSize: 20,
+  is_active: true,
   order_by: 'created_at',
   order_desc: true,
 };
 
 const ITEMS_QUERY_STORAGE_PREFIX = 'itemsListState:';
+const SELECTED_BRANCH_KEY = 'selectedBranchId';
+
+const resolveBranchId = (userBranchId, selectedBranchId) => {
+  if (userBranchId) return Number(userBranchId);
+  if (selectedBranchId) return Number(selectedBranchId);
+
+  const storedBranchId = localStorage.getItem(SELECTED_BRANCH_KEY);
+  if (!storedBranchId) return null;
+
+  const parsedStoredBranchId = Number(storedBranchId);
+  return Number.isInteger(parsedStoredBranchId) && parsedStoredBranchId > 0 ? parsedStoredBranchId : null;
+};
 
 const getItemsQueryStorageKey = (userId) => `${ITEMS_QUERY_STORAGE_PREFIX}${userId}`;
 
@@ -55,6 +69,7 @@ const areQueriesEqual = (queryA, queryB) => {
 
 export const useItems = () => {
   const { user } = useAuth();
+  const { selectedBranchId } = useBranchSelection();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -71,6 +86,7 @@ export const useItems = () => {
     setLoading(true);
     setError(null);
     try {
+      const branchId = resolveBranchId(user?.branch_id, selectedBranchId);
       const hasFilters = Object.keys(filters).length > 0;
       const storedQuery = !hasFilters ? readStoredItemsQuery(user?.id) : null;
       const nextQuery = hasFilters
@@ -86,6 +102,10 @@ export const useItems = () => {
         page_size: pageSize,
         ...restFilters,
       };
+
+      if (branchId) {
+        params.branch_id = branchId;
+      }
 
       const response = await itemService.listItems(params);
 
@@ -112,7 +132,7 @@ export const useItems = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [selectedBranchId, user?.id, user?.branch_id]);
 
   return {
     items,

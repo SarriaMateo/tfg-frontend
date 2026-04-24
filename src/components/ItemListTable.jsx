@@ -12,7 +12,7 @@ import { formatDecimal, formatPrice, formatUnit, UNIT_OPTIONS } from '../utils/f
 
 const DEFAULT_FILTERS = {
   search: '',
-  is_active: '',
+  is_active: 'true',
   category_id: '',
   unit: '',
   order_by: 'created_at',
@@ -21,7 +21,7 @@ const DEFAULT_FILTERS = {
 
 const queryToFilters = (query = {}) => ({
   search: query.search || '',
-  is_active: query.is_active === undefined ? '' : String(query.is_active),
+  is_active: query.is_active === undefined ? 'true' : String(query.is_active),
   category_id: query.category_id === undefined ? '' : String(query.category_id),
   unit: query.unit || '',
   order_by: query.order_by || 'created_at',
@@ -154,6 +154,7 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
     onFetchItems({
       page: 1,
       pageSize: 20,
+      is_active: true,
       order_by: 'created_at',
       order_desc: true,
     });
