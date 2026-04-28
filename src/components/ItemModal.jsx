@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal } from './Modal';
 import { ItemForm } from './ItemForm';
+import { translateError } from '../utils/errorTranslator';
 
 export const ItemModal = ({
   isOpen,
@@ -25,7 +26,7 @@ export const ItemModal = ({
     } catch (err) {
       // Update internal error directly from the caught error
       // This ensures the error is displayed immediately without waiting for prop update
-      setInternalError(err.message || 'Error al guardar el artículo');
+      setInternalError(translateError(err));
       // Keep modal open on error
     }
   };

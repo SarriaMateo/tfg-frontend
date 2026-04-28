@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { dashboardService } from "../services/dashboardService";
+import { translateError } from "../utils/errorTranslator";
 
 /**
  * Hook to manage dashboard data fetching and state
@@ -33,7 +34,7 @@ export const useDashboard = (options = {}) => {
       setStockRiskData(stockRisk);
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
-      setError(err.message || "Error al cargar datos del dashboard");
+      setError(translateError(err));
     } finally {
       setLoading(false);
     }

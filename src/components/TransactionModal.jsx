@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal';
 import { TransactionForm } from './TransactionForm';
+import { translateError } from '../utils/errorTranslator';
 
 export const TransactionModal = ({
   isOpen,
@@ -27,7 +28,7 @@ export const TransactionModal = ({
       // Only close if onSave succeeds
       onClose();
     } catch (err) {
-      setInternalError(err.message || 'Error al guardar la operación');
+      setInternalError(translateError(err));
       // Keep modal open on error
     }
   };

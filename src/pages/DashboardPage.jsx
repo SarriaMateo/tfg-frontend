@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { branchService } from "../services/branchService";
 import { transactionService } from "../services/transactionService";
 import { handleNavigationClickWithState } from "../utils/navigationUtils";
+import { translateError } from "../utils/errorTranslator";
 import {
     BsDownload,
     BsArrowLeftRight,
@@ -26,6 +27,7 @@ import {
     BsGear,
     BsInfoCircle,
     BsEyeFill,
+    BsEyeSlashFill,
 } from "react-icons/bs";
 
 const DISMISSED_ALERTS_STORAGE_KEY = "dashboard:dismissedAlerts";
@@ -448,7 +450,7 @@ const DashboardAlertsSection = ({
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h5 className="text-dark fw-bold mb-0">Alertas</h5>
                     <Button
-                        variant="secondary"
+                        variant={dismissedCount > 0 ? "secondary" : "outline-secondary"}
                         size="md"
                         className="px-2 py-1 d-inline-flex align-items-center justify-content-center"
                         onClick={onShowAllAlerts}
@@ -456,7 +458,7 @@ const DashboardAlertsSection = ({
                         aria-label="Mostrar todas"
                         title="Mostrar todas"
                     >
-                        <BsEyeFill />
+                        {dismissedCount > 0 ? <BsEyeFill /> : <BsEyeSlashFill />}
                     </Button>
                 </div>
 
@@ -683,6 +685,8 @@ export default function DashboardPage() {
         : null;
 
     const [activeBranches, setActiveBranches] = useState([]);
+    const [activeBranchesLoaded, setActiveBranchesLoaded] = useState(false);
+    const [hasActiveBranchesLoadError, setHasActiveBranchesLoadError] = useState(false);
 
     // Dashboard state
     const [selectedPeriod, setSelectedPeriod] = useState("total");
@@ -744,20 +748,27 @@ export default function DashboardPage() {
     });
 
     useEffect(() => {
-        if (!isCentralUser) return;
-
         const loadActiveBranches = async () => {
             try {
+                setHasActiveBranchesLoadError(false);
                 const response = await branchService.getBranches({ is_active: true });
                 const branches = Array.isArray(response) ? response : response?.data || [];
                 setActiveBranches(branches);
             } catch (loadError) {
                 setActiveBranches([]);
+                setHasActiveBranchesLoadError(true);
+            } finally {
+                setActiveBranchesLoaded(true);
             }
         };
 
         loadActiveBranches();
-    }, [isCentralUser]);
+    }, []);
+
+    const shouldShowNoActiveBranchesAlert =
+        activeBranchesLoaded &&
+        !hasActiveBranchesLoadError &&
+        activeBranches.length === 0;
 
     const branchOptions = useMemo(
         () => activeBranches.map((branch) => ({
@@ -839,7 +850,7 @@ export default function DashboardPage() {
                 setRecentTransactions(transactions);
             } catch (fetchError) {
                 setRecentTransactions([]);
-                setRecentTransactionsError("No se pudieron cargar las últimas operaciones");
+                setRecentTransactionsError(translateError(fetchError));
             } finally {
                 setRecentTransactionsLoading(false);
             }
@@ -1003,6 +1014,12 @@ export default function DashboardPage() {
                 {error && (
                     <Alert variant="danger" dismissible onClose={() => { }}>
                         {error}
+                    </Alert>
+                )}
+
+                {shouldShowNoActiveBranchesAlert && (
+                    <Alert variant="warning" className="mb-3">
+                        Tu empresa aún no tiene sedes activas. Para comenzar a operar, registra al menos una sede en Ajustes &gt; Sedes.
                     </Alert>
                 )}
 

@@ -523,11 +523,11 @@ export const TransactionListTable = ({
         setBranches(normalizeArrayResponse(branchesResponse));
         setUsers(normalizeArrayResponse(usersResponse));
         setItems(normalizeArrayResponse(itemsResponse));
-      } catch {
+      } catch (err) {
         setBranches([]);
         setUsers([]);
         setItems([]);
-        setCatalogError('No se pudieron cargar los catálogos de filtros.');
+        setCatalogError(translateError(err));
       } finally {
         setLoadingCatalogs(false);
       }

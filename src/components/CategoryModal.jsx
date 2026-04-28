@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal } from './Modal';
 import { CategoryForm } from './CategoryForm';
+import { translateError } from '../utils/errorTranslator';
 
 export const CategoryModal = ({
   isOpen,
@@ -24,7 +25,7 @@ export const CategoryModal = ({
     } catch (err) {
       // Update internal error directly from the caught error
       // This ensures the error is displayed immediately without waiting for prop update
-      setInternalError(err.message || 'Error al guardar la categoría');
+      setInternalError(translateError(err));
       // Keep modal open on error
     }
   };

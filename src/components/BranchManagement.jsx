@@ -43,13 +43,13 @@ export const BranchManagement = () => {
     try {
       await branchService.deleteBranch(branchToDelete);
       setSuccess(true);
-      setShowConfirm(false);
-      setBranchToDelete(null);
       setRefreshKey(prev => prev + 1);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(translateError(err));
     } finally {
+      setShowConfirm(false);
+      setBranchToDelete(null);
       setLoading(false);
     }
   };
