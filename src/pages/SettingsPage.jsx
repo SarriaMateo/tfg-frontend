@@ -18,7 +18,7 @@ export const SettingsPage = () => {
   return (
     <div className="d-flex flex-column min-vh-100">
       <Navbar />
-      <Container fluid className="py-4 flex-grow-1">
+      <Container fluid className="py-4 flex-grow-1 mx-auto" style={{ maxWidth: "1500px" }}>
         <Row className="mb-4">
           <Col>
             <h1 className="display-5 fw-bold text-primary mb-2">Ajustes</h1>
