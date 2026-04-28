@@ -8,8 +8,8 @@ const DEFAULT_ITEMS_QUERY = {
   page: 1,
   pageSize: 20,
   is_active: true,
-  order_by: 'created_at',
-  order_desc: true,
+  order_by: 'name',
+  order_desc: false,
 };
 
 const ITEMS_QUERY_STORAGE_PREFIX = 'itemsListState:';

@@ -15,8 +15,8 @@ const DEFAULT_FILTERS = {
   is_active: 'true',
   category_id: '',
   unit: '',
-  order_by: 'created_at',
-  order_desc: 'true',
+  order_by: 'name',
+  order_desc: 'false',
 };
 
 const queryToFilters = (query = {}) => ({
@@ -24,8 +24,8 @@ const queryToFilters = (query = {}) => ({
   is_active: query.is_active === undefined ? 'true' : String(query.is_active),
   category_id: query.category_id === undefined ? '' : String(query.category_id),
   unit: query.unit || '',
-  order_by: query.order_by || 'created_at',
-  order_desc: String(query.order_desc ?? true),
+  order_by: query.order_by || 'name',
+  order_desc: String(query.order_desc ?? false),
 });
 
 const getStockValue = (stock) => {
@@ -155,8 +155,8 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
       page: 1,
       pageSize: 20,
       is_active: true,
-      order_by: 'created_at',
-      order_desc: true,
+      order_by: 'name',
+      order_desc: false,
     });
   };
 
@@ -523,9 +523,6 @@ export const ItemListTable = ({ items, loading, error, pagination, initialQuery 
             onChange={handlePageSizeChange}
             style={{ width: '92px', height: '38px' }}
           >
-            <option value={1}>1</option>
-            <option value={2}>2</option>
-            <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
             <option value={50}>50</option>
