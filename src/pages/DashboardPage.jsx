@@ -188,20 +188,44 @@ const PieChartTooltip = ({ payload }) => {
     );
 };
 
-const BranchAxisTick = ({ x, y, payload, index }) => {
+const BranchAxisTick = ({ x, y, payload, index, totalBranches }) => {
     const tickOffset = index % 2 === 0 ? 12 : 26;
+    const text = payload.value;
+    
+    // Usar máximo más restrictivo (8) para primera y última sede, 12 para las demás
+    const isEdge = index === 0 || index === (totalBranches - 1);
+    const maxCharsPerLine = isEdge ? 8 : 12;
+
+    // Dividir texto largo en múltiples líneas por palabras
+    const lines = [];
+    let currentLine = "";
+    const words = text.split(" ");
+
+    words.forEach((word) => {
+        const testLine = currentLine + (currentLine ? " " : "") + word;
+        if (testLine.length <= maxCharsPerLine) {
+            currentLine = testLine;
+        } else {
+            if (currentLine) lines.push(currentLine);
+            currentLine = word;
+        }
+    });
+    if (currentLine) lines.push(currentLine);
 
     return (
         <g transform={`translate(${x},${y})`}>
             <text
                 x={0}
                 y={0}
-                dy={tickOffset}
                 textAnchor="middle"
                 fill="#6c757d"
                 fontSize={11}
             >
-                {payload.value}
+                {lines.map((line, idx) => (
+                    <tspan key={idx} x={0} dy={idx === 0 ? tickOffset : 12}>
+                        {line}
+                    </tspan>
+                ))}
             </text>
         </g>
     );
@@ -403,7 +427,7 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
                                             <ResponsiveContainer width="100%" height="100%">
                                             <BarChart data={stockByBranchChartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
                                                 <CartesianGrid strokeDasharray="3 3" />
-                                                <XAxis dataKey="branchName" tick={<BranchAxisTick />} interval={0} minTickGap={0} height={44} />
+                                                <XAxis dataKey="branchName" tick={(props) => <BranchAxisTick {...props} totalBranches={stockByBranchChartData.length} />} interval={0} minTickGap={0} height={44} />
                                                 <Tooltip content={<StockChartTooltip />} />
                                                 <Bar dataKey="healthy" name="Stock saludable" stackId="stock" fill={DASHBOARD_COLORS.stock.healthy} barSize={stockBarSize} />
                                                 <Bar dataKey="low" name="Stock bajo" stackId="stock" fill={DASHBOARD_COLORS.stock.low} barSize={stockBarSize} />
