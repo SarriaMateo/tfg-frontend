@@ -14,8 +14,8 @@ import { translateError } from '../utils/errorTranslator';
 import { useAuthorization } from '../hooks/useAuthorization';
 import { useAuth } from '../hooks/useAuth';
 import { useTransactionPermissions } from '../hooks/useTransactionPermissions';
+import { buildNavigationState, handleNavigationClickWithState, handleFileOpenClick, navigateBackWithHistory } from '../utils/navigationUtils';
 import { formatDecimal, formatUnit } from '../utils/formatters';
-import { handleNavigationClickWithState, handleFileOpenClick } from '../utils/navigationUtils';
 
 const OPERATION_TYPE_LABELS = {
   IN: 'Entrada',
@@ -749,10 +749,15 @@ export const TransactionDetailPage = () => {
               variant="outline-secondary"
               className="detail-page-action-btn"
               onClick={(e) => {
-                const path = fromDashboard
+                const fallbackPath = fromDashboard
                   ? '/dashboard'
                   : (fromItemId ? `/inventory/items/${fromItemId}` : '/transactions');
-                handleNavigationClickWithState(e, path, {}, navigate);
+
+                if (!e.ctrlKey && !e.metaKey && navigateBackWithHistory(location, navigate, fallbackPath)) {
+                  return;
+                }
+
+                handleNavigationClickWithState(e, fallbackPath, {}, navigate);
               }}
               disabled={actionLoading}
             >
@@ -937,12 +942,15 @@ export const TransactionDetailPage = () => {
                                     variant="primary"
                                     size="sm"
                                     className="list-action-btn"
-                                    onClick={(e) => handleNavigationClickWithState(
-                                      e,
-                                      `/inventory/items/${line.item_id}`,
-                                      { fromTransactionId: transaction.id },
-                                      navigate,
-                                    )}
+                                    onClick={(e) => {
+                                      const nextState = buildNavigationState(location, { fromTransactionId: transaction.id });
+                                      handleNavigationClickWithState(
+                                        e,
+                                        `/inventory/items/${line.item_id}`,
+                                        nextState,
+                                        navigate,
+                                      );
+                                    }}
                                     title="Ver detalles del artículo"
                                   >
                                     <BsInfoCircle />

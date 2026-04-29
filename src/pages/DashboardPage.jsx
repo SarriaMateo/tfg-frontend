@@ -15,10 +15,10 @@ import { Navbar } from "../components/Navbar";
 import { useAuth } from "../hooks/useAuth";
 import { useDashboard } from "../hooks/useDashboard";
 import { DASHBOARD_COLORS } from "../constants/colors";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { branchService } from "../services/branchService";
 import { transactionService } from "../services/transactionService";
-import { handleNavigationClickWithState } from "../utils/navigationUtils";
+import { buildNavigationState, handleNavigationClickWithState } from "../utils/navigationUtils";
 import { translateError } from "../utils/errorTranslator";
 import {
     BsDownload,
@@ -29,7 +29,7 @@ import {
     BsEyeFill,
     BsEyeSlashFill,
 } from "react-icons/bs";
-
+ 
 const DISMISSED_ALERTS_STORAGE_KEY = "dashboard:dismissedAlerts";
 const DASHBOARD_CONTROLS_STORAGE_PREFIX = "dashboardControlsState:";
 const PERIOD_OPTIONS = ["day", "week", "month", "total"];
@@ -700,6 +700,7 @@ const DashboardRecentOperationsSection = ({
 
 export default function DashboardPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
     const dashboardLayoutRef = useRef(null);
 
@@ -913,7 +914,7 @@ export default function DashboardPage() {
 
     const handleOpenTransactionDetails = (event, transactionId) => {
         const path = `/transactions/${transactionId}`;
-        const state = { fromDashboard: true };
+        const state = buildNavigationState(location, { fromDashboard: true });
 
         if (event) {
             handleNavigationClickWithState(event, path, state, navigate);

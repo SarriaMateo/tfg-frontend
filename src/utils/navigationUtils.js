@@ -50,6 +50,51 @@ export const handleNavigationClickWithState = (event, path, state, navigate) => 
   }
 };
 
+const getNavigationStack = (state) => {
+  return Array.isArray(state?.navigationStack) ? state.navigationStack : [];
+};
+
+const stripNavigationStack = (state = {}) => {
+  const { navigationStack, ...rest } = state || {};
+  return rest;
+};
+
+export const buildNavigationState = (location, extraState = {}) => {
+  const navigationStack = getNavigationStack(location?.state);
+  return {
+    ...extraState,
+    navigationStack: [
+      ...navigationStack,
+      {
+        path: location?.pathname || '/',
+        state: stripNavigationStack(location?.state),
+      },
+    ],
+  };
+};
+
+export const hasNavigationHistory = (location) => {
+  return getNavigationStack(location?.state).length > 0;
+};
+
+export const navigateBackWithHistory = (location, navigate, fallbackPath, fallbackState = {}) => {
+  const navigationStack = getNavigationStack(location?.state);
+
+  if (navigationStack.length === 0) {
+    navigate(fallbackPath, { state: fallbackState });
+    return false;
+  }
+
+  const lastEntry = navigationStack[navigationStack.length - 1];
+  navigate(lastEntry.path, {
+    state: {
+      ...lastEntry.state,
+      navigationStack: navigationStack.slice(0, -1),
+    },
+  });
+  return true;
+};
+
 /**
  * Opens a file in a new tab
  * Clicks on image/document previews always open in a new tab
