@@ -284,16 +284,16 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
     // Extract aggregate data from all branches
     const aggregatedData = activityData?.data?.reduce(
         (acc, branchData) => ({
-            totalOperations: acc.totalOperations + (branchData.operations_count || 0),
+            totalOperations: acc.totalOperations + (branchData.transactions_count || 0),
             totalIncoming: acc.totalIncoming + (branchData.incoming_transaction_lines_count || 0),
             totalOutgoing: acc.totalOutgoing + (branchData.outgoing_transaction_lines_count || 0),
         }),
         { totalOperations: 0, totalIncoming: 0, totalOutgoing: 0 }
     ) || { totalOperations: 0, totalIncoming: 0, totalOutgoing: 0 };
 
-    // Get pending operations from stock risk data
-    const pendingOperations = stockRiskData?.data?.reduce(
-        (acc, branchData) => acc + (branchData.pending_operations_count || 0),
+    // Get open transactions from activity data; this metric is always total, not period-filtered
+    const openTransactions = activityData?.data?.reduce(
+        (acc, branchData) => acc + (branchData.open_transactions || 0),
         0
     ) || 0;
 
@@ -364,9 +364,9 @@ const DashboardSummarySection = ({ loading, error, activityData, stockRiskData }
                                 </div>
 
                                 <div className="text-center d-flex flex-column justify-content-center rounded-3 px-1 py-4">
-                                    <p className="text-muted small mb-3">Operaciones Pendientes</p>
+                                    <p className="text-muted small mb-3">Operaciones Abiertas</p>
                                     <p className="fs-2 fw-bold text-warning mb-0 lh-1">
-                                        {pendingOperations}
+                                        {openTransactions}
                                     </p>
                                 </div>
                             </div>
@@ -566,7 +566,7 @@ const DashboardAlertsSection = ({
                                                     </span>
                                                     <span className="text-muted">|</span>
                                                     <span className="small text-nowrap">
-                                                        {alertItem.daysSinceLastEvent} día(s) sin cambios
+                                                        {alertItem.daysSinceLastEvent} días sin cambios
                                                     </span>
                                                 </>
                                             )}
