@@ -796,25 +796,15 @@ export const TransactionDetailPage = () => {
                 <Card.Body className="p-4">
                   <div className="d-flex justify-content-between align-items-start mb-4">
                     <div>
-                      <h3 className="fw-bold mb-1">Operación #{transaction.id}</h3>
-                      <p className="text-muted mb-0">Creada el {formatTransactionDateTime(transaction.created_at)}</p>
+                      <h3 className="fw-bold mb-1">{getOperationTypeLabel(transaction.operation_type)} #{transaction.id}</h3>
+                      <p className="text-muted mb-0">
+                        {['IN', 'OUT'].includes(transaction.operation_type) ? 'Creada el ' : 'Creado el '}{formatTransactionDateTime(transaction.created_at)}</p>
                       <p className="text-muted mb-0">Último evento el {formatTransactionDateTime(transaction.last_event_at)}</p>
                     </div>
                     <span className={`badge ${getStatusBadgeClassName(transaction.status)}`}>
                       {getStatusLabel(transaction.status)}
                     </span>
                   </div>
-
-                  <Row className="mb-3">
-                    <Col md={6}>
-                      <p className="mb-1 text-muted">Tipo de operación</p>
-                      <p className="fw-semibold mb-0">{getOperationTypeLabel(transaction.operation_type)}</p>
-                    </Col>
-                    <Col md={6}>
-                      <p className="mb-1 text-muted">Documento adjunto</p>
-                      <p className="fw-semibold mb-0">{hasDocument ? 'Disponible' : 'Sin documento'}</p>
-                    </Col>
-                  </Row>
 
                   <Row className="mb-3">
                     <Col md={6}>

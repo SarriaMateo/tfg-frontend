@@ -7,7 +7,9 @@ const DEFAULT_ORDER_BY = 'last_event_at';
 
 const normalizeOrderBy = (orderByValue) => {
   if (orderByValue === 'total_items') return 'total_items';
-  if (orderByValue === 'created_at') return DEFAULT_ORDER_BY;
+  if (orderByValue === 'created_at') return 'created_at';
+  if (orderByValue === 'status') return 'status';
+  if (orderByValue === 'operation_type') return 'operation_type';
   if (orderByValue === DEFAULT_ORDER_BY) return DEFAULT_ORDER_BY;
   return DEFAULT_ORDER_BY;
 };

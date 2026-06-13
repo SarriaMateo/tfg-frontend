@@ -36,13 +36,19 @@ const readStoredItemsQuery = (userId) => {
     if (!rawValue) return null;
 
     const parsed = JSON.parse(rawValue);
-    return {
-      ...DEFAULT_ITEMS_QUERY,
+    const storedQuery = {
       ...parsed,
       page: Number(parsed?.page) || DEFAULT_ITEMS_QUERY.page,
       pageSize: Number(parsed?.pageSize) || DEFAULT_ITEMS_QUERY.pageSize,
+      order_by: parsed?.order_by || DEFAULT_ITEMS_QUERY.order_by,
       order_desc: typeof parsed?.order_desc === 'boolean' ? parsed.order_desc : DEFAULT_ITEMS_QUERY.order_desc,
     };
+
+    if (Object.prototype.hasOwnProperty.call(parsed, 'is_active')) {
+      storedQuery.is_active = parsed.is_active;
+    }
+
+    return storedQuery;
   } catch {
     return null;
   }
@@ -91,8 +97,11 @@ export const useItems = () => {
       const storedQuery = !hasFilters ? readStoredItemsQuery(user?.id) : null;
       const nextQuery = hasFilters
         ? {
-            ...DEFAULT_ITEMS_QUERY,
             ...filters,
+            page: filters.page ?? 1,
+            pageSize: filters.pageSize ?? DEFAULT_ITEMS_QUERY.pageSize,
+            order_by: filters.order_by ?? DEFAULT_ITEMS_QUERY.order_by,
+            order_desc: filters.order_desc ?? DEFAULT_ITEMS_QUERY.order_desc,
           }
         : (storedQuery || DEFAULT_ITEMS_QUERY);
 
@@ -110,7 +119,6 @@ export const useItems = () => {
       const response = await itemService.listItems(params);
 
       const normalizedQuery = {
-        ...DEFAULT_ITEMS_QUERY,
         ...restFilters,
         page,
         pageSize,

@@ -19,7 +19,9 @@ const DEFAULT_ORDER_BY = 'last_event_at';
 
 const normalizeOrderBy = (orderByValue) => {
   if (orderByValue === 'total_items') return 'total_items';
-  if (orderByValue === 'created_at') return DEFAULT_ORDER_BY;
+  if (orderByValue === 'created_at') return 'created_at';
+  if (orderByValue === 'status') return 'status';
+  if (orderByValue === 'operation_type') return 'operation_type';
   if (orderByValue === DEFAULT_ORDER_BY) return DEFAULT_ORDER_BY;
   return DEFAULT_ORDER_BY;
 };
@@ -716,6 +718,9 @@ export const TransactionListTable = ({
                 style={selectControlStyle}
               >
                 <option value="last_event_at">Último evento</option>
+                <option value="created_at">Fecha de creación</option>
+                <option value="status">Estado</option>
+                <option value="operation_type">Tipo de operación</option>
                 <option value="total_items">Número de líneas</option>
               </Form.Select>
             </Form.Group>

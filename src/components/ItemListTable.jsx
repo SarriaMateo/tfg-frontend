@@ -21,7 +21,7 @@ const DEFAULT_FILTERS = {
 
 const queryToFilters = (query = {}) => ({
   search: query.search || '',
-  is_active: query.is_active === undefined ? 'true' : String(query.is_active),
+  is_active: query.is_active === undefined ? '' : String(query.is_active),
   category_id: query.category_id === undefined ? '' : String(query.category_id),
   unit: query.unit || '',
   order_by: query.order_by || 'name',

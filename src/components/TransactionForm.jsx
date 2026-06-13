@@ -197,7 +197,7 @@ export const TransactionForm = ({
           }
           if (item) {
             selected.push(item);
-            quantities[item.id] = String(line.quantity);
+            quantities[item.id] = formatDecimal(line.quantity);
           }
         } catch {
           // Skip items that can't be fetched

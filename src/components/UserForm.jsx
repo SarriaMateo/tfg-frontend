@@ -36,7 +36,7 @@ export const UserForm = ({
         username: user.username || '',
         password: '',
         role: user.role || 'EMPLOYEE',
-        branch_id: user.branch_id || '',
+        branch_id: user.role === 'ADMIN' ? '' : (user.branch_id || ''),
         is_active: user.is_active !== undefined ? user.is_active : true,
       });
     }
@@ -63,10 +63,22 @@ export const UserForm = ({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData(prev => {
+      const nextValue = type === 'checkbox' ? checked : value;
+
+      if (name === 'role' && nextValue === 'ADMIN') {
+        return {
+          ...prev,
+          role: nextValue,
+          branch_id: '',
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: nextValue,
+      };
+    });
     // Clear both internal and external errors
     setError(null);
     if (onErrorChange) {
@@ -105,6 +117,7 @@ export const UserForm = ({
   };
 
   const isCreating = !user;
+  const isAdminRole = formData.role === 'ADMIN';
 
   const handleCloseError = () => {
     setError(null);
@@ -192,7 +205,7 @@ export const UserForm = ({
                   name="branch_id"
                   value={formData.branch_id}
                   onChange={handleChange}
-                  disabled={loading || loadingBranches}
+                  disabled={loading || loadingBranches || isAdminRole}
                   style={selectControlStyle}
                 >
                   <option value="">Sin sede asignada</option>
